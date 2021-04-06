@@ -1,0 +1,320 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ChangeListManager">
+    <list default="true" id="58c6cb47-3664-4a3a-a472-e4643dd7a4d6" name="Default Changelist" comment="">
+      <change afterPath="$PROJECT_DIR$/core/cpu.go" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/core/cpu_test.go" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/core/memory.go" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/main.go" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../prata/build.gradle" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../prata/gradlew" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../prata/gradlew.bat" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../prata/settings.gradle" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../prata/src/main/java/nu/rydin/prata/app/Application.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../prata/src/main/java/nu/rydin/prata/app/CRUDController.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../prata/src/main/java/nu/rydin/prata/app/PrataApplicationRunner.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../prata/src/main/java/nu/rydin/prata/app/users/UserController.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../prata/src/main/java/nu/rydin/prata/app/users/UserRepo.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../prata/src/main/java/nu/rydin/prata/models/Channel.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../prata/src/main/java/nu/rydin/prata/models/Identifiable.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../prata/src/main/java/nu/rydin/prata/models/Membership.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../prata/src/main/java/nu/rydin/prata/models/MembershipId.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../prata/src/main/java/nu/rydin/prata/models/Post.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../prata/src/main/java/nu/rydin/prata/models/User.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../prata/src/main/java/nu/rydin/prata/repos/ChannelRepo.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../prata/src/main/java/nu/rydin/prata/repos/MembershipRepo.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../prata/src/main/java/nu/rydin/prata/repos/PostRepo.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../prata/src/main/resources/application-dev.properties" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../prata/src/main/resources/application.properties" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../vexpress-frontend/.gitignore" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../vexpress-frontend/src/main/java/vexpress/frontend/Config.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../vexpress-frontend/src/main/java/vexpress/frontend/FrontendApplication.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../vexpress-frontend/src/main/java/vexpress/frontend/FrontendController.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../vexpress-pricing/templates/application-properties.tpl" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../vexpress-scheduling/templates/application-properties.tpl" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../vra8gateway/src/main/java/com/fedex/cloudops/fake/security/redux/CipherCacheLoader.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../fizzbuzz/fizzbuzz.iml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../gradle/wrapper/gradle-wrapper.jar" beforeDir="false" afterPath="$PROJECT_DIR$/../gradle/wrapper/gradle-wrapper.jar" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../gradle/wrapper/gradle-wrapper.properties" beforeDir="false" afterPath="$PROJECT_DIR$/../gradle/wrapper/gradle-wrapper.properties" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../gradlew" beforeDir="false" afterPath="$PROJECT_DIR$/../gradlew" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../gradlew.bat" beforeDir="false" afterPath="$PROJECT_DIR$/../gradlew.bat" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../src/main/java/net/querz/io/Deserializer.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../src/main/java/net/querz/io/ExceptionBiFunction.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../src/main/java/net/querz/io/ExceptionTriConsumer.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../src/main/java/net/querz/io/MaxDepthIO.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../src/main/java/net/querz/io/MaxDepthReachedException.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../src/main/java/net/querz/io/Serializer.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../src/main/java/net/querz/io/StringDeserializer.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../src/main/java/net/querz/io/StringSerializer.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../src/main/java/net/querz/mca/Chunk.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../src/main/java/net/querz/mca/CompressionType.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../src/main/java/net/querz/mca/ExceptionFunction.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../src/main/java/net/querz/mca/MCAFile.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../src/main/java/net/querz/mca/MCAUtil.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../src/main/java/net/querz/mca/Section.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../src/main/java/net/querz/nbt/io/NBTDeserializer.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../src/main/java/net/querz/nbt/io/NBTInputStream.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../src/main/java/net/querz/nbt/io/NBTOutputStream.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../src/main/java/net/querz/nbt/io/NBTSerializer.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../src/main/java/net/querz/nbt/io/NBTUtil.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../src/main/java/net/querz/nbt/io/NamedTag.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../src/main/java/net/querz/nbt/io/ParseException.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../src/main/java/net/querz/nbt/io/SNBTDeserializer.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../src/main/java/net/querz/nbt/io/SNBTParser.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../src/main/java/net/querz/nbt/io/SNBTSerializer.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../src/main/java/net/querz/nbt/io/SNBTUtil.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../src/main/java/net/querz/nbt/io/SNBTWriter.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../src/main/java/net/querz/nbt/io/StringPointer.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../src/main/java/net/querz/nbt/tag/ArrayTag.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../src/main/java/net/querz/nbt/tag/ByteArrayTag.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../src/main/java/net/querz/nbt/tag/ByteTag.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../src/main/java/net/querz/nbt/tag/CompoundTag.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../src/main/java/net/querz/nbt/tag/DoubleTag.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../src/main/java/net/querz/nbt/tag/EndTag.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../src/main/java/net/querz/nbt/tag/FloatTag.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../src/main/java/net/querz/nbt/tag/IntArrayTag.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../src/main/java/net/querz/nbt/tag/IntTag.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../src/main/java/net/querz/nbt/tag/ListTag.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../src/main/java/net/querz/nbt/tag/LongArrayTag.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../src/main/java/net/querz/nbt/tag/LongTag.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../src/main/java/net/querz/nbt/tag/NonNullEntrySet.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../src/main/java/net/querz/nbt/tag/NumberTag.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../src/main/java/net/querz/nbt/tag/ShortTag.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../src/main/java/net/querz/nbt/tag/StringTag.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../src/main/java/net/querz/nbt/tag/Tag.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../src/test/java/net/querz/ExceptionRunnable.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../src/test/java/net/querz/ExceptionSupplier.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../src/test/java/net/querz/NBTTestCase.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../src/test/java/net/querz/mca/CompressionTypeTest.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../src/test/java/net/querz/mca/MCAFileTest.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../src/test/java/net/querz/mca/MCATestCase.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../src/test/java/net/querz/mca/MCAUtilTest.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../src/test/java/net/querz/nbt/io/NamedTagTest.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../src/test/java/net/querz/nbt/io/SNBTParserTest.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../src/test/java/net/querz/nbt/io/SNBTWriterTest.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../src/test/java/net/querz/nbt/io/StringPointerTest.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../src/test/java/net/querz/nbt/tag/ByteArrayTagTest.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../src/test/java/net/querz/nbt/tag/ByteTagTest.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../src/test/java/net/querz/nbt/tag/CompoundTagTest.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../src/test/java/net/querz/nbt/tag/DoubleTagTest.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../src/test/java/net/querz/nbt/tag/EndTagTest.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../src/test/java/net/querz/nbt/tag/FloatTagTest.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../src/test/java/net/querz/nbt/tag/IntArrayTagTest.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../src/test/java/net/querz/nbt/tag/IntTagTest.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../src/test/java/net/querz/nbt/tag/ListTagTest.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../src/test/java/net/querz/nbt/tag/LongArrayTagTest.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../src/test/java/net/querz/nbt/tag/LongTagTest.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../src/test/java/net/querz/nbt/tag/NoNullEntrySetTest.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../src/test/java/net/querz/nbt/tag/ShortTagTest.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../src/test/java/net/querz/nbt/tag/StringTagTest.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../src/test/resources/invalid_compression.dat" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../src/test/resources/invalid_data_tag.dat" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../src/test/resources/max_depth_reached.dat" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../src/test/resources/r.0.0.mca" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../src/test/resources/r.2.2.mca" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../vexpress/pricing/.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/../vexpress/pricing/.gitignore" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../vexpress/pricing/build.gradle" beforeDir="false" afterPath="$PROJECT_DIR$/../vexpress/pricing/build.gradle" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../vexpress/pricing/src/main/java/vexpress/pricing/PricingApplication.java" beforeDir="false" afterPath="$PROJECT_DIR$/../vexpress/pricing/src/main/java/vexpress/pricing/PricingApplication.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../vexpress/pricing/src/main/java/vexpress/pricing/PricingController.java" beforeDir="false" afterPath="$PROJECT_DIR$/../vexpress/pricing/src/main/java/vexpress/pricing/PricingController.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../vexpress/zipcode/build.gradle" beforeDir="false" afterPath="$PROJECT_DIR$/../vexpress/zipcode/build.gradle" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../vexpress/zipcode/src/main/java/vexpress/zipcode/DistanceResponse.java" beforeDir="false" afterPath="$PROJECT_DIR$/../vexpress/zipcode/src/main/java/vexpress/zipcode/DistanceResponse.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../vexpress/zipcode/src/main/java/vexpress/zipcode/Loader.java" beforeDir="false" afterPath="$PROJECT_DIR$/../vexpress/zipcode/src/main/java/vexpress/zipcode/Loader.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../vexpress/zipcode/src/main/java/vexpress/zipcode/ZipCodeApplication.java" beforeDir="false" afterPath="$PROJECT_DIR$/../vexpress/zipcode/src/main/java/vexpress/zipcode/ZipCodeApplication.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../vexpress/zipcode/src/main/java/vexpress/zipcode/ZipCodeController.java" beforeDir="false" afterPath="$PROJECT_DIR$/../vexpress/zipcode/src/main/java/vexpress/zipcode/ZipCodeController.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../vexpress/zipcode/src/main/java/vexpress/zipcode/ZipCodeDetails.java" beforeDir="false" afterPath="$PROJECT_DIR$/../vexpress/zipcode/src/main/java/vexpress/zipcode/ZipCodeDetails.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../vexpress/zipcode/src/main/java/vexpress/zipcode/ZipNotFoundException.java" beforeDir="false" afterPath="$PROJECT_DIR$/../vexpress/zipcode/src/main/java/vexpress/zipcode/ZipNotFoundException.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../vexpress/zipcode/src/main/sql/zipcodes.sql" beforeDir="false" afterPath="$PROJECT_DIR$/../vexpress/zipcode/src/main/sql/zipcodes.sql" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../vexpress/zipcode/src/test/java/vexpress/zipcode/TestZipCode.java" beforeDir="false" afterPath="$PROJECT_DIR$/../vexpress/zipcode/src/test/java/vexpress/zipcode/TestZipCode.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../virtex/gradle/project.gradle" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../virtex/pricing/build.gradle" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../virtex/pricing/pricing.iml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../virtex/pricing/src/main/java/virtex/pricing/PricingRequest.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../vmware-vra8-jenkins-plugin/src/main/java/net/virtualviking/vra/jenkinsplugin/vra/VraApi.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../vmware-vra8-jenkins-plugin/src/test/java/net/virtualviking/vra/jenkinsplugin/vra/VraApiTest.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../vra8-jenkins-plugin/vra8-jenkins-plugin/src/main/java/net/virtualviking/vra/jenkinsplugin/model/AuthenticationRequest.java" beforeDir="false" afterPath="$PROJECT_DIR$/../vra8-jenkins-plugin/vra8-jenkins-plugin/src/main/java/net/virtualviking/vra/jenkinsplugin/model/AuthenticationRequest.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../vra8-jenkins-plugin/vra8-jenkins-plugin/src/main/java/net/virtualviking/vra/jenkinsplugin/model/AuthenticationResponse.java" beforeDir="false" afterPath="$PROJECT_DIR$/../vra8-jenkins-plugin/vra8-jenkins-plugin/src/main/java/net/virtualviking/vra/jenkinsplugin/model/AuthenticationResponse.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../vra8-jenkins-plugin/vra8-jenkins-plugin/src/main/java/net/virtualviking/vra/jenkinsplugin/vra/VRAClient.java" beforeDir="false" afterPath="$PROJECT_DIR$/../vra8-jenkins-plugin/vra8-jenkins-plugin/src/main/java/net/virtualviking/vra/jenkinsplugin/vra/VRAClient.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../vra8-jenkins-plugin/vra8-jenkins-plugin/src/main/java/net/virtualviking/vra/jenkinsplugin/vra/VRAException.java" beforeDir="false" afterPath="$PROJECT_DIR$/../vra8-jenkins-plugin/vra8-jenkins-plugin/src/main/java/net/virtualviking/vra/jenkinsplugin/vra/VRAException.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../vrealize-automation-plugin-for-jenkins/src/test/java/com/vmware/vra/jenkinsplugin/pipeline/E2EPipelinePart1Test.java" beforeDir="false" afterPath="$PROJECT_DIR$/../vrealize-automation-plugin-for-jenkins/src/test/java/com/vmware/vra/jenkinsplugin/pipeline/E2EPipelinePart1Test.java" afterDir="false" />
+    </list>
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="FileTemplateManagerImpl">
+    <option name="RECENT_TEMPLATES">
+      <list>
+        <option value="Go File" />
+      </list>
+    </option>
+  </component>
+  <component name="GOROOT" path="/usr/local/go" />
+  <component name="Git.Settings">
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$/.." />
+  </component>
+  <component name="ProjectId" id="1qiNRgb9XS5wHhqnWxxTR4MfpKa" />
+  <component name="ProjectLevelVcsManager" settingsEditedManually="true" />
+  <component name="ProjectViewState">
+    <option name="hideEmptyMiddlePackages" value="true" />
+    <option name="showExcludedFiles" value="true" />
+    <option name="showLibraryContents" value="true" />
+  </component>
+  <component name="PropertiesComponent">
+    <property name="DefaultGoTemplateProperty" value="Go File" />
+    <property name="RunOnceActivity.ShowReadmeOnStart" value="true" />
+    <property name="WebServerToolWindowFactoryState" value="false" />
+    <property name="go.import.settings.migrated" value="true" />
+    <property name="go.tried.to.enable.integration.vgo.integrator" value="true" />
+    <property name="last_opened_file_path" value="$USER_HOME$" />
+    <property name="nodejs_interpreter_path.stuck_in_default_project" value="undefined stuck path" />
+    <property name="nodejs_npm_path_reset_for_default_project" value="true" />
+    <property name="settings.editor.selected.configurable" value="go.vgo" />
+  </component>
+  <component name="RecentsManager">
+    <key name="MoveFile.RECENT_KEYS">
+      <recent name="$PROJECT_DIR$/core" />
+    </key>
+  </component>
+  <component name="RunManager" selected="Go Test.TestAcc in cpu_test.go (1)">
+    <configuration name="go build main.go" type="GoApplicationRunConfiguration" factoryName="Go Application" temporary="true" nameIsGenerated="true">
+      <module name="emu6502" />
+      <working_directory value="$PROJECT_DIR$/" />
+      <kind value="FILE" />
+      <filePath value="$PROJECT_DIR$/main.go" />
+      <directory value="$PROJECT_DIR$/" />
+      <method v="2" />
+    </configuration>
+    <configuration name="TestAcc in cpu_test.go (1)" type="GoTestRunConfiguration" factoryName="Go Test" temporary="true" nameIsGenerated="true">
+      <module name="emu6502" />
+      <working_directory value="$PROJECT_DIR$/core" />
+      <framework value="gotest" />
+      <kind value="FILE" />
+      <filePath value="$PROJECT_DIR$/core/cpu_test.go" />
+      <pattern value="^TestAcc$" />
+      <method v="2" />
+    </configuration>
+    <configuration name="TestIndexX in github.com/prydin/emu6502/core" type="GoTestRunConfiguration" factoryName="Go Test" temporary="true" nameIsGenerated="true">
+      <module name="emu6502" />
+      <working_directory value="$PROJECT_DIR$/core" />
+      <framework value="gotest" />
+      <kind value="PACKAGE" />
+      <package value="github.com/prydin/emu6502/core" />
+      <directory value="$PROJECT_DIR$/" />
+      <filePath value="$PROJECT_DIR$/" />
+      <pattern value="^TestIndexX$" />
+      <method v="2" />
+    </configuration>
+    <configuration name="TestIndexY in github.com/prydin/emu6502/core" type="GoTestRunConfiguration" factoryName="Go Test" temporary="true" nameIsGenerated="true">
+      <module name="emu6502" />
+      <working_directory value="$PROJECT_DIR$/core" />
+      <framework value="gotest" />
+      <kind value="PACKAGE" />
+      <package value="github.com/prydin/emu6502/core" />
+      <directory value="$PROJECT_DIR$/" />
+      <filePath value="$PROJECT_DIR$/" />
+      <pattern value="^TestIndexY$" />
+      <method v="2" />
+    </configuration>
+    <configuration name="cpu_test.go" type="GoTestRunConfiguration" factoryName="Go Test" temporary="true" nameIsGenerated="true">
+      <module name="emu6502" />
+      <working_directory value="$PROJECT_DIR$/core" />
+      <framework value="gotest" />
+      <kind value="FILE" />
+      <filePath value="$PROJECT_DIR$/core/cpu_test.go" />
+      <method v="2" />
+    </configuration>
+    <recent_temporary>
+      <list>
+        <item itemvalue="Go Test.TestAcc in cpu_test.go (1)" />
+        <item itemvalue="Go Test.TestIndexY in github.com/prydin/emu6502/core" />
+        <item itemvalue="Go Test.TestIndexX in github.com/prydin/emu6502/core" />
+        <item itemvalue="Go Test.cpu_test.go" />
+        <item itemvalue="Go Build.go build main.go" />
+      </list>
+    </recent_temporary>
+  </component>
+  <component name="ServiceViewManager">
+    <option name="viewStates">
+      <list>
+        <serviceView>
+          <treeState>
+            <expand />
+            <select />
+          </treeState>
+        </serviceView>
+      </list>
+    </option>
+  </component>
+  <component name="TypeScriptGeneratedFilesManager">
+    <option name="version" value="1" />
+  </component>
+  <component name="VgoProject">
+    <integration-enabled>true</integration-enabled>
+  </component>
+  <component name="WindowStateProjectService">
+    <state x="-1408" y="-207" key="#Go_Modules_(vgo)" timestamp="1617559168594">
+      <screen x="-1920" y="-452" width="1920" height="1175" />
+    </state>
+    <state x="-1408" y="-207" key="#Go_Modules_(vgo)/-1920.-452.1920.1175/0.25.1680.1025@-1920.-452.1920.1175" timestamp="1617559168594" />
+    <state x="-1467" y="-218" key="#com.intellij.execution.impl.EditConfigurationsDialog" timestamp="1617567460455">
+      <screen x="-1920" y="-452" width="1920" height="1175" />
+    </state>
+    <state x="-1467" y="-218" key="#com.intellij.execution.impl.EditConfigurationsDialog/-1920.-452.1920.1175/0.25.1680.1025@-1920.-452.1920.1175" timestamp="1617567460455" />
+    <state width="1821" height="370" key="GridCell.Tab.0.bottom" timestamp="1617672313345">
+      <screen x="-1920" y="-452" width="1920" height="1175" />
+    </state>
+    <state width="1821" height="370" key="GridCell.Tab.0.bottom/-1920.-452.1920.1175/0.25.1680.1025@-1920.-452.1920.1175" timestamp="1617672313345" />
+    <state width="1821" height="370" key="GridCell.Tab.0.center" timestamp="1617672313344">
+      <screen x="-1920" y="-452" width="1920" height="1175" />
+    </state>
+    <state width="1821" height="370" key="GridCell.Tab.0.center/-1920.-452.1920.1175/0.25.1680.1025@-1920.-452.1920.1175" timestamp="1617672313344" />
+    <state width="1821" height="370" key="GridCell.Tab.0.left" timestamp="1617672313343">
+      <screen x="-1920" y="-452" width="1920" height="1175" />
+    </state>
+    <state width="1821" height="370" key="GridCell.Tab.0.left/-1920.-452.1920.1175/0.25.1680.1025@-1920.-452.1920.1175" timestamp="1617672313343" />
+    <state width="1821" height="370" key="GridCell.Tab.0.right" timestamp="1617672313344">
+      <screen x="-1920" y="-452" width="1920" height="1175" />
+    </state>
+    <state width="1821" height="370" key="GridCell.Tab.0.right/-1920.-452.1920.1175/0.25.1680.1025@-1920.-452.1920.1175" timestamp="1617672313344" />
+    <state width="1821" height="370" key="GridCell.Tab.1.bottom" timestamp="1617672313346">
+      <screen x="-1920" y="-452" width="1920" height="1175" />
+    </state>
+    <state width="1821" height="370" key="GridCell.Tab.1.bottom/-1920.-452.1920.1175/0.25.1680.1025@-1920.-452.1920.1175" timestamp="1617672313346" />
+    <state width="1821" height="370" key="GridCell.Tab.1.center" timestamp="1617672313346">
+      <screen x="-1920" y="-452" width="1920" height="1175" />
+    </state>
+    <state width="1821" height="370" key="GridCell.Tab.1.center/-1920.-452.1920.1175/0.25.1680.1025@-1920.-452.1920.1175" timestamp="1617672313346" />
+    <state width="1821" height="370" key="GridCell.Tab.1.left" timestamp="1617672313345">
+      <screen x="-1920" y="-452" width="1920" height="1175" />
+    </state>
+    <state width="1821" height="370" key="GridCell.Tab.1.left/-1920.-452.1920.1175/0.25.1680.1025@-1920.-452.1920.1175" timestamp="1617672313345" />
+    <state width="1821" height="370" key="GridCell.Tab.1.right" timestamp="1617672313346">
+      <screen x="-1920" y="-452" width="1920" height="1175" />
+    </state>
+    <state width="1821" height="370" key="GridCell.Tab.1.right/-1920.-452.1920.1175/0.25.1680.1025@-1920.-452.1920.1175" timestamp="1617672313346" />
+    <state x="-1423" y="-241" key="SettingsEditor" timestamp="1617567638168">
+      <screen x="-1920" y="-452" width="1920" height="1175" />
+    </state>
+    <state x="-1423" y="-241" key="SettingsEditor/-1920.-452.1920.1175/0.25.1680.1025@-1920.-452.1920.1175" timestamp="1617567638168" />
+    <state width="864" height="527" key="XDebugger.FullValuePopup" timestamp="1617567879061">
+      <screen x="-1920" y="-452" width="1920" height="1175" />
+    </state>
+    <state width="864" height="527" key="XDebugger.FullValuePopup/-1920.-452.1920.1175/0.25.1680.1025@-1920.-452.1920.1175" timestamp="1617567879061" />
+    <state x="-1267" y="-180" width="670" height="676" key="search.everywhere.popup" timestamp="1617622956541">
+      <screen x="-1920" y="-452" width="1920" height="1175" />
+    </state>
+    <state x="-1267" y="-180" width="670" height="676" key="search.everywhere.popup/-1920.-452.1920.1175/0.25.1680.1025@-1920.-452.1920.1175" timestamp="1617622956541" />
+  </component>
+  <component name="XDebuggerManager">
+    <breakpoint-manager>
+      <breakpoints>
+        <line-breakpoint enabled="true" type="DlvLineBreakpoint">
+          <url>file://$PROJECT_DIR$/core/cpu.go</url>
+          <line>234</line>
+          <option name="timeStamp" value="35" />
+        </line-breakpoint>
+      </breakpoints>
+    </breakpoint-manager>
+  </component>
+</project>
