@@ -31,7 +31,6 @@
       <change afterPath="$PROJECT_DIR$/../vexpress-pricing/templates/application-properties.tpl" afterDir="false" />
       <change afterPath="$PROJECT_DIR$/../vexpress-scheduling/templates/application-properties.tpl" afterDir="false" />
       <change afterPath="$PROJECT_DIR$/../vra8gateway/src/main/java/com/fedex/cloudops/fake/security/redux/CipherCacheLoader.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/vcs.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/vcs.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/core/cpu.go" beforeDir="false" afterPath="$PROJECT_DIR$/core/cpu.go" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/core/cpu_test.go" beforeDir="false" afterPath="$PROJECT_DIR$/core/cpu_test.go" afterDir="false" />
@@ -178,8 +177,8 @@
       <recent name="$PROJECT_DIR$/core" />
     </key>
   </component>
-  <component name="RunManager" selected="Go Test.go test github.com/prydin/emu6502/core">
-    <configuration name="TestBranchOnZero in github.com/prydin/emu6502/core" type="GoTestRunConfiguration" factoryName="Go Test" temporary="true" nameIsGenerated="true">
+  <component name="RunManager" selected="Go Test.TestFibonacci in github.com/prydin/emu6502/core">
+    <configuration name="TestAdd in github.com/prydin/emu6502/core" type="GoTestRunConfiguration" factoryName="Go Test" temporary="true" nameIsGenerated="true">
       <module name="emu6502" />
       <working_directory value="$PROJECT_DIR$/core" />
       <framework value="gotest" />
@@ -187,10 +186,10 @@
       <package value="github.com/prydin/emu6502/core" />
       <directory value="$PROJECT_DIR$/" />
       <filePath value="$PROJECT_DIR$/" />
-      <pattern value="^TestBranchOnZero$" />
+      <pattern value="^TestAdd$" />
       <method v="2" />
     </configuration>
-    <configuration name="TestBxC in github.com/prydin/emu6502/core" type="GoTestRunConfiguration" factoryName="Go Test" temporary="true" nameIsGenerated="true">
+    <configuration name="TestFibonacci in github.com/prydin/emu6502/core" type="GoTestRunConfiguration" factoryName="Go Test" temporary="true" nameIsGenerated="true">
       <module name="emu6502" />
       <working_directory value="$PROJECT_DIR$/core" />
       <framework value="gotest" />
@@ -198,10 +197,10 @@
       <package value="github.com/prydin/emu6502/core" />
       <directory value="$PROJECT_DIR$/" />
       <filePath value="$PROJECT_DIR$/" />
-      <pattern value="^TestBxC$" />
+      <pattern value="^TestFibonacci$" />
       <method v="2" />
     </configuration>
-    <configuration name="TestCountDown in github.com/prydin/emu6502/core" type="GoTestRunConfiguration" factoryName="Go Test" temporary="true" nameIsGenerated="true">
+    <configuration name="TestStack in github.com/prydin/emu6502/core" type="GoTestRunConfiguration" factoryName="Go Test" temporary="true" nameIsGenerated="true">
       <module name="emu6502" />
       <working_directory value="$PROJECT_DIR$/core" />
       <framework value="gotest" />
@@ -209,10 +208,10 @@
       <package value="github.com/prydin/emu6502/core" />
       <directory value="$PROJECT_DIR$/" />
       <filePath value="$PROJECT_DIR$/" />
-      <pattern value="^TestCountDown$" />
+      <pattern value="^TestStack$" />
       <method v="2" />
     </configuration>
-    <configuration name="TestCountUp in github.com/prydin/emu6502/core" type="GoTestRunConfiguration" factoryName="Go Test" temporary="true" nameIsGenerated="true">
+    <configuration name="TestSubroutine in github.com/prydin/emu6502/core" type="GoTestRunConfiguration" factoryName="Go Test" temporary="true" nameIsGenerated="true">
       <module name="emu6502" />
       <working_directory value="$PROJECT_DIR$/core" />
       <framework value="gotest" />
@@ -220,7 +219,7 @@
       <package value="github.com/prydin/emu6502/core" />
       <directory value="$PROJECT_DIR$/" />
       <filePath value="$PROJECT_DIR$/" />
-      <pattern value="^TestCountUp$" />
+      <pattern value="^TestSubroutine$" />
       <method v="2" />
     </configuration>
     <configuration name="go test github.com/prydin/emu6502/core" type="GoTestRunConfiguration" factoryName="Go Test" temporary="true" nameIsGenerated="true">
@@ -235,11 +234,11 @@
     </configuration>
     <recent_temporary>
       <list>
+        <item itemvalue="Go Test.TestFibonacci in github.com/prydin/emu6502/core" />
+        <item itemvalue="Go Test.TestAdd in github.com/prydin/emu6502/core" />
         <item itemvalue="Go Test.go test github.com/prydin/emu6502/core" />
-        <item itemvalue="Go Test.TestCountUp in github.com/prydin/emu6502/core" />
-        <item itemvalue="Go Test.TestCountDown in github.com/prydin/emu6502/core" />
-        <item itemvalue="Go Test.TestBranchOnZero in github.com/prydin/emu6502/core" />
-        <item itemvalue="Go Test.TestBxC in github.com/prydin/emu6502/core" />
+        <item itemvalue="Go Test.TestSubroutine in github.com/prydin/emu6502/core" />
+        <item itemvalue="Go Test.TestStack in github.com/prydin/emu6502/core" />
       </list>
     </recent_temporary>
   </component>
@@ -274,73 +273,88 @@
       <screen x="-1920" y="-452" width="1920" height="1175" />
     </state>
     <state x="-1764" y="-347" width="1663" height="894" key="#com.intellij.execution.junit2.states.ComparisonFailureState$DiffDialog/-1920.-452.1920.1175/0.25.1680.1025@-1920.-452.1920.1175" timestamp="1617759656500" />
-    <state width="1821" height="299" key="GridCell.Tab.0.bottom" timestamp="1617811826918">
+    <state width="1821" height="299" key="GridCell.Tab.0.bottom" timestamp="1617891484781">
       <screen x="-1920" y="-452" width="1920" height="1175" />
     </state>
-    <state width="1821" height="299" key="GridCell.Tab.0.bottom/-1920.-452.1920.1175/0.25.1680.1025@-1920.-452.1920.1175" timestamp="1617811826918" />
-    <state width="1821" height="299" key="GridCell.Tab.0.center" timestamp="1617811826917">
+    <state width="1821" height="299" key="GridCell.Tab.0.bottom/-1920.-452.1920.1175/0.25.1680.1025@-1920.-452.1920.1175" timestamp="1617891484781" />
+    <state width="1821" height="299" key="GridCell.Tab.0.center" timestamp="1617891484780">
       <screen x="-1920" y="-452" width="1920" height="1175" />
     </state>
-    <state width="1821" height="299" key="GridCell.Tab.0.center/-1920.-452.1920.1175/0.25.1680.1025@-1920.-452.1920.1175" timestamp="1617811826917" />
-    <state width="1821" height="299" key="GridCell.Tab.0.left" timestamp="1617811826916">
+    <state width="1821" height="299" key="GridCell.Tab.0.center/-1920.-452.1920.1175/0.25.1680.1025@-1920.-452.1920.1175" timestamp="1617891484780" />
+    <state width="1821" height="299" key="GridCell.Tab.0.left" timestamp="1617891484779">
       <screen x="-1920" y="-452" width="1920" height="1175" />
     </state>
-    <state width="1821" height="299" key="GridCell.Tab.0.left/-1920.-452.1920.1175/0.25.1680.1025@-1920.-452.1920.1175" timestamp="1617811826916" />
-    <state width="1821" height="299" key="GridCell.Tab.0.right" timestamp="1617811826917">
+    <state width="1821" height="299" key="GridCell.Tab.0.left/-1920.-452.1920.1175/0.25.1680.1025@-1920.-452.1920.1175" timestamp="1617891484779" />
+    <state width="1821" height="299" key="GridCell.Tab.0.right" timestamp="1617891484780">
       <screen x="-1920" y="-452" width="1920" height="1175" />
     </state>
-    <state width="1821" height="299" key="GridCell.Tab.0.right/-1920.-452.1920.1175/0.25.1680.1025@-1920.-452.1920.1175" timestamp="1617811826917" />
-    <state width="1821" height="370" key="GridCell.Tab.1.bottom" timestamp="1617809799318">
+    <state width="1821" height="299" key="GridCell.Tab.0.right/-1920.-452.1920.1175/0.25.1680.1025@-1920.-452.1920.1175" timestamp="1617891484780" />
+    <state width="1821" height="370" key="GridCell.Tab.1.bottom" timestamp="1617822886098">
       <screen x="-1920" y="-452" width="1920" height="1175" />
     </state>
-    <state width="1821" height="370" key="GridCell.Tab.1.bottom/-1920.-452.1920.1175/0.25.1680.1025@-1920.-452.1920.1175" timestamp="1617809799318" />
-    <state width="1821" height="370" key="GridCell.Tab.1.center" timestamp="1617809799317">
+    <state width="1821" height="370" key="GridCell.Tab.1.bottom/-1920.-452.1920.1175/0.25.1680.1025@-1920.-452.1920.1175" timestamp="1617822886098" />
+    <state width="1821" height="370" key="GridCell.Tab.1.center" timestamp="1617822886097">
       <screen x="-1920" y="-452" width="1920" height="1175" />
     </state>
-    <state width="1821" height="370" key="GridCell.Tab.1.center/-1920.-452.1920.1175/0.25.1680.1025@-1920.-452.1920.1175" timestamp="1617809799317" />
-    <state width="1821" height="370" key="GridCell.Tab.1.left" timestamp="1617809799316">
+    <state width="1821" height="370" key="GridCell.Tab.1.center/-1920.-452.1920.1175/0.25.1680.1025@-1920.-452.1920.1175" timestamp="1617822886097" />
+    <state width="1821" height="370" key="GridCell.Tab.1.left" timestamp="1617822886097">
       <screen x="-1920" y="-452" width="1920" height="1175" />
     </state>
-    <state width="1821" height="370" key="GridCell.Tab.1.left/-1920.-452.1920.1175/0.25.1680.1025@-1920.-452.1920.1175" timestamp="1617809799316" />
-    <state width="1821" height="370" key="GridCell.Tab.1.right" timestamp="1617809799317">
+    <state width="1821" height="370" key="GridCell.Tab.1.left/-1920.-452.1920.1175/0.25.1680.1025@-1920.-452.1920.1175" timestamp="1617822886097" />
+    <state width="1821" height="370" key="GridCell.Tab.1.right" timestamp="1617822886097">
       <screen x="-1920" y="-452" width="1920" height="1175" />
     </state>
-    <state width="1821" height="370" key="GridCell.Tab.1.right/-1920.-452.1920.1175/0.25.1680.1025@-1920.-452.1920.1175" timestamp="1617809799317" />
+    <state width="1821" height="370" key="GridCell.Tab.1.right/-1920.-452.1920.1175/0.25.1680.1025@-1920.-452.1920.1175" timestamp="1617822886097" />
     <state x="-1423" y="-241" key="SettingsEditor" timestamp="1617567638168">
       <screen x="-1920" y="-452" width="1920" height="1175" />
     </state>
     <state x="-1423" y="-241" key="SettingsEditor/-1920.-452.1920.1175/0.25.1680.1025@-1920.-452.1920.1175" timestamp="1617567638168" />
-    <state width="864" height="527" key="XDebugger.FullValuePopup" timestamp="1617567879061">
+    <state width="864" height="527" key="XDebugger.FullValuePopup" timestamp="1617822644354">
       <screen x="-1920" y="-452" width="1920" height="1175" />
     </state>
-    <state width="864" height="527" key="XDebugger.FullValuePopup/-1920.-452.1920.1175/0.25.1680.1025@-1920.-452.1920.1175" timestamp="1617567879061" />
-    <state x="-1267" y="-180" width="670" height="676" key="search.everywhere.popup" timestamp="1617796507343">
+    <state width="864" height="527" key="XDebugger.FullValuePopup/-1920.-452.1920.1175/0.25.1680.1025@-1920.-452.1920.1175" timestamp="1617822644354" />
+    <state x="-1267" y="-180" width="670" height="676" key="search.everywhere.popup" timestamp="1617825742089">
       <screen x="-1920" y="-452" width="1920" height="1175" />
     </state>
-    <state x="-1267" y="-180" width="670" height="676" key="search.everywhere.popup/-1920.-452.1920.1175/0.25.1680.1025@-1920.-452.1920.1175" timestamp="1617796507343" />
+    <state x="-1267" y="-180" width="670" height="676" key="search.everywhere.popup/-1920.-452.1920.1175/0.25.1680.1025@-1920.-452.1920.1175" timestamp="1617825742089" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
       <breakpoints>
         <line-breakpoint enabled="true" type="DlvLineBreakpoint">
           <url>file://$PROJECT_DIR$/core/cpu.go</url>
-          <line>356</line>
+          <line>402</line>
           <option name="timeStamp" value="37" />
         </line-breakpoint>
         <line-breakpoint enabled="true" type="DlvLineBreakpoint">
           <url>file://$PROJECT_DIR$/core/cpu.go</url>
-          <line>312</line>
+          <line>358</line>
           <option name="timeStamp" value="39" />
         </line-breakpoint>
         <line-breakpoint enabled="true" type="DlvLineBreakpoint">
           <url>file://$PROJECT_DIR$/core/cpu.go</url>
-          <line>467</line>
+          <line>539</line>
           <option name="timeStamp" value="42" />
         </line-breakpoint>
         <line-breakpoint enabled="true" type="DlvLineBreakpoint">
           <url>file://$PROJECT_DIR$/core/cpu.go</url>
-          <line>371</line>
+          <line>417</line>
           <option name="timeStamp" value="45" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="DlvLineBreakpoint">
+          <url>file://$PROJECT_DIR$/core/cpu.go</url>
+          <line>625</line>
+          <option name="timeStamp" value="46" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="DlvLineBreakpoint">
+          <url>file://$PROJECT_DIR$/core/cpu.go</url>
+          <line>444</line>
+          <option name="timeStamp" value="47" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="DlvLineBreakpoint">
+          <url>file://$PROJECT_DIR$/core/cpu.go</url>
+          <line>448</line>
+          <option name="timeStamp" value="48" />
         </line-breakpoint>
       </breakpoints>
     </breakpoint-manager>
@@ -349,6 +363,7 @@
         <watch expression="l.bytes[35]" language="go" />
         <watch expression="l.bytes[34]" language="go" />
         <watch expression="memory[0x1000:]" language="go" />
+        <watch expression="c.mem.bytes[int(c.sp) + 0x100]" language="go" />
       </configuration>
     </watches-manager>
   </component>

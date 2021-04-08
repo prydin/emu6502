@@ -353,3 +353,162 @@ LOOP	TXA
 		require.Equal(t, uint8(i), memory[0x2000+i], fmt.Sprintf("Failed at index $%02x", i))
 	}
 }
+
+func TestStack(t *testing.T) {
+		memory := runProgram(`
+		.ORG $1000
+		LDA #$42
+		LDX #$ff
+		TXS
+		PHA
+		TSX
+		STX $00
+		PLA
+		STA $01
+		TSX
+		STX $02
+		LDA #$00 ; Set Zero flag
+		SEC
+		PHP
+		LDA $01ff
+		STA $03
+		TSX
+		STX $04
+		BRK
+`)
+
+	require.Equal(t, uint8(0xfe), memory[0x0000], "PHA failed")
+	require.Equal(t, uint8(0x42), memory[0x0001], "PLA failed")
+	require.Equal(t, uint8(0xff), memory[0x0002], "PLA sp failed")
+	require.Equal(t, uint8(0x03), memory[0x0003], "PHP failed")
+	require.Equal(t, uint8(0xfe), memory[0x0004], "PLP failed")
+}
+
+func TestSubroutine(t *testing.T) {
+	memory := runProgram(`
+		.ORG $1000
+		LDX #$FF
+		TXS
+		LDA #$00
+		JSR L1
+		STA $00
+		BRK
+L1		LDA #$42
+		RTS
+`)
+	require.Equal(t, uint8(0x42), memory[0x0000], "JSR failed")
+}
+
+func TestAdd(t *testing.T) {
+	memory := runProgram(`
+		.ORG $1000
+		CLC
+		; Basic additions
+		LDA #$11
+		ADC #$11
+		BCS DONE
+		STA $00 ; $22
+		LDA #$0A
+		ADC #$0A
+		BCS DONE
+		STA $01 ; $14
+		LDA #$FF
+		ADC #$FF
+		BCC DONE
+		STA $02 ; $FE
+		CLC
+		LDA #$01
+		ADC #$FF 
+		BCC DONE
+		STA $03	; $00
+		CLC
+		; Decimal mode
+		SED
+		LDA #$11
+		ADC #$11
+		STA $04 ; $22
+		LDA #$08
+		ADC #$08
+		STA $05 ; $16
+		; Addressing modes
+		CLC
+		LDA #$00
+		ADC DATA ; Absolute
+		STA $06 ; $01
+		LDX #$01
+		ADC DATA,X ; Indexed X
+		STA $07 ; $03
+		LDA	#DATA & $0f
+		STA $20
+		LDA #DATA >> 8
+		STA $21
+		CLC
+		LDA #$03
+		ADC ($20,X) ; Indirect X
+		STA $08 ; $04
+		LDY #$01
+		LDA	#(DATA-1) & $0f
+		STA $20
+		LDA #(DATA-1) >> 8
+		STA $21
+		LDA #$10
+		CLC 
+		ADC	($20),Y
+		STA $09
+DONE	BRK
+DATA	.DB $01,$02
+ADDR	.DW DATA-1
+`)
+	require.Equal(t, uint8(0x22), memory[0x0000], "$11+$11 failed")
+	require.Equal(t, uint8(0x14), memory[0x0001], "$0a+$0a failed")
+	require.Equal(t, uint8(0xfe), memory[0x0002], "$ff+$ff failed")
+	require.Equal(t, uint8(0x00), memory[0x0003], "$01+$ff failed")
+	require.Equal(t, uint8(0x22), memory[0x0004], "11+11 failed")
+	require.Equal(t, uint8(0x16), memory[0x0005], "8+8 failed")
+	require.Equal(t, uint8(0x01), memory[0x0006], "Absolute failed")
+	require.Equal(t, uint8(0x03), memory[0x0007], "Indexed X failed")
+	require.Equal(t, uint8(0x03), memory[0x0008], "Indirect X failed")
+	require.Equal(t, uint8(0x11), memory[0x0009], "Indirect Y failed")
+}
+
+func TestFibonacci(t *testing.T) {
+	memory := runProgram(`
+		.ORG $1000
+
+		; Initialize
+		LDA #01
+		STA $00 ; F(N-1) sum low
+		STA $02 ; F(N) sum low
+		LDA #00
+		STA $01 ; F(N-1) sum high
+		STA $03 ; F(N) sum high
+		LDA #18 ; 
+		STA $04 ; Number of iterations
+
+		; 16 bit addition X,Y = F(N) + F(N-1)
+LOOP	CLC
+		LDA $00
+		ADC $02
+		TAX
+		LDA $01
+		ADC $03
+		TAY
+		
+		; X and Y hold the low and high bits of the new sum.
+		; Shift old F(N) to new F(N-1)
+		LDA $02
+		STA $00
+		LDA $03
+		STA $01
+		
+		; Store new F(N)
+		STX $02
+		STY $03
+		
+		; Keep looping?
+		DEC $04
+		BNE LOOP
+		BRK
+`)
+	require.Equal(t, 6765, int(memory[0x0002]) + int(memory[0x0003]) << 8)
+}

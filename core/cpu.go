@@ -62,6 +62,8 @@ const (
 	// Jumps
 	JMP     = 0x4c
 	JMP_IND = 0x6c
+	JSR = 0x20
+	RTS = 0x60
 
 	// Branches
 	BCC = 0x90
@@ -89,6 +91,22 @@ const (
 	TYA = 0x98
 	TSX = 0xba
 	TXS = 0x9a
+
+	// Stack instructions
+	PLA = 0x68
+	PHA = 0x48
+	PLP = 0x28
+	PHP = 0x08
+
+	// Arithmetic
+	ADC_I = 0x69
+	ADC_Z = 0x65
+	ADC_ZX = 0x75
+	ADC_A = 0x6d
+	ADC_AX = 0x7d
+	ADC_AY = 0x79
+	ADC_INDX = 0x61
+	ADC_INDY = 0x71
 )
 
 // CPU Status flags
@@ -209,6 +227,11 @@ func (c *CPU) Init(mem Memory) {
 	c.microcode[JMP] = []func(){c.fetchOperandLow, c.fetchHighAndJump}
 	c.microcode[JMP_IND] = []func(){c.fetchOperandLow, c.fetchOperandHigh, c.loadPCLow, c.loadPCHigh}
 
+	// JSR/RTS
+	c.microcode[JSR] = append(fetch16Bits, c.pushReturnAddressLow, c.pushReturnAddressHigh, c.jump)
+	c.microcode[RTS] = []func() {c.nop, c.pullOperandHigh, c.pullOperandLow, c.nop, c.jump} // TODO: Questionable NOP!
+
+
 	// Branching
 	c.microcode[BCC] = append(fetch8Bits, c.bcc)
 	c.microcode[BCS] = append(fetch8Bits, c.bcs)
@@ -228,14 +251,32 @@ func (c *CPU) Init(mem Memory) {
 	c.microcode[SED] = []func(){c.sed}
 	c.microcode[SEI] = []func(){c.sei}
 
-	// Transfer instructions
+	// Transfer instructions.
 	c.microcode[TAX] = []func(){c.tax}
 	c.microcode[TAY] = []func(){c.tay}
 	c.microcode[TSX] = []func(){c.tsx}
 	c.microcode[TXA] = []func(){c.txa}
 	c.microcode[TYA] = []func(){c.tya}
 	c.microcode[TXS] = []func(){c.txs}
+
+	// Stack instructions
+	// The NOPs are a bit of a cheat to get the instruction timing right.
+	// The bus timing is still correct.
+	c.microcode[PHA] = []func(){c.nop, c.pha}
+	c.microcode[PHP] = []func(){c.nop, c.php}
+	c.microcode[PLA] = []func(){c.nop, c.pla}
+	c.microcode[PLP] = []func(){c.nop, c.plp}
 	c.mem = mem
+
+	// Arithmetic
+	c.microcode[ADC_A] = append(fetch16Bits, c.adc)
+	c.microcode[ADC_I] = []func(){c.adc_i}
+	c.microcode[ADC_ZX] = append(zeroPageX, c.adc)
+	c.microcode[ADC_AX] = append(absXOverlap, c.adc)
+	c.microcode[ADC_AY] = append(absYOverlap, c.adc)
+	c.microcode[ADC_INDX] = append(indirectX, c.adc)
+	c.microcode[ADC_INDY] = append(indirectY, c.adc)
+	c.microcode[ADC_Z] = append(fetch8Bits, c.adc)
 }
 
 func (c *CPU) Reset() {
@@ -257,8 +298,8 @@ func (c *CPU) Clock() {
 		c.microPc++
 	}
 	if c.Trace {
-		fmt.Printf("PC=%04x [PC]=%02x MPC=%02x OP=%02x SP=%04x A=%02x X=%02x Y=%02x Flags=%02x Oper=%04x\n",
-			c.pc, c.mem.ReadByte(c.pc), c.microPc, c.opcode, c.sp, c.a, c.x, c.y, c.flags, c.operand)
+		fmt.Printf("PC=%04x [PC]=%02x MPC=%02x OP=%02x SP=%04x A=%02x X=%02x Y=%02x Flags=%02x Oper=%04x, Addr=%02x\n",
+			c.pc, c.mem.ReadByte(c.pc), c.microPc, c.opcode, c.sp, c.a, c.x, c.y, c.flags, c.operand, c.address)
 	}
 }
 
@@ -282,6 +323,11 @@ func (c *CPU) fetchHigh(target *uint16) {
 
 func (c *CPU) fetchHighAndJump() {
 	c.fetchOperandHigh()
+	c.pc = c.operand
+	c.fetchNext = true
+}
+
+func (c *CPU) jump() {
 	c.pc = c.operand
 	c.fetchNext = true
 }
@@ -375,6 +421,32 @@ func (c *CPU) branchIf(mask, wanted uint8) {
 		}
 	}
 	c.fetchNext = true
+}
+
+func (c *CPU) push(v uint8) {
+	c.mem.WriteByte(uint16(c.sp) + 0x0100, v)
+	c.sp--
+}
+
+func (c *CPU) pull() uint8 {
+	c.sp++
+	return c.mem.ReadByte(uint16(c.sp) + 0x0100)
+}
+
+func (c *CPU) pushReturnAddressLow() {
+	c.push(uint8(c.pc & 0xff))
+}
+
+func (c *CPU) pushReturnAddressHigh() {
+	c.push(uint8(c.pc >> 8))
+}
+
+func (c *CPU) pullOperandHigh() {
+	c.operand = uint16(c.pull()) << 8
+}
+
+func (c *CPU) pullOperandLow() {
+	c.operand |= uint16(c.pull())
 }
 
 func (c *CPU) bne() {
@@ -515,7 +587,7 @@ func (c *CPU) sei() {
 }
 
 func (c *CPU) tax() {
-	c.a = c.x
+	c.x = c.a
 	c.updateNZ(c.x)
 	c.fetchNext = true
 }
@@ -550,20 +622,132 @@ func (c *CPU) tya() {
 	c.fetchNext = true
 }
 
+func (c *CPU) pha() {
+	c.push(c.a)
+	c.fetchNext = true
+}
+
+func (c *CPU) php() {
+	c.push(c.flags)
+	c.fetchNext = true
+}
+
+func (c *CPU) pla() {
+	c.a = c.pull()
+	c.fetchNext = true
+}
+
+func (c *CPU) plp() {
+	c.flags = c.pull()
+	c.fetchNext = true
+}
+
+
 func (c *CPU) nop() {
 }
 
 func (c *CPU) updateNZ(b uint8) {
-	if b == 0 {
-		c.flags |= FLAG_Z
+	c.updateFlag(FLAG_Z, b == 0)
+	c.updateFlag(FLAG_N,  b&0x80 != 0)
+}
+
+func (c *CPU) updateFlag(flag uint8, value bool) {
+	if value {
+		c.flags |= flag
 	} else {
-		c.flags &= ^FLAG_Z
+		c.flags &= ^flag
 	}
-	if b&0x80 != 0 {
-		c.flags |= FLAG_N
+}
+
+func (c *CPU) adc_i() {
+	t := c.mem.ReadByte(c.pc)
+	c.pc++
+	c.add(t)
+}
+
+func (c *CPU) adc() {
+	c.add(c.mem.ReadByte(c.operand))
+}
+
+func (c *CPU) add(addend uint8) {
+	acc := uint16(c.a)
+	add := uint16(addend)
+	carryIn := c.flags & FLAG_C
+	if carryIn > 1 {
+		carryIn = 1
+	}
+	var v uint16
+
+	if c.flags & FLAG_D != 0 {
+		lo := acc & 0x0f + add & 0x0f + uint16(carryIn)
+		var carrylo uint16
+		if lo >= 0x0a {
+			carrylo = 0x10
+			lo -= 0x0a
+		}
+		hi := (acc & 0xf0) + (add & 0xf0) + carrylo
+		if hi >= 0xa0 {
+			c.flags |= FLAG_C
+			hi -= 0xa0
+		} else {
+			c.flags &= ^FLAG_C
+		}
+		v = hi | lo
+		c.updateFlag(FLAG_V, ((acc^v)&0x80) != 0 && ((acc^add)&0x80) == 0)
 	} else {
-		c.flags &= ^FLAG_N
+		v = acc + add + uint16(carryIn)
+		c.updateFlag(FLAG_C, v >= 0x100)
+		c.updateFlag (FLAG_V, ((acc & 0x80) == (add & 0x80)) && ((acc & 0x80) != (v & 0x80)))
 	}
+
+	c.a = uint8(v)
+	c.updateNZ(c.a)
+	c.fetchNext = true
+}
+
+func (c *CPU) sbc() {
+	acc := uint32(c.a)
+	sub := uint32(c.operand)
+	carryIn := c.flags & FLAG_C
+	if carryIn > 1 {
+		carryIn = 1
+	}
+	var v uint32
+
+	if c.flags & FLAG_D != 0 {
+		lo := 0x0f + (acc & 0x0f) - (sub & 0x0f) + uint32(carryIn)
+
+		var carrylo uint32
+		if lo < 0x10 {
+			lo -= 0x06
+			carrylo = 0
+		} else {
+			lo -= 0x10
+			carrylo = 0x10
+		}
+
+		hi := 0xf0 + (acc & 0xf0) - (sub & 0xf0) + carrylo
+
+		if hi < 0x100 {
+			c.flags &= ^FLAG_C
+			hi -= 0x60
+		} else {
+			c.flags |= FLAG_C
+			hi -= 0x100
+		}
+
+		v = hi | lo
+
+		c.updateFlag(FLAG_V, ((acc^v)&0x80) != 0 && ((acc^sub)&0x80) != 0)
+
+	} else {
+		v = 0xff + acc - sub + uint32(carryIn)
+		c.updateFlag(FLAG_C, v >= 0x100)
+		c.updateFlag (FLAG_V, ((acc & 0x80) != (sub & 0x80)) && ((acc & 0x80) != (v & 0x80)))
+	}
+
+	c.a = uint8(v)
+	c.updateNZ(byte(v))
 }
 
 func (c *CPU) addXToLowOperand() {
