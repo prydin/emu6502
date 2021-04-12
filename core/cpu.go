@@ -62,8 +62,8 @@ const (
 	// Jumps
 	JMP     = 0x4c
 	JMP_IND = 0x6c
-	JSR = 0x20
-	RTS = 0x60
+	JSR     = 0x20
+	RTS     = 0x60
 
 	// Branches
 	BCC = 0x90
@@ -99,14 +99,32 @@ const (
 	PHP = 0x08
 
 	// Arithmetic
-	ADC_I = 0x69
-	ADC_Z = 0x65
-	ADC_ZX = 0x75
-	ADC_A = 0x6d
-	ADC_AX = 0x7d
-	ADC_AY = 0x79
+	ADC_I    = 0x69
+	ADC_Z    = 0x65
+	ADC_ZX   = 0x75
+	ADC_A    = 0x6d
+	ADC_AX   = 0x7d
+	ADC_AY   = 0x79
 	ADC_INDX = 0x61
 	ADC_INDY = 0x71
+	SBC_I    = 0xe9
+	SBC_Z    = 0xe5
+	SBC_ZX   = 0xf5
+	SBC_A    = 0xed
+	SBC_AX   = 0xfd
+	SBC_AY   = 0xf9
+	SBC_INDX = 0xe1
+	SBC_INDY = 0xf1
+
+	// Logic
+	AND_I    = 0x29
+	AND_Z    = 0x25
+	AND_ZX   = 0x35
+	AND_A    = 0x2d
+	AND_AX   = 0x3d
+	AND_AY   = 0x39
+	AND_INDX = 0x21
+	AND_INDY = 0x31
 )
 
 // CPU Status flags
@@ -229,8 +247,7 @@ func (c *CPU) Init(mem Memory) {
 
 	// JSR/RTS
 	c.microcode[JSR] = append(fetch16Bits, c.pushReturnAddressLow, c.pushReturnAddressHigh, c.jump)
-	c.microcode[RTS] = []func() {c.nop, c.pullOperandHigh, c.pullOperandLow, c.nop, c.jump} // TODO: Questionable NOP!
-
+	c.microcode[RTS] = []func(){c.nop, c.pullOperandHigh, c.pullOperandLow, c.nop, c.jump} // TODO: Questionable NOP!
 
 	// Branching
 	c.microcode[BCC] = append(fetch8Bits, c.bcc)
@@ -277,6 +294,25 @@ func (c *CPU) Init(mem Memory) {
 	c.microcode[ADC_INDX] = append(indirectX, c.adc)
 	c.microcode[ADC_INDY] = append(indirectY, c.adc)
 	c.microcode[ADC_Z] = append(fetch8Bits, c.adc)
+
+	c.microcode[SBC_A] = append(fetch16Bits, c.sbc)
+	c.microcode[SBC_I] = []func(){c.sbc_i}
+	c.microcode[SBC_ZX] = append(zeroPageX, c.sbc)
+	c.microcode[SBC_AX] = append(absXOverlap, c.sbc)
+	c.microcode[SBC_AY] = append(absYOverlap, c.sbc)
+	c.microcode[SBC_INDX] = append(indirectX, c.sbc)
+	c.microcode[SBC_INDY] = append(indirectY, c.sbc)
+	c.microcode[SBC_Z] = append(fetch8Bits, c.sbc)
+
+	c.microcode[AND_A] = append(fetch16Bits, c.and)
+	c.microcode[AND_I] = []func(){c.and_i}
+	c.microcode[AND_ZX] = append(zeroPageX, c.and)
+	c.microcode[AND_AX] = append(absXOverlap, c.and)
+	c.microcode[AND_AY] = append(absYOverlap, c.and)
+	c.microcode[AND_INDX] = append(indirectX, c.and)
+	c.microcode[AND_INDY] = append(indirectY, c.and)
+	c.microcode[AND_Z] = append(fetch8Bits, c.and)
+	
 }
 
 func (c *CPU) Reset() {
@@ -424,7 +460,7 @@ func (c *CPU) branchIf(mask, wanted uint8) {
 }
 
 func (c *CPU) push(v uint8) {
-	c.mem.WriteByte(uint16(c.sp) + 0x0100, v)
+	c.mem.WriteByte(uint16(c.sp)+0x0100, v)
 	c.sp--
 }
 
@@ -642,13 +678,12 @@ func (c *CPU) plp() {
 	c.fetchNext = true
 }
 
-
 func (c *CPU) nop() {
 }
 
 func (c *CPU) updateNZ(b uint8) {
 	c.updateFlag(FLAG_Z, b == 0)
-	c.updateFlag(FLAG_N,  b&0x80 != 0)
+	c.updateFlag(FLAG_N, b&0x80 != 0)
 }
 
 func (c *CPU) updateFlag(flag uint8, value bool) {
@@ -669,6 +704,19 @@ func (c *CPU) adc() {
 	c.add(c.mem.ReadByte(c.operand))
 }
 
+func (c* CPU) and_i() {
+	c.a &= c.mem.ReadByte(c.pc)
+	c.pc++
+	c.updateNZ(c.a)
+	c.fetchNext = true
+}
+
+func (c* CPU) and() {
+	c.a &= c.mem.ReadByte(c.operand)
+	c.updateNZ(c.a)
+	c.fetchNext = true
+}
+
 func (c *CPU) add(addend uint8) {
 	acc := uint16(c.a)
 	add := uint16(addend)
@@ -678,8 +726,8 @@ func (c *CPU) add(addend uint8) {
 	}
 	var v uint16
 
-	if c.flags & FLAG_D != 0 {
-		lo := acc & 0x0f + add & 0x0f + uint16(carryIn)
+	if c.flags&FLAG_D != 0 {
+		lo := acc&0x0f + add&0x0f + uint16(carryIn)
 		var carrylo uint16
 		if lo >= 0x0a {
 			carrylo = 0x10
@@ -697,7 +745,7 @@ func (c *CPU) add(addend uint8) {
 	} else {
 		v = acc + add + uint16(carryIn)
 		c.updateFlag(FLAG_C, v >= 0x100)
-		c.updateFlag (FLAG_V, ((acc & 0x80) == (add & 0x80)) && ((acc & 0x80) != (v & 0x80)))
+		c.updateFlag(FLAG_V, ((acc&0x80) == (add&0x80)) && ((acc&0x80) != (v&0x80)))
 	}
 
 	c.a = uint8(v)
@@ -706,34 +754,42 @@ func (c *CPU) add(addend uint8) {
 }
 
 func (c *CPU) sbc() {
-	acc := uint32(c.a)
-	sub := uint32(c.operand)
+	c.subtract(c.mem.ReadByte(c.operand))
+}
+
+func (c *CPU) sbc_i() {
+	t := c.mem.ReadByte(c.pc)
+	c.pc++
+	c.subtract(t)
+}
+
+func (c *CPU) subtract(addend uint8) {
+	acc := uint16(c.a)
+	sub := uint16(addend)
 	carryIn := c.flags & FLAG_C
 	if carryIn > 1 {
 		carryIn = 1
 	}
-	var v uint32
+	var v uint16
 
-	if c.flags & FLAG_D != 0 {
-		lo := 0x0f + (acc & 0x0f) - (sub & 0x0f) + uint32(carryIn)
+	if c.flags&FLAG_D != 0 {
+		lo := (acc & 0x0f) - (sub & 0x0f) - uint16(carryIn)
 
-		var carrylo uint32
-		if lo < 0x10 {
-			lo -= 0x06
-			carrylo = 0
-		} else {
-			lo -= 0x10
+		var carrylo uint16
+		if lo&0x10 != 0 {
+			lo = (lo - 0x06) & 0x0f
 			carrylo = 0x10
+		} else {
+			carrylo = 0
 		}
 
-		hi := 0xf0 + (acc & 0xf0) - (sub & 0xf0) + carrylo
+		hi := (acc & 0xf0) - (sub & 0xf0) - carrylo
 
-		if hi < 0x100 {
-			c.flags &= ^FLAG_C
-			hi -= 0x60
-		} else {
+		if hi&0x100 != 0 {
 			c.flags |= FLAG_C
-			hi -= 0x100
+			hi = (hi - 0x60) & 0xff
+		} else {
+			c.flags &= ^FLAG_C
 		}
 
 		v = hi | lo
@@ -741,13 +797,14 @@ func (c *CPU) sbc() {
 		c.updateFlag(FLAG_V, ((acc^v)&0x80) != 0 && ((acc^sub)&0x80) != 0)
 
 	} else {
-		v = 0xff + acc - sub + uint32(carryIn)
+		v = acc - sub - uint16(carryIn)
 		c.updateFlag(FLAG_C, v >= 0x100)
-		c.updateFlag (FLAG_V, ((acc & 0x80) != (sub & 0x80)) && ((acc & 0x80) != (v & 0x80)))
+		c.updateFlag(FLAG_V, ((acc&0x80) != (sub&0x80)) && ((acc&0x80) != (v&0x80)))
 	}
 
 	c.a = uint8(v)
-	c.updateNZ(byte(v))
+	c.updateNZ(c.a)
+	c.fetchNext = true
 }
 
 func (c *CPU) addXToLowOperand() {
@@ -776,7 +833,7 @@ func (c *CPU) loadALU() {
 
 func (c *CPU) storeALU() {
 	c.mem.WriteByte(c.operand, c.alu)
-	c.fetchNext = true // This is always the last microinstruction in a sequence!
+	c.fetchNext = true // This is always the last micro instruction in a sequence!
 }
 
 func (c *CPU) brk() {

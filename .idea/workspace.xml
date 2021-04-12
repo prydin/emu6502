@@ -2,8 +2,6 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="58c6cb47-3664-4a3a-a472-e4643dd7a4d6" name="Default Changelist" comment="">
-      <change afterPath="$PROJECT_DIR$/core/memory.go" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/main.go" afterDir="false" />
       <change afterPath="$PROJECT_DIR$/../prata/build.gradle" afterDir="false" />
       <change afterPath="$PROJECT_DIR$/../prata/gradlew" afterDir="false" />
       <change afterPath="$PROJECT_DIR$/../prata/gradlew.bat" afterDir="false" />
@@ -177,7 +175,18 @@
       <recent name="$PROJECT_DIR$/core" />
     </key>
   </component>
-  <component name="RunManager" selected="Go Test.TestFibonacci in github.com/prydin/emu6502/core">
+  <component name="RunManager" selected="Go Test.TestAnd in github.com/prydin/emu6502/core">
+    <configuration name="TestAcc in github.com/prydin/emu6502/core" type="GoTestRunConfiguration" factoryName="Go Test" temporary="true" nameIsGenerated="true">
+      <module name="emu6502" />
+      <working_directory value="$PROJECT_DIR$/core" />
+      <framework value="gotest" />
+      <kind value="PACKAGE" />
+      <package value="github.com/prydin/emu6502/core" />
+      <directory value="$PROJECT_DIR$/" />
+      <filePath value="$PROJECT_DIR$/" />
+      <pattern value="^TestAcc$" />
+      <method v="2" />
+    </configuration>
     <configuration name="TestAdd in github.com/prydin/emu6502/core" type="GoTestRunConfiguration" factoryName="Go Test" temporary="true" nameIsGenerated="true">
       <module name="emu6502" />
       <working_directory value="$PROJECT_DIR$/core" />
@@ -189,7 +198,7 @@
       <pattern value="^TestAdd$" />
       <method v="2" />
     </configuration>
-    <configuration name="TestFibonacci in github.com/prydin/emu6502/core" type="GoTestRunConfiguration" factoryName="Go Test" temporary="true" nameIsGenerated="true">
+    <configuration name="TestAnd in github.com/prydin/emu6502/core" type="GoTestRunConfiguration" factoryName="Go Test" temporary="true" nameIsGenerated="true">
       <module name="emu6502" />
       <working_directory value="$PROJECT_DIR$/core" />
       <framework value="gotest" />
@@ -197,10 +206,10 @@
       <package value="github.com/prydin/emu6502/core" />
       <directory value="$PROJECT_DIR$/" />
       <filePath value="$PROJECT_DIR$/" />
-      <pattern value="^TestFibonacci$" />
+      <pattern value="^TestAnd$" />
       <method v="2" />
     </configuration>
-    <configuration name="TestStack in github.com/prydin/emu6502/core" type="GoTestRunConfiguration" factoryName="Go Test" temporary="true" nameIsGenerated="true">
+    <configuration name="TestSubtract in github.com/prydin/emu6502/core" type="GoTestRunConfiguration" factoryName="Go Test" temporary="true" nameIsGenerated="true">
       <module name="emu6502" />
       <working_directory value="$PROJECT_DIR$/core" />
       <framework value="gotest" />
@@ -208,18 +217,7 @@
       <package value="github.com/prydin/emu6502/core" />
       <directory value="$PROJECT_DIR$/" />
       <filePath value="$PROJECT_DIR$/" />
-      <pattern value="^TestStack$" />
-      <method v="2" />
-    </configuration>
-    <configuration name="TestSubroutine in github.com/prydin/emu6502/core" type="GoTestRunConfiguration" factoryName="Go Test" temporary="true" nameIsGenerated="true">
-      <module name="emu6502" />
-      <working_directory value="$PROJECT_DIR$/core" />
-      <framework value="gotest" />
-      <kind value="PACKAGE" />
-      <package value="github.com/prydin/emu6502/core" />
-      <directory value="$PROJECT_DIR$/" />
-      <filePath value="$PROJECT_DIR$/" />
-      <pattern value="^TestSubroutine$" />
+      <pattern value="^TestSubtract$" />
       <method v="2" />
     </configuration>
     <configuration name="go test github.com/prydin/emu6502/core" type="GoTestRunConfiguration" factoryName="Go Test" temporary="true" nameIsGenerated="true">
@@ -234,11 +232,11 @@
     </configuration>
     <recent_temporary>
       <list>
-        <item itemvalue="Go Test.TestFibonacci in github.com/prydin/emu6502/core" />
-        <item itemvalue="Go Test.TestAdd in github.com/prydin/emu6502/core" />
+        <item itemvalue="Go Test.TestAnd in github.com/prydin/emu6502/core" />
         <item itemvalue="Go Test.go test github.com/prydin/emu6502/core" />
-        <item itemvalue="Go Test.TestSubroutine in github.com/prydin/emu6502/core" />
-        <item itemvalue="Go Test.TestStack in github.com/prydin/emu6502/core" />
+        <item itemvalue="Go Test.TestAdd in github.com/prydin/emu6502/core" />
+        <item itemvalue="Go Test.TestSubtract in github.com/prydin/emu6502/core" />
+        <item itemvalue="Go Test.TestAcc in github.com/prydin/emu6502/core" />
       </list>
     </recent_temporary>
   </component>
@@ -273,38 +271,38 @@
       <screen x="-1920" y="-452" width="1920" height="1175" />
     </state>
     <state x="-1764" y="-347" width="1663" height="894" key="#com.intellij.execution.junit2.states.ComparisonFailureState$DiffDialog/-1920.-452.1920.1175/0.25.1680.1025@-1920.-452.1920.1175" timestamp="1617759656500" />
-    <state width="1821" height="299" key="GridCell.Tab.0.bottom" timestamp="1617891484781">
+    <state width="910" height="299" key="GridCell.Tab.0.bottom" timestamp="1618234454744">
       <screen x="-1920" y="-452" width="1920" height="1175" />
     </state>
-    <state width="1821" height="299" key="GridCell.Tab.0.bottom/-1920.-452.1920.1175/0.25.1680.1025@-1920.-452.1920.1175" timestamp="1617891484781" />
-    <state width="1821" height="299" key="GridCell.Tab.0.center" timestamp="1617891484780">
+    <state width="910" height="299" key="GridCell.Tab.0.bottom/-1920.-452.1920.1175/0.25.1680.1025@-1920.-452.1920.1175" timestamp="1618234454744" />
+    <state width="910" height="299" key="GridCell.Tab.0.center" timestamp="1618234454743">
       <screen x="-1920" y="-452" width="1920" height="1175" />
     </state>
-    <state width="1821" height="299" key="GridCell.Tab.0.center/-1920.-452.1920.1175/0.25.1680.1025@-1920.-452.1920.1175" timestamp="1617891484780" />
-    <state width="1821" height="299" key="GridCell.Tab.0.left" timestamp="1617891484779">
+    <state width="910" height="299" key="GridCell.Tab.0.center/-1920.-452.1920.1175/0.25.1680.1025@-1920.-452.1920.1175" timestamp="1618234454743" />
+    <state width="910" height="299" key="GridCell.Tab.0.left" timestamp="1618234454743">
       <screen x="-1920" y="-452" width="1920" height="1175" />
     </state>
-    <state width="1821" height="299" key="GridCell.Tab.0.left/-1920.-452.1920.1175/0.25.1680.1025@-1920.-452.1920.1175" timestamp="1617891484779" />
-    <state width="1821" height="299" key="GridCell.Tab.0.right" timestamp="1617891484780">
+    <state width="910" height="299" key="GridCell.Tab.0.left/-1920.-452.1920.1175/0.25.1680.1025@-1920.-452.1920.1175" timestamp="1618234454743" />
+    <state width="910" height="299" key="GridCell.Tab.0.right" timestamp="1618234454744">
       <screen x="-1920" y="-452" width="1920" height="1175" />
     </state>
-    <state width="1821" height="299" key="GridCell.Tab.0.right/-1920.-452.1920.1175/0.25.1680.1025@-1920.-452.1920.1175" timestamp="1617891484780" />
-    <state width="1821" height="370" key="GridCell.Tab.1.bottom" timestamp="1617822886098">
+    <state width="910" height="299" key="GridCell.Tab.0.right/-1920.-452.1920.1175/0.25.1680.1025@-1920.-452.1920.1175" timestamp="1618234454744" />
+    <state width="910" height="370" key="GridCell.Tab.1.bottom" timestamp="1618234282229">
       <screen x="-1920" y="-452" width="1920" height="1175" />
     </state>
-    <state width="1821" height="370" key="GridCell.Tab.1.bottom/-1920.-452.1920.1175/0.25.1680.1025@-1920.-452.1920.1175" timestamp="1617822886098" />
-    <state width="1821" height="370" key="GridCell.Tab.1.center" timestamp="1617822886097">
+    <state width="910" height="370" key="GridCell.Tab.1.bottom/-1920.-452.1920.1175/0.25.1680.1025@-1920.-452.1920.1175" timestamp="1618234282229" />
+    <state width="910" height="370" key="GridCell.Tab.1.center" timestamp="1618234282229">
       <screen x="-1920" y="-452" width="1920" height="1175" />
     </state>
-    <state width="1821" height="370" key="GridCell.Tab.1.center/-1920.-452.1920.1175/0.25.1680.1025@-1920.-452.1920.1175" timestamp="1617822886097" />
-    <state width="1821" height="370" key="GridCell.Tab.1.left" timestamp="1617822886097">
+    <state width="910" height="370" key="GridCell.Tab.1.center/-1920.-452.1920.1175/0.25.1680.1025@-1920.-452.1920.1175" timestamp="1618234282229" />
+    <state width="910" height="370" key="GridCell.Tab.1.left" timestamp="1618234282229">
       <screen x="-1920" y="-452" width="1920" height="1175" />
     </state>
-    <state width="1821" height="370" key="GridCell.Tab.1.left/-1920.-452.1920.1175/0.25.1680.1025@-1920.-452.1920.1175" timestamp="1617822886097" />
-    <state width="1821" height="370" key="GridCell.Tab.1.right" timestamp="1617822886097">
+    <state width="910" height="370" key="GridCell.Tab.1.left/-1920.-452.1920.1175/0.25.1680.1025@-1920.-452.1920.1175" timestamp="1618234282229" />
+    <state width="910" height="370" key="GridCell.Tab.1.right" timestamp="1618234282229">
       <screen x="-1920" y="-452" width="1920" height="1175" />
     </state>
-    <state width="1821" height="370" key="GridCell.Tab.1.right/-1920.-452.1920.1175/0.25.1680.1025@-1920.-452.1920.1175" timestamp="1617822886097" />
+    <state width="910" height="370" key="GridCell.Tab.1.right/-1920.-452.1920.1175/0.25.1680.1025@-1920.-452.1920.1175" timestamp="1618234282229" />
     <state x="-1423" y="-241" key="SettingsEditor" timestamp="1617567638168">
       <screen x="-1920" y="-452" width="1920" height="1175" />
     </state>
@@ -323,38 +321,43 @@
       <breakpoints>
         <line-breakpoint enabled="true" type="DlvLineBreakpoint">
           <url>file://$PROJECT_DIR$/core/cpu.go</url>
-          <line>402</line>
-          <option name="timeStamp" value="37" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" type="DlvLineBreakpoint">
-          <url>file://$PROJECT_DIR$/core/cpu.go</url>
-          <line>358</line>
+          <line>394</line>
           <option name="timeStamp" value="39" />
         </line-breakpoint>
         <line-breakpoint enabled="true" type="DlvLineBreakpoint">
           <url>file://$PROJECT_DIR$/core/cpu.go</url>
-          <line>539</line>
+          <line>575</line>
           <option name="timeStamp" value="42" />
         </line-breakpoint>
         <line-breakpoint enabled="true" type="DlvLineBreakpoint">
           <url>file://$PROJECT_DIR$/core/cpu.go</url>
-          <line>417</line>
-          <option name="timeStamp" value="45" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" type="DlvLineBreakpoint">
-          <url>file://$PROJECT_DIR$/core/cpu.go</url>
-          <line>625</line>
+          <line>661</line>
           <option name="timeStamp" value="46" />
         </line-breakpoint>
         <line-breakpoint enabled="true" type="DlvLineBreakpoint">
           <url>file://$PROJECT_DIR$/core/cpu.go</url>
-          <line>444</line>
+          <line>480</line>
           <option name="timeStamp" value="47" />
         </line-breakpoint>
         <line-breakpoint enabled="true" type="DlvLineBreakpoint">
           <url>file://$PROJECT_DIR$/core/cpu.go</url>
-          <line>448</line>
+          <line>484</line>
           <option name="timeStamp" value="48" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="DlvLineBreakpoint">
+          <url>file://$PROJECT_DIR$/core/cpu.go</url>
+          <line>788</line>
+          <option name="timeStamp" value="54" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="DlvLineBreakpoint">
+          <url>file://$PROJECT_DIR$/core/cpu.go</url>
+          <line>707</line>
+          <option name="timeStamp" value="57" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="DlvLineBreakpoint">
+          <url>file://$PROJECT_DIR$/core/cpu.go</url>
+          <line>697</line>
+          <option name="timeStamp" value="58" />
         </line-breakpoint>
       </breakpoints>
     </breakpoint-manager>

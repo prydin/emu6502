@@ -431,6 +431,7 @@ func TestAdd(t *testing.T) {
 		ADC #$08
 		STA $05 ; $16
 		; Addressing modes
+		CLD
 		CLC
 		LDA #$00
 		ADC DATA ; Absolute
@@ -438,16 +439,16 @@ func TestAdd(t *testing.T) {
 		LDX #$01
 		ADC DATA,X ; Indexed X
 		STA $07 ; $03
-		LDA	#DATA & $0f
+		LDA	#DATA & $ff
 		STA $20
 		LDA #DATA >> 8
 		STA $21
 		CLC
 		LDA #$03
-		ADC ($20,X) ; Indirect X
+		ADC ($1f,X) ; Indirect X
 		STA $08 ; $04
 		LDY #$01
-		LDA	#(DATA-1) & $0f
+		LDA	#(DATA-1) & $ff
 		STA $20
 		LDA #(DATA-1) >> 8
 		STA $21
@@ -467,8 +468,140 @@ ADDR	.DW DATA-1
 	require.Equal(t, uint8(0x16), memory[0x0005], "8+8 failed")
 	require.Equal(t, uint8(0x01), memory[0x0006], "Absolute failed")
 	require.Equal(t, uint8(0x03), memory[0x0007], "Indexed X failed")
-	require.Equal(t, uint8(0x03), memory[0x0008], "Indirect X failed")
+	require.Equal(t, uint8(0x04), memory[0x0008], "Indirect X failed")
 	require.Equal(t, uint8(0x11), memory[0x0009], "Indirect Y failed")
+}
+
+func TestSubtract(t *testing.T) {
+	memory := runProgram(`
+		.ORG $1000
+		CLC
+		; Basic subtractions 
+		LDA #$11
+		SBC #$11
+		BCS DONE
+		STA $00 ; $00
+		LDA #$11
+		SBC #$0A
+		BCS DONE
+		STA $01 ; $07
+		LDA #$FF
+		SBC #$FF
+		BCS DONE
+		STA $02 ; $00
+		CLC
+		LDA #$01
+		SBC #$FF 
+		BCC DONE
+		STA $03	; $02
+		CLC
+		; Decimal mode
+		SED
+		LDA #$11
+		SBC #$11
+		STA $04 ; $22
+		LDA #$18
+		SBC #$09
+		STA $05 ; $09
+		; Addressing modes
+		CLD
+		CLC
+		LDA #$00
+		SBC DATA ; Absolute
+		STA $06 ; $01
+		LDA #$10
+		LDX #$01
+		SBC DATA,X ; Indexed X
+		STA $07 ; $03
+		LDA	#DATA & $0ff
+		STA $20
+		LDA #DATA >> 8
+		STA $21
+		CLC
+		LDA #$03
+		SBC ($1f,X) ; Indirect X
+		STA $08 ; $02
+		LDY #$01
+		LDA	#DONE & $ff
+		STA $20
+		LDA #DONE >> 8
+		STA $21
+		LDA #$10
+		CLC 
+		SBC	($20),Y
+		STA $09
+DONE	BRK
+DATA	.DB $01,$02
+ADDR	.DW DATA-1
+`)
+	require.Equal(t, uint8(0x00), memory[0x0000], "$11-$11 failed")
+	require.Equal(t, uint8(0x07), memory[0x0001], "$11-$0a failed")
+	require.Equal(t, uint8(0x00), memory[0x0002], "$ff-$ff failed")
+	require.Equal(t, uint8(0x02), memory[0x0003], "$01-$ff failed")
+	require.Equal(t, uint8(0x00), memory[0x0004], "11-11 failed")
+	require.Equal(t, uint8(0x09), memory[0x0005], "18-9 failed")
+	require.Equal(t, uint8(0xff), memory[0x0006], "Absolute failed")
+	require.Equal(t, uint8(0x0d), memory[0x0007], "Indexed X failed")
+	require.Equal(t, uint8(0x02), memory[0x0008], "Indirect X failed")
+	require.Equal(t, uint8(0x0f), memory[0x0009], "Indirect Y failed")
+}
+
+func TestAnd(t *testing.T) {
+	memory := runProgram(`
+		.ORG $1000
+		; Basic AND
+		LDA #$11
+		SBC #$11
+		BNE DONE
+		ADC #$01 ; 0 is the default memory content, so make sure we make our mark
+		STA $00 ; $11
+		LDA #$FF
+		AND #$AA
+		BEQ DONE
+		STA $01 ; $AA
+		LDA #$F0
+		AND #$0F
+		BNE DONE
+		ADC #$01 ; 0 is the default memory content, so make sure we make our mark
+		STA $02 ; $01
+		LDA #$01
+		SBC #$FF
+		BEQ DONE
+		STA $03	; $01
+		; Addressing modes
+		LDA #$FF
+		AND DATA ; Absolute
+		STA $06 ; $01
+		LDA #$FF
+		LDX #$01
+		AND DATA,X ; Indexed X
+		STA $07 ; $02
+		LDA	#DATA & $0ff
+		STA $20
+		LDA #DATA >> 8
+		STA $21
+		LDA #$ff
+		AND ($1f,X) ; Indirect X
+		STA $08 ; $02
+		LDY #$01
+		LDA	#DONE & $ff
+		STA $20
+		LDA #DONE >> 8
+		STA $21
+		LDA #$ff
+		AND	($20),Y
+		STA $09 ; $02
+DONE	BRK
+DATA	.DB $01,$02
+ADDR	.DW DATA-1
+`)
+	require.Equal(t, uint8(0x01), memory[0x0000], "$11 & $11 failed")
+	require.Equal(t, uint8(0xaa), memory[0x0001], "$ff & aa failed")
+	require.Equal(t, uint8(0x01), memory[0x0002], "$f0 & $0f failed")
+	require.Equal(t, uint8(0x01), memory[0x0006], "Absolute failed")
+	require.Equal(t, uint8(0x02), memory[0x0007], "Indexed X failed")
+	require.Equal(t, uint8(0x01), memory[0x0008], "Indirect X failed")
+	require.Equal(t, uint8(0x01), memory[0x0009], "Indirect Y failed")
 }
 
 func TestFibonacci(t *testing.T) {
