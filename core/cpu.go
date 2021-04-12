@@ -125,6 +125,19 @@ const (
 	AND_AY   = 0x39
 	AND_INDX = 0x21
 	AND_INDY = 0x31
+	ORA_I    = 0x09
+	ORA_Z    = 0x05
+	ORA_ZX   = 0x15
+	ORA_A    = 0x0d
+	ORA_AX   = 0x1d
+	ORA_AY   = 0x19
+	ORA_INDX = 0x01
+	ORA_INDY = 0x11
+	ASL_ACC  = 0x0a
+	ASL_Z    = 0x06
+	ASL_ZX   = 0x16
+	ASL_A    = 0x0e
+	ASL_AX   = 0x1e
 )
 
 // CPU Status flags
@@ -155,7 +168,7 @@ type CPU struct {
 	alu                uint8  // ALU internal accumulator
 	halted             bool   // Halt CPU. Used for debugging
 	irqPending         bool   // Handle IRQ after current instruction
-	nmiPending         bool   // Handle NMO after current instruction
+	nmiPending         bool   // Handle NMI after current instruction
 	CrashOnInvalidInst bool   // Used for debugging
 	Trace              bool   // Trace each instruction to stdout
 
@@ -304,6 +317,7 @@ func (c *CPU) Init(mem Memory) {
 	c.microcode[SBC_INDY] = append(indirectY, c.sbc)
 	c.microcode[SBC_Z] = append(fetch8Bits, c.sbc)
 
+	// Logic
 	c.microcode[AND_A] = append(fetch16Bits, c.and)
 	c.microcode[AND_I] = []func(){c.and_i}
 	c.microcode[AND_ZX] = append(zeroPageX, c.and)
@@ -312,7 +326,19 @@ func (c *CPU) Init(mem Memory) {
 	c.microcode[AND_INDX] = append(indirectX, c.and)
 	c.microcode[AND_INDY] = append(indirectY, c.and)
 	c.microcode[AND_Z] = append(fetch8Bits, c.and)
-	
+	c.microcode[ORA_A] = append(fetch16Bits, c.ora)
+	c.microcode[ORA_I] = []func(){c.ora_i}
+	c.microcode[ORA_ZX] = append(zeroPageX, c.ora)
+	c.microcode[ORA_AX] = append(absXOverlap, c.ora)
+	c.microcode[ORA_AY] = append(absYOverlap, c.ora)
+	c.microcode[ORA_INDX] = append(indirectX, c.ora)
+	c.microcode[ORA_INDY] = append(indirectY, c.ora)
+	c.microcode[ORA_Z] = append(fetch8Bits, c.ora)
+	c.microcode[ASL_ACC] = []func(){c.asl_acc}
+	c.microcode[ASL_Z] = append(fetch8Bits, c.loadALU, c.asl_alu, c.storeALU)
+	c.microcode[ASL_ZX] = append(zeroPageX, c.loadALU, c.asl_alu, c.storeALU)
+	c.microcode[ASL_A] = append(fetch16Bits, c.loadALU, c.asl_alu, c.storeALU)
+	c.microcode[ASL_AX] = append(absX, c.loadALU, c.asl_alu, c.storeALU)
 }
 
 func (c *CPU) Reset() {
@@ -704,17 +730,50 @@ func (c *CPU) adc() {
 	c.add(c.mem.ReadByte(c.operand))
 }
 
-func (c* CPU) and_i() {
+func (c *CPU) and_i() {
 	c.a &= c.mem.ReadByte(c.pc)
 	c.pc++
 	c.updateNZ(c.a)
 	c.fetchNext = true
 }
 
-func (c* CPU) and() {
+func (c *CPU) and() {
 	c.a &= c.mem.ReadByte(c.operand)
 	c.updateNZ(c.a)
 	c.fetchNext = true
+}
+
+func (c *CPU) ora_i() {
+	c.a |= c.mem.ReadByte(c.pc)
+	c.pc++
+	c.updateNZ(c.a)
+	c.fetchNext = true
+}
+
+func (c *CPU) ora() {
+	c.a |= c.mem.ReadByte(c.operand)
+	c.updateNZ(c.a)
+	c.fetchNext = true
+}
+
+func (c *CPU) asl(v *uint8) {
+	carry := uint8(0)
+	if c.flags&FLAG_C != 0 {
+		carry = uint8(1)
+	}
+	c.updateFlag(FLAG_C, *v&0x80 != 0)
+	*v <<= 1
+	*v += carry
+	c.updateNZ(*v)
+}
+
+func (c *CPU) asl_acc() {
+	c.asl(&c.a)
+	c.fetchNext = true
+}
+
+func (c *CPU) asl_alu() {
+	c.asl(&c.alu)
 }
 
 func (c *CPU) add(addend uint8) {

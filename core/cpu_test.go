@@ -355,7 +355,7 @@ LOOP	TXA
 }
 
 func TestStack(t *testing.T) {
-		memory := runProgram(`
+	memory := runProgram(`
 		.ORG $1000
 		LDA #$42
 		LDX #$ff
@@ -546,14 +546,71 @@ ADDR	.DW DATA-1
 	require.Equal(t, uint8(0x0f), memory[0x0009], "Indirect Y failed")
 }
 
+func TestOr(t *testing.T) {
+	memory := runProgram(`
+		.ORG $1000
+		; Basic ORA
+		LDA #$aa
+		ORA #$55
+		BEQ DONE
+		STA $00 ; $ff
+		LDA #$01
+		ORA #$AA
+		BEQ DONE
+		STA $01 ; $AB
+		LDA #$F0
+		ORA #$0F
+		BEQ DONE
+		STA $02 ; $FF
+		LDA #$00
+		ORA #$00
+		BNE DONE
+		LDA #$01
+		STA $03	; $01
+		; Addressing modes
+		LDA #$00
+		ORA DATA ; Absolute
+		STA $06 ; $01
+		LDA #$00
+		LDX #$01
+		ORA DATA,X ; Indexed X
+		STA $07 ; $02
+		LDA	#DATA & $0ff
+		STA $20
+		LDA #DATA >> 8
+		STA $21
+		LDA #$00
+		ORA ($1f,X) ; Indirect X
+		STA $08 ; $02
+		LDY #$01
+		LDA	#DONE & $ff
+		STA $20
+		LDA #DONE >> 8
+		STA $21
+		LDA #$00
+		ORA	($20),Y
+		STA $09 ; $02
+DONE	BRK
+DATA	.DB $01,$02
+ADDR	.DW DATA-1
+`)
+	require.Equal(t, uint8(0xff), memory[0x0000], "$0a | $05 failed")
+	require.Equal(t, uint8(0xab), memory[0x0001], "$0a & $01 failed")
+	require.Equal(t, uint8(0xff), memory[0x0002], "$00 & $00 failed")
+	require.Equal(t, uint8(0x01), memory[0x0003], "$f0 & $0f failed")
+	require.Equal(t, uint8(0x01), memory[0x0006], "Absolute failed")
+	require.Equal(t, uint8(0x02), memory[0x0007], "Indexed X failed")
+	require.Equal(t, uint8(0x01), memory[0x0008], "Indirect X failed")
+	require.Equal(t, uint8(0x01), memory[0x0009], "Indirect Y failed")
+}
+
 func TestAnd(t *testing.T) {
 	memory := runProgram(`
 		.ORG $1000
 		; Basic AND
 		LDA #$11
-		SBC #$11
-		BNE DONE
-		ADC #$01 ; 0 is the default memory content, so make sure we make our mark
+		AND #$11
+		BEQ DONE
 		STA $00 ; $11
 		LDA #$FF
 		AND #$AA
@@ -595,13 +652,68 @@ DONE	BRK
 DATA	.DB $01,$02
 ADDR	.DW DATA-1
 `)
-	require.Equal(t, uint8(0x01), memory[0x0000], "$11 & $11 failed")
+	require.Equal(t, uint8(0x11), memory[0x0000], "$11 & $11 failed")
 	require.Equal(t, uint8(0xaa), memory[0x0001], "$ff & aa failed")
 	require.Equal(t, uint8(0x01), memory[0x0002], "$f0 & $0f failed")
 	require.Equal(t, uint8(0x01), memory[0x0006], "Absolute failed")
 	require.Equal(t, uint8(0x02), memory[0x0007], "Indexed X failed")
 	require.Equal(t, uint8(0x01), memory[0x0008], "Indirect X failed")
 	require.Equal(t, uint8(0x01), memory[0x0009], "Indirect Y failed")
+}
+
+func TestAsl(t *testing.T) {
+	memory := runProgram(`
+		.ORG $1000
+		; Basic shift
+		LDA #$01
+		CLC
+		ASL
+		BCS DONE
+		STA $00 ; $02
+		; Carry in
+		SEC
+		LDA #$01
+		ASL
+		BCS DONE
+		STA $01 ; $03
+		; Carry out 
+		SEC
+		LDA #$80
+		ASL
+		BCC DONE
+		STA $02 ; $01
+		; Zero page
+		LDA #$01
+		STA $03
+		CLC
+		ASL $03
+		; Zero page + 1
+		LDA #$01
+		STA $04
+		LDX #$01
+		CLC
+		ASL $03,X
+		; Absolute
+		ASL DATA
+		LDA DATA
+		STA $05 ; $02
+		; Absolute + X
+		LDX #$01
+		ASL DATA-1,X
+		LDA DATA
+		STA $06
+		
+DONE	BRK
+DATA	.DB $01
+		
+`)
+	require.Equal(t, uint8(0x02), memory[0x0000], "1 << 1 failed")
+	require.Equal(t, uint8(0x03), memory[0x0001], "1 << 1 with carry in failed")
+	require.Equal(t, uint8(0x01), memory[0x0002], "$80 << 1 with carry out failed")
+	require.Equal(t, uint8(0x02), memory[0x0003], "Zero page failed")
+	require.Equal(t, uint8(0x02), memory[0x0004], "Zero page + X failed")
+	require.Equal(t, uint8(0x02), memory[0x0005], "Absolute failed")
+	require.Equal(t, uint8(0x04), memory[0x0006], "Absolute + X failed")
 }
 
 func TestFibonacci(t *testing.T) {
@@ -643,5 +755,5 @@ LOOP	CLC
 		BNE LOOP
 		BRK
 `)
-	require.Equal(t, 6765, int(memory[0x0002]) + int(memory[0x0003]) << 8)
+	require.Equal(t, 6765, int(memory[0x0002])+int(memory[0x0003])<<8)
 }
