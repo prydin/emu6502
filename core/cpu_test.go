@@ -7,6 +7,7 @@ import (
 	"os"
 	"strings"
 	"testing"
+	"time"
 )
 
 func assemble(program string) ([]byte, error) {
@@ -17,7 +18,7 @@ func assemble(program string) ([]byte, error) {
 	return assy.Code, err
 }
 
-func runProgram(source string) []byte {
+func loadProgram(source string) (*CPU, []byte) {
 	bytes := make([]byte, 65536)
 	bytes[RST_VEC] = 0
 	bytes[RST_VEC+1] = 0x10
@@ -33,6 +34,11 @@ func runProgram(source string) []byte {
 	cpu.CrashOnInvalidInst = true
 	cpu.Init(&mem)
 	cpu.Reset()
+	return &cpu, bytes
+}
+
+func runProgram(source string) []byte {
+	cpu, bytes := loadProgram(source);
 	for !cpu.IsHalted() {
 		cpu.Clock()
 	}
@@ -757,3 +763,173 @@ LOOP	CLC
 `)
 	require.Equal(t, 6765, int(memory[0x0002])+int(memory[0x0003])<<8)
 }
+
+func TestMultiply(t *testing.T) {
+	memory := runProgram(`
+		.ORG $1000
+		; 2*3
+		LDA #$02
+		LDX #$03
+		JSR MULT
+		STA $10
+		STX $11
+		; 10*11
+		LDA #$0a
+		LDX #$0b
+		JSR MULT
+		STA $12
+		STX $13
+		; 100*2
+		LDA #100
+		LDX #2
+		JSR MULT
+		STA $14
+		STX	$15
+		; 2*100
+		LDA #2
+		LDX #100
+		JSR MULT
+		STA $16
+		STX	$17
+		;200*200
+		LDA #200
+		LDX #200
+		JSR MULT
+		STA $18
+		STX	$19
+		BRK
+
+LOTERM	.EQ $00
+HITERM	.EQ $01
+LOSUM	.EQ $02
+HISUM	.EQ $03
+MULT	STX LOTERM	; Second term
+		LDY #$00
+		STY LOSUM	; Running sum
+		STY HISUM
+		STY HITERM
+LOOP	CMP #$00	; Any set bits left in first term?
+		BEQ END
+		TAY	
+		AND #$01	; Bit set in first term? Add shifted second term to running sum
+		BEQ SHIFT
+		CLC
+		LDA LOTERM	; 16 bit addition
+		ADC LOSUM
+		STA LOSUM
+		LDA HITERM
+		ADC HISUM
+		STA HISUM
+SHIFT	TYA
+		LSR
+		CLC
+		ASL LOTERM	; Shift the second term and continue
+		ASL HITERM
+		CLC
+		BCC LOOP
+END		LDA LOSUM
+		LDX HISUM
+		RTS
+`)
+	require.Equal(t, uint16(6), uint16(memory[0x0010]) + uint16(memory[0x0011]) << 8, "2*3 failed")
+	require.Equal(t, uint16(110),uint16(memory[0x0012]) + uint16(memory[0x0013]) << 8, "10*11 failed")
+	require.Equal(t, uint16(200),uint16(memory[0x0014]) + uint16(memory[0x0015]) << 8, "100*2 failed")
+	require.Equal(t, uint16(200),uint16(memory[0x0016]) + uint16(memory[0x0017]) << 8, "2*100 failed")
+	require.Equal(t, uint16(40000),uint16(memory[0x0018]) + uint16(memory[0x0019]) << 8, "200*2000 failed")
+}
+
+func TestCmp(t *testing.T) {
+	memory := runProgram(`
+		.ORG $1000
+		LDX #$FF
+		TXS
+		LDA #00
+		CMP #00
+		PHP
+		LDA #$AA
+		CMP #$AA
+		PHP
+		LDA #$01
+		CMP #$02
+		PHP
+		LDA #$02
+		CMP #$01
+		PHP
+		LDA #$FE
+		CMP #$FF
+		PHP
+		LDA #$FF
+		CMP #$FE
+		PHP
+`)
+	require.Equal(t, FLAG_Z|FLAG_C, memory[0x01ff], "CMP $00,$00 failed")
+	require.Equal(t, FLAG_Z|FLAG_C, memory[0x01fe], "CMP $AA,$AA failed")
+	require.Equal(t, FLAG_N, memory[0x01fd], "CMP $01,$02 failed")
+	require.Equal(t, FLAG_C, memory[0x01fc], "CMP $02,$01 failed")
+
+	require.Equal(t, FLAG_N, memory[0x01fb], "CMP $fe,$ff failed")
+	require.Equal(t, FLAG_C, memory[0x01fa], "CMP $ff,$fe failed")
+}
+
+func TestPerformance(t *testing.T) {
+	cpu, _ := loadProgram(`
+		.ORG $1000
+		LDY #00
+		STY $20
+		STY $21
+OUTER	LDY #$00
+		STY $20
+INNER	TYA
+		LDA $20
+		LDX $21
+		JSR MULT
+		DEC $20 
+		BNE INNER
+		DEC $21 
+		BNE OUTER
+		BRK
+
+LOTERM	.EQ $00
+HITERM	.EQ $01
+LOSUM	.EQ $02
+HISUM	.EQ $03
+MULT	STX LOTERM	; Second term
+		LDY #$00
+		STY LOSUM	; Running sum
+		STY HISUM
+		STY HITERM
+LOOP	CMP #$00	; Any set bits left in first term?
+		BEQ END
+		TAY	
+		AND #$01	; Bit set in first term? Add shifted second term to running sum
+		BEQ SHIFT
+		CLC
+		LDA LOTERM	; 16 bit addition
+		ADC LOSUM
+		STA LOSUM
+		LDA HITERM
+		ADC HISUM
+		STA HISUM
+SHIFT	TYA
+		LSR
+		CLC
+		ASL LOTERM	; Shift the second term and continue
+		ASL HITERM
+		CLC
+		BCC LOOP
+END		LDA LOSUM
+		LDX HISUM
+		RTS
+`)
+	cycles := 0
+	cpu.Trace = false
+	start := time.Now()
+	for !cpu.IsHalted() {
+		cpu.Clock()
+		cycles++
+	}
+	elapsed := time.Now().Sub(start)
+	fmt.Printf("Elapsed time: %s, cycles: %d, speed: %d\n", elapsed, cycles, (cycles*1000) / int(elapsed))
+}
+
+

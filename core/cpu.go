@@ -138,6 +138,21 @@ const (
 	ASL_ZX   = 0x16
 	ASL_A    = 0x0e
 	ASL_AX   = 0x1e
+	LSR_ACC  = 0x4a
+	LSR_Z    = 0x46
+	LSR_ZX   = 0x56
+	LSR_A    = 0x4e
+	LSR_AX   = 0x5e
+
+	// Comparison
+	CMP_I    = 0xc9
+	CMP_Z    = 0xc5
+	CMP_ZX   = 0xd5
+	CMP_A    = 0xcd
+	CMP_AX   = 0xdd
+	CMP_AY   = 0xd9
+	CMP_INDX = 0xc1
+	CMP_INDY = 0xd1
 )
 
 // CPU Status flags
@@ -339,6 +354,21 @@ func (c *CPU) Init(mem Memory) {
 	c.microcode[ASL_ZX] = append(zeroPageX, c.loadALU, c.asl_alu, c.storeALU)
 	c.microcode[ASL_A] = append(fetch16Bits, c.loadALU, c.asl_alu, c.storeALU)
 	c.microcode[ASL_AX] = append(absX, c.loadALU, c.asl_alu, c.storeALU)
+	c.microcode[LSR_ACC] = []func(){c.lsr_acc}
+	c.microcode[LSR_Z] = append(fetch8Bits, c.loadALU, c.lsr_alu, c.storeALU)
+	c.microcode[LSR_ZX] = append(zeroPageX, c.loadALU, c.lsr_alu, c.storeALU)
+	c.microcode[LSR_A] = append(fetch16Bits, c.loadALU, c.lsr_alu, c.storeALU)
+	c.microcode[LSR_AX] = append(absX, c.loadALU, c.lsr_alu, c.storeALU)
+	
+	// Comparisons
+	c.microcode[CMP_A] = append(fetch16Bits, c.cmp)
+	c.microcode[CMP_I] = []func(){c.cmp_i}
+	c.microcode[CMP_ZX] = append(zeroPageX, c.cmp)
+	c.microcode[CMP_AX] = append(absXOverlap, c.cmp)
+	c.microcode[CMP_AY] = append(absYOverlap, c.cmp)
+	c.microcode[CMP_INDX] = append(indirectX, c.cmp)
+	c.microcode[CMP_INDY] = append(indirectY, c.cmp)
+	c.microcode[CMP_Z] = append(fetch8Bits, c.cmp)
 }
 
 func (c *CPU) Reset() {
@@ -680,7 +710,7 @@ func (c *CPU) txs() {
 
 func (c *CPU) tya() {
 	c.a = c.y
-	c.updateNZ(c.y)
+	c.updateNZ(c.a)
 	c.fetchNext = true
 }
 
@@ -774,6 +804,60 @@ func (c *CPU) asl_acc() {
 
 func (c *CPU) asl_alu() {
 	c.asl(&c.alu)
+}
+
+func (c *CPU) lsr(v *uint8) {
+	c.updateFlag(FLAG_C, *v&0x01 != 0)
+	*v >>= 1
+	c.updateNZ(*v)
+}
+
+func (c *CPU) lsr_acc() {
+	c.lsr(&c.a)
+	c.fetchNext = true
+}
+
+func (c *CPU) lsr_alu() {
+	c.lsr(&c.alu)
+}
+
+func (c *CPU) compareTwo(a, b uint8) {
+	v := uint16(a) - uint16(b)
+	c.updateNZ(uint8(v & 0xff))
+	c.updateFlag(FLAG_C, v < 0x100)
+}
+
+func (c *CPU) cmp_i() {
+	c.compareTwo(c.a, c.mem.ReadByte(c.pc))
+	c.pc++
+	c.fetchNext = true
+}
+
+func (c *CPU) cpx_i() {
+	c.compareTwo(c.x, c.mem.ReadByte(c.pc))
+	c.pc++
+	c.fetchNext = true
+}
+
+func (c *CPU) cpy_i() {
+	c.compareTwo(c.x, c.mem.ReadByte(c.pc))
+	c.pc++
+	c.fetchNext = true
+}
+
+func (c *CPU) cmp() {
+	c.compareTwo(c.a, c.mem.ReadByte(c.operand))
+	c.fetchNext = true
+}
+
+func (c *CPU) cpx() {
+	c.compareTwo(c.x, c.mem.ReadByte(c.operand))
+	c.fetchNext = true
+}
+
+func (c *CPU) cpy() {
+	c.compareTwo(c.y, c.mem.ReadByte(c.operand))
+	c.fetchNext = true
 }
 
 func (c *CPU) add(addend uint8) {
