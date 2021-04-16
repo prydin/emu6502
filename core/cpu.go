@@ -64,16 +64,17 @@ const (
 	JMP_IND = 0x6c
 	JSR     = 0x20
 	RTS     = 0x60
+	RTI		= 0x40
 
 	// Branches
-	BCC = 0x90
-	BCS = 0xb0
-	BEQ = 0xf0
-	BNE = 0xd0
-	BMI = 0x30
-	BPL = 0x10
-	BVC = 0x50
-	BVS = 0x70
+	BCC_R = 0x90
+	BCS_R = 0xb0
+	BEQ_R = 0xf0
+	BNE_R = 0xd0
+	BMI_R = 0x30
+	BPL_R = 0x10
+	BVC_R = 0x50
+	BVS_R = 0x70
 
 	// Flag manipulation
 	CLC = 0x18
@@ -161,11 +162,14 @@ const (
 	FLAG_Z = uint8(0x02)
 	FLAG_I = uint8(0x04)
 	FLAG_D = uint8(0x08)
-	FLAG_N = uint8(0x10)
-	FLAG_V = uint8(0x20)
+	FLAG_B = uint8(0x10)
+	FLAG_V = uint8(0x40)
+	FLAG_N = uint8(0x80)
 )
 
+const NMI_VEC = 0xfffa
 const RST_VEC = 0xfffc
+const IRQ_VEC = 0xfffe
 
 type CPU struct {
 	// User accessible registers
@@ -177,7 +181,6 @@ type CPU struct {
 	flags uint8
 
 	// Internal registers
-	opcode             uint8  // Current instruction opcode
 	operand            uint16 // Current operand address
 	address            uint8  // Intermediate address storage during indirect addressing op
 	alu                uint8  // ALU internal accumulator
@@ -186,24 +189,30 @@ type CPU struct {
 	nmiPending         bool   // Handle NMI after current instruction
 	CrashOnInvalidInst bool   // Used for debugging
 	Trace              bool   // Trace each instruction to stdout
+	instruction *Instruction // Current instruction
 
-	// Memory abstraction
-	mem Memory
+	// AddressSpace abstraction
+	bus AddressSpace
 
-	// Pseudo-microcode
-	microcode [][]func() // Pseudo-microcode
-	microPc   int        // Microprogram counter
-	fetchNext bool       // Fetch next instruction, please
+	// Pseudo-instructionSet
+	instructionSet []Instruction // Pseudo-instructionSet
+	microPc        int           // Microprogram counter
+
+	// Interrupt pseudo instructions
+	irqPI Instruction
+	nmiPI Instruction
+	brkPI Instruction
+	rstPI Instruction
 }
 
-func (c *CPU) Init(mem Memory) {
-	c.microcode = make([][]func(), 256)
+func (c *CPU) Init(mem AddressSpace) {
+	c.instructionSet = make([]Instruction, 256)
 
-	// Basic memory access microcode
+	// Basic memory access instructionSet
 	fetch16Bits := []func(){c.fetchOperandLow, c.fetchOperandHigh}
 	fetch8Bits := []func(){c.fetchOperandLow}
 
-	// Addressing mode microcode
+	// Addressing mode instructionSet
 	zeroPageX := []func(){c.fetchOperandLow, c.addXToLowOperand}
 	zeroPageY := []func(){c.fetchOperandLow, c.addYToLowOperand}
 	absXOverlap := []func(){c.fetchOperandLow, c.fetchOperandHighAndAddX, c.nop}
@@ -214,214 +223,267 @@ func (c *CPU) Init(mem Memory) {
 	indirectY := []func(){c.fetchAddressLow, c.fetchIndirectLow, c.fetchIndirectHighAndAddY, c.nop}
 
 	// Processor control instructions
-	c.microcode[BRK] = []func(){c.brk}
+	c.instructionSet[BRK] = MkInstr("BRK", []func(){c.brk})
 
 	// Accumulator load/store
-	c.microcode[LDA_A] = append(fetch16Bits, c.lda)
-	c.microcode[LDA_I] = []func(){c.lda_i}
-	c.microcode[LDA_ZX] = append(zeroPageX, c.lda)
-	c.microcode[LDA_AX] = append(absXOverlap, c.lda)
-	c.microcode[LDA_AY] = append(absYOverlap, c.lda)
-	c.microcode[LDA_INDX] = append(indirectX, c.lda)
-	c.microcode[LDA_INDY] = append(indirectY, c.lda)
-	c.microcode[LDA_Z] = append(fetch8Bits, c.lda)
-	c.microcode[STA_A] = append(fetch16Bits, c.sta)
-	c.microcode[STA_Z] = append(fetch8Bits, c.sta)
-	c.microcode[STA_ZX] = append(zeroPageX, c.sta)
-	c.microcode[STA_AX] = append(absX, c.sta)
-	c.microcode[STA_AY] = append(absY, c.sta)
-	c.microcode[STA_INDX] = append(indirectX, c.sta)
-	c.microcode[STA_INDY] = append(indirectY, c.sta)
+	c.instructionSet[LDA_A] = MkInstr("LDA_A", append(fetch16Bits, c.lda))
+	c.instructionSet[LDA_I] = MkInstr("LDA_I", []func(){c.lda_i})
+	c.instructionSet[LDA_ZX] = MkInstr("LDA_ZX", append(zeroPageX, c.lda))
+	c.instructionSet[LDA_AX] = MkInstr("LDA_AX", append(absXOverlap, c.lda))
+	c.instructionSet[LDA_AY] = MkInstr("LDA_AY", append(absYOverlap, c.lda))
+	c.instructionSet[LDA_INDX] = MkInstr("LDA_INDX", append(indirectX, c.lda))
+	c.instructionSet[LDA_INDY] = MkInstr("LDA_INDY", append(indirectY, c.lda))
+	c.instructionSet[LDA_Z] = MkInstr("LDA_Z", append(fetch8Bits, c.lda))
+	c.instructionSet[STA_A] = MkInstr("STA_A", append(fetch16Bits, c.sta))
+	c.instructionSet[STA_Z] = MkInstr("STA_Z", append(fetch8Bits, c.sta))
+	c.instructionSet[STA_ZX] = MkInstr("STA_ZX", append(zeroPageX, c.sta))
+	c.instructionSet[STA_AX] = MkInstr("STA_AX", append(absX, c.sta))
+	c.instructionSet[STA_AY] = MkInstr("STA_AY", append(absY, c.sta))
+	c.instructionSet[STA_INDX] = MkInstr("STA_INDX", append(indirectX, c.sta))
+	c.instructionSet[STA_INDY] = MkInstr("STA_INDY", append(indirectY, c.sta))
 
 	// Index X load/store
-	c.microcode[LDX_A] = append(fetch16Bits, c.ldx)
-	c.microcode[LDX_I] = []func(){c.ldx_i}
-	c.microcode[LDX_Z] = append(fetch8Bits, c.ldx)
-	c.microcode[LDX_ZY] = append(zeroPageY, c.ldx)
-	c.microcode[STX_A] = append(fetch16Bits, c.stx)
-	c.microcode[STX_Z] = append(fetch8Bits, c.stx)
-	c.microcode[STX_ZY] = append(zeroPageY, c.stx)
+	c.instructionSet[LDX_A] = MkInstr("LDX_A", append(fetch16Bits, c.ldx))
+	c.instructionSet[LDX_I] = MkInstr("LDX_I", []func(){c.ldx_i})
+	c.instructionSet[LDX_Z] = MkInstr("LDX_Z", append(fetch8Bits, c.ldx))
+	c.instructionSet[LDX_ZY] = MkInstr("LDX_ZY", append(zeroPageY, c.ldx))
+	c.instructionSet[STX_A] = MkInstr("STX_A", append(fetch16Bits, c.stx))
+	c.instructionSet[STX_Z] = MkInstr("STX_Z", append(fetch8Bits, c.stx))
+	c.instructionSet[STX_ZY] = MkInstr("STX_ZY", append(zeroPageY, c.stx))
 
 	// Index Y load/store
-	c.microcode[LDY_I] = []func(){c.ldy_i}
-	c.microcode[LDY_ZX] = append(zeroPageX, c.ldy)
-	c.microcode[LDY_Z] = append(fetch8Bits, c.ldy)
-	c.microcode[STY_A] = append(fetch16Bits, c.sty)
-	c.microcode[STY_ZX] = append(zeroPageY, c.sty)
-	c.microcode[STY_Z] = append(fetch8Bits, c.sty)
-	c.microcode[LDY_A] = append(fetch16Bits, c.ldy)
+	c.instructionSet[LDY_I] = MkInstr("LDY_I", []func(){c.ldy_i})
+	c.instructionSet[LDY_ZX] = MkInstr("LDY_ZX", append(zeroPageX, c.ldy))
+	c.instructionSet[LDY_Z] = MkInstr("LDY_Z", append(fetch8Bits, c.ldy))
+	c.instructionSet[STY_A] = MkInstr("STY_A", append(fetch16Bits, c.sty))
+	c.instructionSet[STY_ZX] = MkInstr("STY_ZX", append(zeroPageY, c.sty))
+	c.instructionSet[STY_Z] = MkInstr("STY_Z", append(fetch8Bits, c.sty))
+	c.instructionSet[LDY_A] = MkInstr("LDY_A", append(fetch16Bits, c.ldy))
 
 	// Inc/dec register
-	c.microcode[INX] = []func(){c.inx}
-	c.microcode[INY] = []func(){c.iny}
-	c.microcode[DEX] = []func(){c.dex}
-	c.microcode[DEY] = []func(){c.dey}
+	c.instructionSet[INX] = MkInstr("INX", []func(){c.inx})
+	c.instructionSet[INY] = MkInstr("INY", []func(){c.iny})
+	c.instructionSet[DEX] = MkInstr("DEX", []func(){c.dex})
+	c.instructionSet[DEY] = MkInstr("DEY", []func(){c.dey})
 
 	// INC
-	c.microcode[INC_Z] = append(fetch8Bits, c.loadALU, c.inc, c.storeALU)
-	c.microcode[INC_ZX] = append(zeroPageX, c.loadALU, c.inc, c.storeALU)
-	c.microcode[INC_A] = append(fetch16Bits, c.loadALU, c.inc, c.storeALU)
-	c.microcode[INC_AX] = append(absX, c.loadALU, c.inc, c.storeALU)
+	c.instructionSet[INC_Z] = MkInstr("INC_Z", append(fetch8Bits, c.loadALU, c.inc, c.storeALU))
+	c.instructionSet[INC_ZX] = MkInstr("INC_ZX", append(zeroPageX, c.loadALU, c.inc, c.storeALU))
+	c.instructionSet[INC_A] = MkInstr("INC_A", append(fetch16Bits, c.loadALU, c.inc, c.storeALU))
+	c.instructionSet[INC_AX] = MkInstr("INC_AX", append(absX, c.loadALU, c.inc, c.storeALU))
 
 	// DEC
-	c.microcode[DEC_Z] = append(fetch8Bits, c.loadALU, c.dec, c.storeALU)
-	c.microcode[DEC_ZX] = append(zeroPageX, c.loadALU, c.dec, c.storeALU)
-	c.microcode[DEC_A] = append(fetch16Bits, c.loadALU, c.dec, c.storeALU)
-	c.microcode[DEC_AX] = append(absX, c.loadALU, c.dec, c.storeALU)
+	c.instructionSet[DEC_Z] = MkInstr("DEC_Z", append(fetch8Bits, c.loadALU, c.dec, c.storeALU))
+	c.instructionSet[DEC_ZX] = MkInstr("DEC_ZX", append(zeroPageX, c.loadALU, c.dec, c.storeALU))
+	c.instructionSet[DEC_A] = MkInstr("DEC_A", append(fetch16Bits, c.loadALU, c.dec, c.storeALU))
+	c.instructionSet[DEC_AX] = MkInstr("DEC_AX", append(absX, c.loadALU, c.dec, c.storeALU))
 
 	// JMP
-	c.microcode[JMP] = []func(){c.fetchOperandLow, c.fetchHighAndJump}
-	c.microcode[JMP_IND] = []func(){c.fetchOperandLow, c.fetchOperandHigh, c.loadPCLow, c.loadPCHigh}
+	c.instructionSet[JMP] = MkInstr("JMP", []func(){c.fetchOperandLow, c.fetchHighAndJump})
+	c.instructionSet[JMP_IND] = MkInstr("JMP_IND", []func(){c.fetchOperandLow, c.fetchOperandHigh, c.loadPCLow, c.loadPCHigh})
 
 	// JSR/RTS
-	c.microcode[JSR] = append(fetch16Bits, c.pushReturnAddressLow, c.pushReturnAddressHigh, c.jump)
-	c.microcode[RTS] = []func(){c.nop, c.pullOperandHigh, c.pullOperandLow, c.nop, c.jump} // TODO: Questionable NOP!
+	c.instructionSet[JSR] = MkInstr("JSR", append(fetch16Bits, c.pushReturnAddressHigh, c.pushReturnAddressLow, c.jump))
+	c.instructionSet[RTS] = MkInstr("RTS", []func(){c.nop, c.pullOperandLow, c.pullOperandHigh, c.nop, c.jump}) // TODO: Questionable NOP!
+	c.instructionSet[RTI] = MkInstr("RTI", []func(){c.plp, c.pullOperandLow, c.pullOperandHigh, c.nop, c.jump}) // TODO: Questionable NOP!
+
 
 	// Branching
-	c.microcode[BCC] = append(fetch8Bits, c.bcc)
-	c.microcode[BCS] = append(fetch8Bits, c.bcs)
-	c.microcode[BEQ] = append(fetch8Bits, c.beq)
-	c.microcode[BNE] = append(fetch8Bits, c.bne)
-	c.microcode[BMI] = append(fetch8Bits, c.bmi)
-	c.microcode[BPL] = append(fetch8Bits, c.bpl)
-	c.microcode[BVC] = append(fetch8Bits, c.bvc)
-	c.microcode[BVS] = append(fetch8Bits, c.bvs)
+	c.instructionSet[BCC_R] = MkInstr("BCC_R", []func(){c.bcc, c.doBranch, c.nop})
+	c.instructionSet[BCS_R] = MkInstr("BCS_R", []func() {c.bcs, c.doBranch, c.nop})
+	c.instructionSet[BEQ_R] = MkInstr("BEQ_R", []func() {c.beq, c.doBranch, c.nop})
+	c.instructionSet[BNE_R] = MkInstr("BNE_R", []func() {c.bne, c.doBranch, c.nop})
+	c.instructionSet[BMI_R] = MkInstr("BMI_R", []func() {c.bmi, c.doBranch, c.nop})
+	c.instructionSet[BPL_R] = MkInstr("BPL_R", []func() {c.bpl, c.doBranch, c.nop})
+	c.instructionSet[BVC_R] = MkInstr("BVC_R", []func() {c.bvc, c.doBranch, c.nop})
+	c.instructionSet[BVS_R] = MkInstr("BVS_R", []func() {c.bvs, c.doBranch, c.nop})
 
 	// Flag manipulations
-	c.microcode[CLC] = []func(){c.clc}
-	c.microcode[CLD] = []func(){c.cld}
-	c.microcode[CLV] = []func(){c.clv}
-	c.microcode[CLI] = []func(){c.clc}
-	c.microcode[SEC] = []func(){c.sec}
-	c.microcode[SED] = []func(){c.sed}
-	c.microcode[SEI] = []func(){c.sei}
+	c.instructionSet[CLC] = MkInstr("CLC", []func(){c.clc})
+	c.instructionSet[CLD] = MkInstr("CLD", []func(){c.cld})
+	c.instructionSet[CLV] = MkInstr("CLV", []func(){c.clv})
+	c.instructionSet[CLI] = MkInstr("CLI", []func(){c.clc})
+	c.instructionSet[SEC] = MkInstr("SEC", []func(){c.sec})
+	c.instructionSet[SED] = MkInstr("SED", []func(){c.sed})
+	c.instructionSet[SEI] = MkInstr("SEI", []func(){c.sei})
 
 	// Transfer instructions.
-	c.microcode[TAX] = []func(){c.tax}
-	c.microcode[TAY] = []func(){c.tay}
-	c.microcode[TSX] = []func(){c.tsx}
-	c.microcode[TXA] = []func(){c.txa}
-	c.microcode[TYA] = []func(){c.tya}
-	c.microcode[TXS] = []func(){c.txs}
+	c.instructionSet[TAX] = MkInstr("TAX", []func(){c.tax})
+	c.instructionSet[TAY] = MkInstr("TAY", []func(){c.tay})
+	c.instructionSet[TSX] = MkInstr("TSX", []func(){c.tsx})
+	c.instructionSet[TXA] = MkInstr("TXA", []func(){c.txa})
+	c.instructionSet[TYA] = MkInstr("TYA", []func(){c.tya})
+	c.instructionSet[TXS] = MkInstr("TXS", []func(){c.txs})
 
 	// Stack instructions
 	// The NOPs are a bit of a cheat to get the instruction timing right.
 	// The bus timing is still correct.
-	c.microcode[PHA] = []func(){c.nop, c.pha}
-	c.microcode[PHP] = []func(){c.nop, c.php}
-	c.microcode[PLA] = []func(){c.nop, c.pla}
-	c.microcode[PLP] = []func(){c.nop, c.plp}
-	c.mem = mem
+	c.instructionSet[PHA] = MkInstr("PHA", []func(){c.nop, c.pha})
+	c.instructionSet[PHP] = MkInstr("PHP", []func(){c.nop, c.php})
+	c.instructionSet[PLA] = MkInstr("PLA", []func(){c.nop, c.pla})
+	c.instructionSet[PLP] = MkInstr("PLP", []func(){c.nop, c.plp})
+	c.bus = mem
 
 	// Arithmetic
-	c.microcode[ADC_A] = append(fetch16Bits, c.adc)
-	c.microcode[ADC_I] = []func(){c.adc_i}
-	c.microcode[ADC_ZX] = append(zeroPageX, c.adc)
-	c.microcode[ADC_AX] = append(absXOverlap, c.adc)
-	c.microcode[ADC_AY] = append(absYOverlap, c.adc)
-	c.microcode[ADC_INDX] = append(indirectX, c.adc)
-	c.microcode[ADC_INDY] = append(indirectY, c.adc)
-	c.microcode[ADC_Z] = append(fetch8Bits, c.adc)
+	c.instructionSet[ADC_A] = MkInstr("ADC_A", append(fetch16Bits, c.adc))
+	c.instructionSet[ADC_I] = MkInstr("ADC_I", []func(){c.adc_i})
+	c.instructionSet[ADC_ZX] = MkInstr("ADC_ZX", append(zeroPageX, c.adc))
+	c.instructionSet[ADC_AX] = MkInstr("ADC_AX", append(absXOverlap, c.adc))
+	c.instructionSet[ADC_AY] = MkInstr("ADC_AY", append(absYOverlap, c.adc))
+	c.instructionSet[ADC_INDX] = MkInstr("ADC_INDX", append(indirectX, c.adc))
+	c.instructionSet[ADC_INDY] = MkInstr("ADC_INDY", append(indirectY, c.adc))
+	c.instructionSet[ADC_Z] = MkInstr("ADC_Z", append(fetch8Bits, c.adc))
 
-	c.microcode[SBC_A] = append(fetch16Bits, c.sbc)
-	c.microcode[SBC_I] = []func(){c.sbc_i}
-	c.microcode[SBC_ZX] = append(zeroPageX, c.sbc)
-	c.microcode[SBC_AX] = append(absXOverlap, c.sbc)
-	c.microcode[SBC_AY] = append(absYOverlap, c.sbc)
-	c.microcode[SBC_INDX] = append(indirectX, c.sbc)
-	c.microcode[SBC_INDY] = append(indirectY, c.sbc)
-	c.microcode[SBC_Z] = append(fetch8Bits, c.sbc)
+	c.instructionSet[SBC_A] = MkInstr("SBC_A", append(fetch16Bits, c.sbc))
+	c.instructionSet[SBC_I] = MkInstr("SBC_I", []func(){c.sbc_i})
+	c.instructionSet[SBC_ZX] = MkInstr("SBC_ZX", append(zeroPageX, c.sbc))
+	c.instructionSet[SBC_AX] = MkInstr("SBC_AX", append(absXOverlap, c.sbc))
+	c.instructionSet[SBC_AY] = MkInstr("SBC_AY", append(absYOverlap, c.sbc))
+	c.instructionSet[SBC_INDX] = MkInstr("SBC_INDX", append(indirectX, c.sbc))
+	c.instructionSet[SBC_INDY] = MkInstr("SBC_INDY", append(indirectY, c.sbc))
+	c.instructionSet[SBC_Z] = MkInstr("SBC_Z", append(fetch8Bits, c.sbc))
 
 	// Logic
-	c.microcode[AND_A] = append(fetch16Bits, c.and)
-	c.microcode[AND_I] = []func(){c.and_i}
-	c.microcode[AND_ZX] = append(zeroPageX, c.and)
-	c.microcode[AND_AX] = append(absXOverlap, c.and)
-	c.microcode[AND_AY] = append(absYOverlap, c.and)
-	c.microcode[AND_INDX] = append(indirectX, c.and)
-	c.microcode[AND_INDY] = append(indirectY, c.and)
-	c.microcode[AND_Z] = append(fetch8Bits, c.and)
-	c.microcode[ORA_A] = append(fetch16Bits, c.ora)
-	c.microcode[ORA_I] = []func(){c.ora_i}
-	c.microcode[ORA_ZX] = append(zeroPageX, c.ora)
-	c.microcode[ORA_AX] = append(absXOverlap, c.ora)
-	c.microcode[ORA_AY] = append(absYOverlap, c.ora)
-	c.microcode[ORA_INDX] = append(indirectX, c.ora)
-	c.microcode[ORA_INDY] = append(indirectY, c.ora)
-	c.microcode[ORA_Z] = append(fetch8Bits, c.ora)
-	c.microcode[ASL_ACC] = []func(){c.asl_acc}
-	c.microcode[ASL_Z] = append(fetch8Bits, c.loadALU, c.asl_alu, c.storeALU)
-	c.microcode[ASL_ZX] = append(zeroPageX, c.loadALU, c.asl_alu, c.storeALU)
-	c.microcode[ASL_A] = append(fetch16Bits, c.loadALU, c.asl_alu, c.storeALU)
-	c.microcode[ASL_AX] = append(absX, c.loadALU, c.asl_alu, c.storeALU)
-	c.microcode[LSR_ACC] = []func(){c.lsr_acc}
-	c.microcode[LSR_Z] = append(fetch8Bits, c.loadALU, c.lsr_alu, c.storeALU)
-	c.microcode[LSR_ZX] = append(zeroPageX, c.loadALU, c.lsr_alu, c.storeALU)
-	c.microcode[LSR_A] = append(fetch16Bits, c.loadALU, c.lsr_alu, c.storeALU)
-	c.microcode[LSR_AX] = append(absX, c.loadALU, c.lsr_alu, c.storeALU)
-	
+	c.instructionSet[AND_A] = MkInstr("AND_A", append(fetch16Bits, c.and))
+	c.instructionSet[AND_I] = MkInstr("AND_I", []func(){c.and_i})
+	c.instructionSet[AND_ZX] = MkInstr("AND_ZX", append(zeroPageX, c.and))
+	c.instructionSet[AND_AX] = MkInstr("AND_AX", append(absXOverlap, c.and))
+	c.instructionSet[AND_AY] = MkInstr("AND_AY", append(absYOverlap, c.and))
+	c.instructionSet[AND_INDX] = MkInstr("AND_INDX", append(indirectX, c.and))
+	c.instructionSet[AND_INDY] = MkInstr("AND_INDY", append(indirectY, c.and))
+	c.instructionSet[AND_Z] = MkInstr("AND_Z", append(fetch8Bits, c.and))
+	c.instructionSet[ORA_A] = MkInstr("ORA_A", append(fetch16Bits, c.ora))
+	c.instructionSet[ORA_I] = MkInstr("ORA_I", []func(){c.ora_i})
+	c.instructionSet[ORA_ZX] = MkInstr("ORA_ZX", append(zeroPageX, c.ora))
+	c.instructionSet[ORA_AX] = MkInstr("ORA_AX", append(absXOverlap, c.ora))
+	c.instructionSet[ORA_AY] = MkInstr("ORA_AY", append(absYOverlap, c.ora))
+	c.instructionSet[ORA_INDX] = MkInstr("ORA_INDX", append(indirectX, c.ora))
+	c.instructionSet[ORA_INDY] = MkInstr("ORA_INDY", append(indirectY, c.ora))
+	c.instructionSet[ORA_Z] = MkInstr("ORA_Z", append(fetch8Bits, c.ora))
+	c.instructionSet[ASL_ACC] = MkInstr("ASL_ACC", []func(){c.asl_acc})
+	c.instructionSet[ASL_Z] = MkInstr("ASL_Z", append(fetch8Bits, c.loadALU, c.asl_alu, c.storeALU))
+	c.instructionSet[ASL_ZX] = MkInstr("ASL_ZX", append(zeroPageX, c.loadALU, c.asl_alu, c.storeALU))
+	c.instructionSet[ASL_A] = MkInstr("ASL_A", append(fetch16Bits, c.loadALU, c.asl_alu, c.storeALU))
+	c.instructionSet[ASL_AX] = MkInstr("ASL_AX", append(absX, c.loadALU, c.asl_alu, c.storeALU))
+	c.instructionSet[LSR_ACC] = MkInstr("LSR_ACC", []func(){c.lsr_acc})
+	c.instructionSet[LSR_Z] = MkInstr("LSR_Z", append(fetch8Bits, c.loadALU, c.lsr_alu, c.storeALU))
+	c.instructionSet[LSR_ZX] = MkInstr("LSR_ZX", append(zeroPageX, c.loadALU, c.lsr_alu, c.storeALU))
+	c.instructionSet[LSR_A] = MkInstr("LSR_A", append(fetch16Bits, c.loadALU, c.lsr_alu, c.storeALU))
+	c.instructionSet[LSR_AX] = MkInstr("LSR_AX", append(absX, c.loadALU, c.lsr_alu, c.storeALU))
+
 	// Comparisons
-	c.microcode[CMP_A] = append(fetch16Bits, c.cmp)
-	c.microcode[CMP_I] = []func(){c.cmp_i}
-	c.microcode[CMP_ZX] = append(zeroPageX, c.cmp)
-	c.microcode[CMP_AX] = append(absXOverlap, c.cmp)
-	c.microcode[CMP_AY] = append(absYOverlap, c.cmp)
-	c.microcode[CMP_INDX] = append(indirectX, c.cmp)
-	c.microcode[CMP_INDY] = append(indirectY, c.cmp)
-	c.microcode[CMP_Z] = append(fetch8Bits, c.cmp)
+	c.instructionSet[CMP_A] = MkInstr("CMP_A", append(fetch16Bits, c.cmp))
+	c.instructionSet[CMP_I] = MkInstr("CMP_I", []func(){c.cmp_i})
+	c.instructionSet[CMP_ZX] = MkInstr("CMP_ZX", append(zeroPageX, c.cmp))
+	c.instructionSet[CMP_AX] = MkInstr("CMP_AX", append(absXOverlap, c.cmp))
+	c.instructionSet[CMP_AY] = MkInstr("CMP_AY", append(absYOverlap, c.cmp))
+	c.instructionSet[CMP_INDX] = MkInstr("CMP_INDX", append(indirectX, c.cmp))
+	c.instructionSet[CMP_INDY] = MkInstr("CMP_INDY", append(indirectY, c.cmp))
+	c.instructionSet[CMP_Z] = MkInstr("CMP_Z", append(fetch8Bits, c.cmp))
+
+	interruptTail := []func() {
+		c.pushReturnAddressHigh,
+		c.pushReturnAddressLow,
+		c.php,
+		c.nop,
+		c.jump,
+	}
+
+	// Interrupt pseudo instructions
+	c.irqPI = MkInstr("[IRQ]", append([]func() {
+		func() {
+			c.operand = uint16(c.bus.ReadByte(IRQ_VEC))
+		},
+		func() {
+			c.operand |= uint16(c.bus.ReadByte(IRQ_VEC+1) << 8)
+		}}, interruptTail...))
+	c.rstPI = MkInstr("[RST]", append([]func() {
+		func() {
+			c.operand = uint16(c.bus.ReadByte(RST_VEC))
+		},
+		func() {
+			c.operand |= uint16(c.bus.ReadByte(RST_VEC+1)) << 8
+		}}, c.jump))
+	c.nmiPI = MkInstr("[NMI]", append([]func() {
+		func() {
+			c.operand = uint16(c.bus.ReadByte(NMI_VEC))
+		},
+		func() {
+			c.operand |= uint16(c.bus.ReadByte(NMI_VEC+1)) << 8
+		}}, interruptTail...))
 }
 
 func (c *CPU) Reset() {
 	c.flags = 0
 	c.halted = false
-	// TODO: What about SP?
-	c.pc = (uint16(c.mem.ReadByte(RST_VEC))) + uint16(c.mem.ReadByte(RST_VEC+1))<<8
+	c.sp = 0xfd
+	c.instruction = &c.rstPI // Load RST pseudo instruction
 	c.microPc = 0
-	c.fetchNext = true
+}
+
+func (c *CPU) IRQ() {
+	if c.flags & FLAG_I == 0 {
+		c.irqPending = true
+	}
+}
+
+func (c *CPU) NMI() {
+	c.nmiPending = true
 }
 
 func (c *CPU) Clock() {
-	if c.fetchNext {
-		c.fetchOpcode()
+	if c.instruction == nil || c.microPc >= len(c.instruction.Microcode) {
+		if c.nmiPending {
+			c.instruction = &c.nmiPI
+			c.nmiPending = false
+			c.irqPending = false // Interrupt hijacking: NMI during while waiting for IRQ to kick in cancels the IRQ
+		} else if c.irqPending {
+			c.instruction = &c.irqPI
+			c.irqPending = false
+		} else {
+			c.fetchOpcode()
+		}
 		c.microPc = 0
-		c.fetchNext = false
 	} else {
-		c.microcode[c.opcode][c.microPc]()
+		c.instruction.Microcode[c.microPc]()
 		c.microPc++
 	}
 	if c.Trace {
-		fmt.Printf("PC=%04x [PC]=%02x MPC=%02x OP=%02x SP=%04x A=%02x X=%02x Y=%02x Flags=%02x Oper=%04x, Addr=%02x\n",
-			c.pc, c.mem.ReadByte(c.pc), c.microPc, c.opcode, c.sp, c.a, c.x, c.y, c.flags, c.operand, c.address)
+		code := ""
+		if(c.microPc == 0) {
+			code = c.instruction.Dissasemble(c.bus, c.pc)
+		}
+		fmt.Printf("PC=%04x [PC]=%02x MPC=%02x SP=%04x A=%02x X=%02x Y=%02x Flags=%02x Oper=%04x, Addr=%02x %s\n",
+			c.pc, c.bus.ReadByte(c.pc), c.microPc, c.sp, c.a, c.x, c.y, c.flags, c.operand, c.address, code)
 	}
 }
 
 func (c *CPU) fetchOpcode() {
-	c.opcode = c.mem.ReadByte(c.pc)
-	if c.CrashOnInvalidInst && len(c.microcode[c.opcode]) == 0 {
-		log.Fatalf("Unknown opcode: %2x at address %4x", c.opcode, c.pc)
+	opcode := c.bus.ReadByte(c.pc)
+	if c.CrashOnInvalidInst && len(c.instructionSet[opcode].Microcode) == 0 {
+		log.Fatalf("Unknown opcode: %2x at address %4x", opcode, c.pc)
 	}
+	c.instruction = &c.instructionSet[opcode]
 	c.pc++
 }
 
 func (c *CPU) fetchLow(target *uint16) {
-	*target = uint16(c.mem.ReadByte(c.pc))
+	*target = uint16(c.bus.ReadByte(c.pc))
 	c.pc++
 }
 
 func (c *CPU) fetchHigh(target *uint16) {
-	*target |= uint16(c.mem.ReadByte(c.pc)) << 8
+	*target |= uint16(c.bus.ReadByte(c.pc)) << 8
 	c.pc++
 }
 
 func (c *CPU) fetchHighAndJump() {
 	c.fetchOperandHigh()
 	c.pc = c.operand
-	c.fetchNext = true
 }
 
 func (c *CPU) jump() {
 	c.pc = c.operand
-	c.fetchNext = true
 }
 
 func (c *CPU) fetchOperandLow() {
@@ -433,26 +495,30 @@ func (c *CPU) fetchOperandHigh() {
 }
 
 func (c *CPU) fetchAddressLow() {
-	c.address = c.mem.ReadByte(c.pc)
+	c.address = c.bus.ReadByte(c.pc)
 	c.pc++
 }
 
 func (c *CPU) fetchAddressHigh() {
-	c.address = c.mem.ReadByte(c.pc)
+	c.address = c.bus.ReadByte(c.pc)
 	c.pc++
 }
 
 func (c *CPU) loadPCLow() {
-	c.pc = uint16(c.mem.ReadByte(c.operand))
+	c.pc = uint16(c.bus.ReadByte(c.operand))
 }
 
 func (c *CPU) loadPCHigh() {
-	c.pc |= uint16(c.mem.ReadByte(c.operand+1)) << 8
-	c.fetchNext = true
+	// Implements 6502 indirect jump bug. MSB is not incremented when crossing page boundaries
+	if c.operand & 0x00ff == 0x00ff {
+		c.pc |= uint16(c.bus.ReadByte(c.operand & 0xff00)) << 8
+	} else {
+		c.pc |= uint16(c.bus.ReadByte(c.operand+1)) << 8
+	}
 }
 
 func (c *CPU) fetchOperandHighAndAdd(reg *uint8) {
-	c.operand |= uint16(c.mem.ReadByte(c.pc)) << 8
+	c.operand |= uint16(c.bus.ReadByte(c.pc)) << 8
 	c.pc++
 	t := c.operand + uint16(*reg)
 	if t&0xff00 == c.operand&0xff00 {
@@ -470,33 +536,30 @@ func (c *CPU) fetchOperandHighAndAddY() {
 }
 
 func (c *CPU) loadRegister(reg *uint8) {
-	*reg = c.mem.ReadByte(c.operand)
-	c.fetchNext = true
+	*reg = c.bus.ReadByte(c.operand)
 	c.updateNZ(*reg)
 }
 
 func (c *CPU) loadRegisterImmed(reg *uint8) {
-	*reg = c.mem.ReadByte(c.pc)
+	*reg = c.bus.ReadByte(c.pc)
 	c.pc++
-	c.fetchNext = true
 	c.updateNZ(*reg)
 }
 
 func (c *CPU) storeRegister(reg *uint8) {
-	c.mem.WriteByte(c.operand, *reg)
-	c.fetchNext = true
+	c.bus.WriteByte(c.operand, *reg)
 }
 
 func (c *CPU) fetchIndirectLow() {
-	c.operand = uint16(c.mem.ReadByte(uint16(c.address)))
+	c.operand = uint16(c.bus.ReadByte(uint16(c.address)))
 }
 
 func (c *CPU) fetchIndirectHigh() {
-	c.operand |= uint16(c.mem.ReadByte(uint16(c.address+1))) << 8
+	c.operand |= uint16(c.bus.ReadByte(uint16(c.address+1))) << 8
 }
 
 func (c *CPU) fetchIndirectHighAndAddY() {
-	c.operand |= uint16(c.mem.ReadByte(uint16(c.address+1))) << 8
+	c.operand |= uint16(c.bus.ReadByte(uint16(c.address+1))) << 8
 	t := c.operand + uint16(c.y)
 	if t&0xf0 == c.operand&0xf0 {
 		c.microPc++ // Skip extra clock cycle
@@ -505,24 +568,34 @@ func (c *CPU) fetchIndirectHighAndAddY() {
 }
 
 func (c *CPU) branchIf(mask, wanted uint8) {
-	if c.flags&mask == wanted {
-		if c.operand >= 0x80 {
-			c.pc -= uint16(^uint8(c.operand) + 1) // 2s complement
-		} else {
-			c.pc += c.operand
-		}
+	if c.flags&mask != wanted {
+		c.microPc += 2 // Skip jump and optional nop
 	}
-	c.fetchNext = true
+	c.operand = uint16(c.bus.ReadByte(c.pc))
+	c.pc++
+}
+
+func (c *CPU) doBranch() {
+	oldPc := c.pc
+	if c.operand >= 0x80 {
+		c.pc -= uint16(^uint8(c.operand) + 1) // 2s complement
+	} else {
+		c.pc += c.operand
+	}
+	if oldPc&0xff00 == c.pc&0xff00 {
+		// Same page. Skip extra cycle
+		c.microPc++
+	}
 }
 
 func (c *CPU) push(v uint8) {
-	c.mem.WriteByte(uint16(c.sp)+0x0100, v)
+	c.bus.WriteByte(uint16(c.sp)+0x0100, v)
 	c.sp--
 }
 
 func (c *CPU) pull() uint8 {
 	c.sp++
-	return c.mem.ReadByte(uint16(c.sp) + 0x0100)
+	return c.bus.ReadByte(uint16(c.sp) + 0x0100)
 }
 
 func (c *CPU) pushReturnAddressLow() {
@@ -534,11 +607,11 @@ func (c *CPU) pushReturnAddressHigh() {
 }
 
 func (c *CPU) pullOperandHigh() {
-	c.operand = uint16(c.pull()) << 8
+	c.operand |= uint16(c.pull()) << 8
 }
 
 func (c *CPU) pullOperandLow() {
-	c.operand |= uint16(c.pull())
+	c.operand = uint16(c.pull())
 }
 
 func (c *CPU) bne() {
@@ -612,25 +685,21 @@ func (c *CPU) sty() {
 func (c *CPU) inx() {
 	c.x++
 	c.updateNZ(c.x)
-	c.fetchNext = true
 }
 
 func (c *CPU) iny() {
 	c.y++
 	c.updateNZ(c.y)
-	c.fetchNext = true
 }
 
 func (c *CPU) dex() {
 	c.x--
 	c.updateNZ(c.x)
-	c.fetchNext = true
 }
 
 func (c *CPU) dey() {
 	c.y--
 	c.updateNZ(c.y)
-	c.fetchNext = true
 }
 
 func (c *CPU) inc() {
@@ -645,93 +714,77 @@ func (c *CPU) dec() {
 
 func (c *CPU) clc() {
 	c.flags &= ^FLAG_C
-	c.fetchNext = true
 }
 
 func (c *CPU) clv() {
 	c.flags &= ^FLAG_V
-	c.fetchNext = true
 }
 
 func (c *CPU) cld() {
 	c.flags &= ^FLAG_D
-	c.fetchNext = true
 }
 
 func (c *CPU) cli() {
 	c.flags &= ^FLAG_I
-	c.fetchNext = true
 }
 
 func (c *CPU) sec() {
 	c.flags |= FLAG_C
-	c.fetchNext = true
 }
 
 func (c *CPU) sed() {
 	c.flags |= FLAG_D
-	c.fetchNext = true
 }
 
 func (c *CPU) sei() {
 	c.flags |= FLAG_I
-	c.fetchNext = true
 }
 
 func (c *CPU) tax() {
 	c.x = c.a
 	c.updateNZ(c.x)
-	c.fetchNext = true
 }
 
 func (c *CPU) tay() {
 	c.y = c.a
 	c.updateNZ(c.y)
-	c.fetchNext = true
 }
 
 func (c *CPU) tsx() {
 	c.x = c.sp
 	c.updateNZ(c.x)
-	c.fetchNext = true
 }
 
 func (c *CPU) txa() {
 	c.a = c.x
 	c.updateNZ(c.a)
-	c.fetchNext = true
+	// c.fetchNext = true
 }
 
 func (c *CPU) txs() {
 	c.sp = c.x
 	c.updateNZ(c.sp)
-	c.fetchNext = true
 }
 
 func (c *CPU) tya() {
 	c.a = c.y
 	c.updateNZ(c.a)
-	c.fetchNext = true
 }
 
 func (c *CPU) pha() {
 	c.push(c.a)
-	c.fetchNext = true
 }
 
 func (c *CPU) php() {
 	c.push(c.flags)
-	c.fetchNext = true
 }
 
 func (c *CPU) pla() {
 	c.a = c.pull()
-	c.fetchNext = true
 }
 
 func (c *CPU) plp() {
 	c.flags = c.pull()
-	c.fetchNext = true
 }
 
 func (c *CPU) nop() {
@@ -751,39 +804,35 @@ func (c *CPU) updateFlag(flag uint8, value bool) {
 }
 
 func (c *CPU) adc_i() {
-	t := c.mem.ReadByte(c.pc)
+	t := c.bus.ReadByte(c.pc)
 	c.pc++
 	c.add(t)
 }
 
 func (c *CPU) adc() {
-	c.add(c.mem.ReadByte(c.operand))
+	c.add(c.bus.ReadByte(c.operand))
 }
 
 func (c *CPU) and_i() {
-	c.a &= c.mem.ReadByte(c.pc)
+	c.a &= c.bus.ReadByte(c.pc)
 	c.pc++
 	c.updateNZ(c.a)
-	c.fetchNext = true
 }
 
 func (c *CPU) and() {
-	c.a &= c.mem.ReadByte(c.operand)
+	c.a &= c.bus.ReadByte(c.operand)
 	c.updateNZ(c.a)
-	c.fetchNext = true
 }
 
 func (c *CPU) ora_i() {
-	c.a |= c.mem.ReadByte(c.pc)
+	c.a |= c.bus.ReadByte(c.pc)
 	c.pc++
 	c.updateNZ(c.a)
-	c.fetchNext = true
 }
 
 func (c *CPU) ora() {
-	c.a |= c.mem.ReadByte(c.operand)
+	c.a |= c.bus.ReadByte(c.operand)
 	c.updateNZ(c.a)
-	c.fetchNext = true
 }
 
 func (c *CPU) asl(v *uint8) {
@@ -799,7 +848,6 @@ func (c *CPU) asl(v *uint8) {
 
 func (c *CPU) asl_acc() {
 	c.asl(&c.a)
-	c.fetchNext = true
 }
 
 func (c *CPU) asl_alu() {
@@ -814,7 +862,6 @@ func (c *CPU) lsr(v *uint8) {
 
 func (c *CPU) lsr_acc() {
 	c.lsr(&c.a)
-	c.fetchNext = true
 }
 
 func (c *CPU) lsr_alu() {
@@ -828,36 +875,30 @@ func (c *CPU) compareTwo(a, b uint8) {
 }
 
 func (c *CPU) cmp_i() {
-	c.compareTwo(c.a, c.mem.ReadByte(c.pc))
+	c.compareTwo(c.a, c.bus.ReadByte(c.pc))
 	c.pc++
-	c.fetchNext = true
 }
 
 func (c *CPU) cpx_i() {
-	c.compareTwo(c.x, c.mem.ReadByte(c.pc))
+	c.compareTwo(c.x, c.bus.ReadByte(c.pc))
 	c.pc++
-	c.fetchNext = true
 }
 
 func (c *CPU) cpy_i() {
-	c.compareTwo(c.x, c.mem.ReadByte(c.pc))
+	c.compareTwo(c.x, c.bus.ReadByte(c.pc))
 	c.pc++
-	c.fetchNext = true
 }
 
 func (c *CPU) cmp() {
-	c.compareTwo(c.a, c.mem.ReadByte(c.operand))
-	c.fetchNext = true
+	c.compareTwo(c.a, c.bus.ReadByte(c.operand))
 }
 
 func (c *CPU) cpx() {
-	c.compareTwo(c.x, c.mem.ReadByte(c.operand))
-	c.fetchNext = true
+	c.compareTwo(c.x, c.bus.ReadByte(c.operand))
 }
 
 func (c *CPU) cpy() {
-	c.compareTwo(c.y, c.mem.ReadByte(c.operand))
-	c.fetchNext = true
+	c.compareTwo(c.y, c.bus.ReadByte(c.operand))
 }
 
 func (c *CPU) add(addend uint8) {
@@ -893,15 +934,14 @@ func (c *CPU) add(addend uint8) {
 
 	c.a = uint8(v)
 	c.updateNZ(c.a)
-	c.fetchNext = true
 }
 
 func (c *CPU) sbc() {
-	c.subtract(c.mem.ReadByte(c.operand))
+	c.subtract(c.bus.ReadByte(c.operand))
 }
 
 func (c *CPU) sbc_i() {
-	t := c.mem.ReadByte(c.pc)
+	t := c.bus.ReadByte(c.pc)
 	c.pc++
 	c.subtract(t)
 }
@@ -947,7 +987,6 @@ func (c *CPU) subtract(addend uint8) {
 
 	c.a = uint8(v)
 	c.updateNZ(c.a)
-	c.fetchNext = true
 }
 
 func (c *CPU) addXToLowOperand() {
@@ -971,12 +1010,11 @@ func (c *CPU) addXToAddress() {
 }
 
 func (c *CPU) loadALU() {
-	c.alu = c.mem.ReadByte(c.operand)
+	c.alu = c.bus.ReadByte(c.operand)
 }
 
 func (c *CPU) storeALU() {
-	c.mem.WriteByte(c.operand, c.alu)
-	c.fetchNext = true // This is always the last micro instruction in a sequence!
+	c.bus.WriteByte(c.operand, c.alu)
 }
 
 func (c *CPU) brk() {

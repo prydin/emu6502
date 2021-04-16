@@ -28,17 +28,19 @@ func loadProgram(source string) (*CPU, []byte) {
 		panic(err)
 	}
 	copy(bytes[0x1000:], program)
-	mem := LinearMemory{bytes: bytes}
+	mem := RAM{ bytes: bytes }
+	bus := Bus{}
+	bus.Connect(&mem, 0x0000, 0xffff)
 	cpu := CPU{}
 	cpu.Trace = true
 	cpu.CrashOnInvalidInst = true
-	cpu.Init(&mem)
+	cpu.Init(&bus)
 	cpu.Reset()
 	return &cpu, bytes
 }
 
 func runProgram(source string) []byte {
-	cpu, bytes := loadProgram(source);
+	cpu, bytes := loadProgram(source)
 	for !cpu.IsHalted() {
 		cpu.Clock()
 	}
@@ -841,6 +843,7 @@ END		LDA LOSUM
 func TestCmp(t *testing.T) {
 	memory := runProgram(`
 		.ORG $1000
+		; Basic operations
 		LDX #$FF
 		TXS
 		LDA #00
@@ -861,6 +864,37 @@ func TestCmp(t *testing.T) {
 		LDA #$FF
 		CMP #$FE
 		PHP
+
+		; Addressing modes
+		LDA #$AA
+		STA ZP ; Zero page
+		CLC
+		CMP ZP
+		PHP
+		LDX #$01
+		CMP ZP-1,X ; Zero page, X
+		PHP
+		CMP DATA-1,X ; Abs X
+		PHP
+		LDY #$01
+		CMP DATA-1,Y ; Abs Y
+		PHP
+		LDY #$30
+		STY ADDR
+		LDY #$00
+		STY ADDR+1
+		CMP (ADDR-1,X) ; Ind X
+		PHP
+		DEC ADDR
+		LDY #$01
+		CMP (ADDR),Y  ; Ind Y
+		PHP
+		BRK
+
+ZP		.EQ $30
+DATA	.DB $AA
+ADDR	.EQ $31
+
 `)
 	require.Equal(t, FLAG_Z|FLAG_C, memory[0x01ff], "CMP $00,$00 failed")
 	require.Equal(t, FLAG_Z|FLAG_C, memory[0x01fe], "CMP $AA,$AA failed")
@@ -869,6 +903,14 @@ func TestCmp(t *testing.T) {
 
 	require.Equal(t, FLAG_N, memory[0x01fb], "CMP $fe,$ff failed")
 	require.Equal(t, FLAG_C, memory[0x01fa], "CMP $ff,$fe failed")
+
+	require.Equal(t, FLAG_Z|FLAG_C, memory[0x01f9], "CMP Zero page failed")
+	require.Equal(t, FLAG_Z|FLAG_C, memory[0x01f8], "CMP Zero page X failed")
+	require.Equal(t, FLAG_Z|FLAG_C, memory[0x01f7], "CMP Abs X failed")
+	require.Equal(t, FLAG_Z|FLAG_C, memory[0x01f6], "CMP Abs Y failed")
+	require.Equal(t, FLAG_Z|FLAG_C, memory[0x01f5], "CMP Ind X failed")
+	require.Equal(t, FLAG_Z|FLAG_C, memory[0x01f4], "CMP Ind Y failed")
+
 }
 
 func TestPerformance(t *testing.T) {
@@ -929,6 +971,23 @@ END		LDA LOSUM
 		cycles++
 	}
 	elapsed := time.Now().Sub(start)
+	fmt.Printf("Elapsed time: %s, cycles: %d, speed: %d\n", elapsed, cycles, (cycles*1000) / int(elapsed))
+
+	// Run at 1MHz
+	start = time.Now()
+	cycles = 0
+	cpu.Reset()
+	for !cpu.IsHalted() {
+		now := time.Now()
+		sleepTime := time.Duration(now.UnixNano() % 1000)
+		endTime := now.Add(sleepTime)
+		for time.Now().Before(endTime) {
+			time.Sleep(0)
+		}
+		cpu.Clock()
+		cycles++
+	}
+	elapsed = time.Now().Sub(start)
 	fmt.Printf("Elapsed time: %s, cycles: %d, speed: %d\n", elapsed, cycles, (cycles*1000) / int(elapsed))
 }
 
