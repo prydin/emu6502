@@ -10,6 +10,30 @@ import (
 	"time"
 )
 
+type IRQGenerator struct {
+	cpu *CPU
+}
+
+type NMIGenerator struct {
+	cpu *CPU
+}
+
+func (i *IRQGenerator) WriteByte(addr uint16, data uint8) {
+	i.cpu.IRQ()
+}
+
+func (i *IRQGenerator) ReadByte(addr uint16) uint8 {
+	return 0
+}
+
+func (n *NMIGenerator) WriteByte(addr uint16, data uint8) {
+	n.cpu.NMI()
+}
+
+func (n *NMIGenerator) ReadByte(addr uint16) uint8 {
+	return 0
+}
+
 func assemble(program string) ([]byte, error) {
 	assy, _, err := asm.Assemble(strings.NewReader(program), "test.assm", os.Stderr, 0)
 	for _, e := range assy.Errors {
@@ -18,11 +42,11 @@ func assemble(program string) ([]byte, error) {
 	return assy.Code, err
 }
 
-func loadProgram(source string) (*CPU, []byte) {
-	bytes := make([]byte, 65536)
-	bytes[RST_VEC] = 0
-	bytes[RST_VEC+1] = 0x10
-
+func loadProgram(source string) (*CPU, Bus) {
+	bytes := make([]byte, 0x8000)
+	romBytes := make([]byte, 0x1000)
+	romBytes[RST_VEC-0xf000] = 0
+	romBytes[RST_VEC+1-0xf000] = 0x10
 	program, err := assemble(source)
 	if err != nil {
 		panic(err)
@@ -30,21 +54,25 @@ func loadProgram(source string) (*CPU, []byte) {
 	copy(bytes[0x1000:], program)
 	mem := RAM{ bytes: bytes }
 	bus := Bus{}
-	bus.Connect(&mem, 0x0000, 0xffff)
 	cpu := CPU{}
+	bus.Connect(&mem, 0x0000, 0x7fff)
+	bus.Connect(&IRQGenerator{&cpu}, 0x8000,0x80ff)
+	bus.Connect(&NMIGenerator{&cpu}, 0x8100,0x81ff)
+	bus.Connect(&RAM{romBytes}, 0xf000,0xffff)
 	cpu.Trace = true
+	cpu.HaltOnBRK = true
 	cpu.CrashOnInvalidInst = true
 	cpu.Init(&bus)
 	cpu.Reset()
-	return &cpu, bytes
+	return &cpu, bus
 }
 
-func runProgram(source string) []byte {
-	cpu, bytes := loadProgram(source)
+func runProgram(source string) Bus {
+	cpu, bus := loadProgram(source)
 	for !cpu.IsHalted() {
 		cpu.Clock()
 	}
-	return bytes
+	return bus
 }
 
 func TestAcc(t *testing.T) {
@@ -95,18 +123,18 @@ func TestAcc(t *testing.T) {
 	BRK
 `)
 
-	require.Equal(t, uint8(0x42), memory[0x2000], "STA $2000 failed")
-	require.Equal(t, uint8(0x42), memory[0x2001], "STA $2001 failed")
-	require.Equal(t, uint8(0x42), memory[0x0010], "STA $10 failed")
-	require.Equal(t, uint8(0x42), memory[0x0011], "STA $11 failed")
-	require.Equal(t, uint8(0x42), memory[0x0043], "STA $01,x failed")
-	require.Equal(t, uint8(0x42), memory[0x0041], "STA $0ff,x failed")
-	require.Equal(t, uint8(0x42), memory[0x4242], "STA $4200,x failed")
-	require.Equal(t, uint8(0x42), memory[0x4242], "STA $4201,x failed")
-	require.Equal(t, uint8(0x42), memory[0x4342], "STA $4300,x failed")
-	require.Equal(t, uint8(0x42), memory[0x4342], "STA $4301,x failed")
-	require.Equal(t, uint8(0x42), memory[0x4343], "STA $4343,x failed")
-	require.Equal(t, uint8(0x42), memory[0x4446], "STA $(11),Y failed")
+	require.Equal(t, uint8(0x42), memory.ReadByte(0x2000), "STA $2000 failed")
+	require.Equal(t, uint8(0x42), memory.ReadByte(0x2001), "STA $2001 failed")
+	require.Equal(t, uint8(0x42), memory.ReadByte(0x0010), "STA $10 failed")
+	require.Equal(t, uint8(0x42), memory.ReadByte(0x0011), "STA $11 failed")
+	require.Equal(t, uint8(0x42), memory.ReadByte(0x0043), "STA $01,x failed")
+	require.Equal(t, uint8(0x42), memory.ReadByte(0x0041), "STA $0ff,x failed")
+	require.Equal(t, uint8(0x42), memory.ReadByte(0x4242), "STA $4200,x failed")
+	require.Equal(t, uint8(0x42), memory.ReadByte(0x4242), "STA $4201,x failed")
+	require.Equal(t, uint8(0x42), memory.ReadByte(0x4342), "STA $4300,x failed")
+	require.Equal(t, uint8(0x42), memory.ReadByte(0x4342), "STA $4301,x failed")
+	require.Equal(t, uint8(0x42), memory.ReadByte(0x4343), "STA $4343,x failed")
+	require.Equal(t, uint8(0x42), memory.ReadByte(0x4446), "STA $(11),Y failed")
 
 }
 
@@ -127,12 +155,12 @@ func TestIndexX(t *testing.T) {
 	BRK
 `)
 
-	require.Equal(t, uint8(0x42), memory[0x2000], "STX $2000 failed")
-	require.Equal(t, uint8(0x42), memory[0x2001], "STX $2001 failed")
-	require.Equal(t, uint8(0x42), memory[0x0010], "STX $10 failed")
-	require.Equal(t, uint8(0x42), memory[0x0011], "STX $11 failed")
-	require.Equal(t, uint8(0x42), memory[0x0043], "STX $01,y failed")
-	require.Equal(t, uint8(0x42), memory[0x0041], "STX $ff,y failed")
+	require.Equal(t, uint8(0x42), memory.ReadByte(0x2000), "STX $2000 failed")
+	require.Equal(t, uint8(0x42), memory.ReadByte(0x2001), "STX $2001 failed")
+	require.Equal(t, uint8(0x42), memory.ReadByte(0x0010), "STX $10 failed")
+	require.Equal(t, uint8(0x42), memory.ReadByte(0x0011), "STX $11 failed")
+	require.Equal(t, uint8(0x42), memory.ReadByte(0x0043), "STX $01,y failed")
+	require.Equal(t, uint8(0x42), memory.ReadByte(0x0041), "STX $ff,y failed")
 }
 
 func TestIndexY(t *testing.T) {
@@ -152,12 +180,12 @@ func TestIndexY(t *testing.T) {
 	BRK
 `)
 
-	require.Equal(t, uint8(0x42), memory[0x2000], "STY $2000 failed")
-	require.Equal(t, uint8(0x42), memory[0x2001], "STY $2001 failed")
-	require.Equal(t, uint8(0x42), memory[0x0010], "STY $10 failed")
-	require.Equal(t, uint8(0x42), memory[0x0011], "STY $11 failed")
-	require.Equal(t, uint8(0x42), memory[0x0043], "STY $01,X failed")
-	require.Equal(t, uint8(0x42), memory[0x0041], "STY $ff,X failed")
+	require.Equal(t, uint8(0x42), memory.ReadByte(0x2000), "STY $2000 failed")
+	require.Equal(t, uint8(0x42), memory.ReadByte(0x2001), "STY $2001 failed")
+	require.Equal(t, uint8(0x42), memory.ReadByte(0x0010), "STY $10 failed")
+	require.Equal(t, uint8(0x42), memory.ReadByte(0x0011), "STY $11 failed")
+	require.Equal(t, uint8(0x42), memory.ReadByte(0x0043), "STY $01,X failed")
+	require.Equal(t, uint8(0x42), memory.ReadByte(0x0041), "STY $ff,X failed")
 }
 
 func TestINX_DEX(t *testing.T) {
@@ -176,11 +204,11 @@ func TestINX_DEX(t *testing.T) {
 	STX $04 ; 0
 	; TODO: Test flags!
 `)
-	require.Equal(t, uint8(1), memory[0x0000])
-	require.Equal(t, uint8(2), memory[0x0001])
-	require.Equal(t, uint8(0), memory[0x0002])
-	require.Equal(t, uint8(0xff), memory[0x0003])
-	require.Equal(t, uint8(0), memory[0x0004])
+	require.Equal(t, uint8(1), memory.ReadByte(0x0000))
+	require.Equal(t, uint8(2), memory.ReadByte(0x0001))
+	require.Equal(t, uint8(0), memory.ReadByte(0x0002))
+	require.Equal(t, uint8(0xff), memory.ReadByte(0x0003))
+	require.Equal(t, uint8(0), memory.ReadByte(0x0004))
 }
 
 func TestINY_DEY(t *testing.T) {
@@ -199,11 +227,11 @@ func TestINY_DEY(t *testing.T) {
 	STY $04 ; 0
 	; TODO: Test flags!
 `)
-	require.Equal(t, uint8(1), memory[0x0000])
-	require.Equal(t, uint8(2), memory[0x0001])
-	require.Equal(t, uint8(0), memory[0x0002])
-	require.Equal(t, uint8(0xff), memory[0x0003])
-	require.Equal(t, uint8(0), memory[0x0004])
+	require.Equal(t, uint8(1), memory.ReadByte(0x0000))
+	require.Equal(t, uint8(2), memory.ReadByte(0x0001))
+	require.Equal(t, uint8(0), memory.ReadByte(0x0002))
+	require.Equal(t, uint8(0xff), memory.ReadByte(0x0003))
+	require.Equal(t, uint8(0), memory.ReadByte(0x0004))
 }
 
 func TestINC(t *testing.T) {
@@ -227,11 +255,11 @@ func TestINC(t *testing.T) {
 	STA $12
 	INC $12
 `)
-	require.Equal(t, uint8(0x43), memory[0x0010], "INC Zero page failed")
-	require.Equal(t, uint8(0x43), memory[0x2010], "INC Absolute failed")
-	require.Equal(t, uint8(0x43), memory[0x0011], "INC Zero page indexed failed")
-	require.Equal(t, uint8(0x43), memory[0x2111], "INC absolute indexed failed")
-	require.Equal(t, uint8(0), memory[0x0012], "INC Wraparound failed")
+	require.Equal(t, uint8(0x43), memory.ReadByte(0x0010), "INC Zero page failed")
+	require.Equal(t, uint8(0x43), memory.ReadByte(0x2010), "INC Absolute failed")
+	require.Equal(t, uint8(0x43), memory.ReadByte(0x0011), "INC Zero page indexed failed")
+	require.Equal(t, uint8(0x43), memory.ReadByte(0x2111), "INC absolute indexed failed")
+	require.Equal(t, uint8(0), memory.ReadByte(0x0012), "INC Wraparound failed")
 
 }
 
@@ -256,11 +284,11 @@ func TestDEC(t *testing.T) {
 	STA $12
 	DEC $12
 `)
-	require.Equal(t, uint8(0x41), memory[0x0010], "DEC Zero page failed")
-	require.Equal(t, uint8(0x41), memory[0x2010], "DEC Absolute failed")
-	require.Equal(t, uint8(0x41), memory[0x0011], "DEC Zero page indexed failed")
-	require.Equal(t, uint8(0x41), memory[0x2111], "DEC absolute indexed failed")
-	require.Equal(t, uint8(0xff), memory[0x0012], "DEC Wraparound failed")
+	require.Equal(t, uint8(0x41), memory.ReadByte(0x0010), "DEC Zero page failed")
+	require.Equal(t, uint8(0x41), memory.ReadByte(0x2010), "DEC Absolute failed")
+	require.Equal(t, uint8(0x41), memory.ReadByte(0x0011), "DEC Zero page indexed failed")
+	require.Equal(t, uint8(0x41), memory.ReadByte(0x2111), "DEC absolute indexed failed")
+	require.Equal(t, uint8(0xff), memory.ReadByte(0x0012), "DEC Wraparound failed")
 }
 
 func TestJMP(t *testing.T) {
@@ -279,8 +307,8 @@ L2		LDA #$42
 		BRK
 ADDR	.DW	L2
 `)
-	require.Equal(t, uint8(0x42), memory[0x0000], "Absolute JMP failed")
-	require.Equal(t, uint8(0x42), memory[0x0001], "Indirect JMP failed")
+	require.Equal(t, uint8(0x42), memory.ReadByte(0x0000), "Absolute JMP failed")
+	require.Equal(t, uint8(0x42), memory.ReadByte(0x0001), "Indirect JMP failed")
 }
 
 func TestBranchOnCarry(t *testing.T) {
@@ -301,10 +329,10 @@ L1		STA $00
 L2		STA $03
 DONE	BRK
 `)
-	require.Equal(t, uint8(0x42), memory[0x0000], "Branch 1 failed")
-	require.Equal(t, uint8(0x42), memory[0x0001], "Branch 2 failed")
-	require.Equal(t, uint8(0x42), memory[0x0002], "Branch 3 failed")
-	require.Equal(t, uint8(0x42), memory[0x0003], "Branch 4 failed")
+	require.Equal(t, uint8(0x42), memory.ReadByte(0x0000), "Branch 1 failed")
+	require.Equal(t, uint8(0x42), memory.ReadByte(0x0001), "Branch 2 failed")
+	require.Equal(t, uint8(0x42), memory.ReadByte(0x0002), "Branch 3 failed")
+	require.Equal(t, uint8(0x42), memory.ReadByte(0x0003), "Branch 4 failed")
 }
 
 func TestBranchOnZero(t *testing.T) {
@@ -326,10 +354,10 @@ L1		STA $00
 L2		STA $03
 DONE	BRK
 `)
-	require.Equal(t, uint8(0x42), memory[0x0000], "Branch 1 failed")
-	require.Equal(t, uint8(0x42), memory[0x0001], "Branch 2 failed")
-	require.Equal(t, uint8(0x42), memory[0x0002], "Branch 3 failed")
-	require.Equal(t, uint8(0x42), memory[0x0003], "Branch 4 failed")
+	require.Equal(t, uint8(0x42), memory.ReadByte(0x0000), "Branch 1 failed")
+	require.Equal(t, uint8(0x42), memory.ReadByte(0x0001), "Branch 2 failed")
+	require.Equal(t, uint8(0x42), memory.ReadByte(0x0002), "Branch 3 failed")
+	require.Equal(t, uint8(0x42), memory.ReadByte(0x0003), "Branch 4 failed")
 }
 
 func TestCountDown(t *testing.T) {
@@ -343,7 +371,7 @@ LOOP	TXA
 		BRK
 `)
 	for i := 0; i < 0x10; i++ {
-		require.Equal(t, uint8(i), memory[0x2000+i], fmt.Sprintf("Failed at index $%02x", i))
+		require.Equal(t, uint8(i), memory.ReadByte(0x2000+uint16(i)), fmt.Sprintf("Failed at index $%02x", i))
 	}
 }
 
@@ -358,7 +386,7 @@ LOOP	TXA
 		BRK
 `)
 	for i := 0xf0; i < 0x100; i++ {
-		require.Equal(t, uint8(i), memory[0x2000+i], fmt.Sprintf("Failed at index $%02x", i))
+		require.Equal(t, uint8(i), memory.ReadByte(0x2000+uint16(i)), fmt.Sprintf("Failed at index $%02x", i))
 	}
 }
 
@@ -385,11 +413,11 @@ func TestStack(t *testing.T) {
 		BRK
 `)
 
-	require.Equal(t, uint8(0xfe), memory[0x0000], "PHA failed")
-	require.Equal(t, uint8(0x42), memory[0x0001], "PLA failed")
-	require.Equal(t, uint8(0xff), memory[0x0002], "PLA sp failed")
-	require.Equal(t, uint8(0x03), memory[0x0003], "PHP failed")
-	require.Equal(t, uint8(0xfe), memory[0x0004], "PLP failed")
+	require.Equal(t, uint8(0xfe), memory.ReadByte(0x0000), "PHA failed")
+	require.Equal(t, uint8(0x42), memory.ReadByte(0x0001), "PLA failed")
+	require.Equal(t, uint8(0xff), memory.ReadByte(0x0002), "PLA sp failed")
+	require.Equal(t, uint8(0x03), memory.ReadByte(0x0003), "PHP failed")
+	require.Equal(t, uint8(0xfe), memory.ReadByte(0x0004), "PLP failed")
 }
 
 func TestSubroutine(t *testing.T) {
@@ -404,7 +432,7 @@ func TestSubroutine(t *testing.T) {
 L1		LDA #$42
 		RTS
 `)
-	require.Equal(t, uint8(0x42), memory[0x0000], "JSR failed")
+	require.Equal(t, uint8(0x42), memory.ReadByte(0x0000), "JSR failed")
 }
 
 func TestAdd(t *testing.T) {
@@ -468,16 +496,16 @@ DONE	BRK
 DATA	.DB $01,$02
 ADDR	.DW DATA-1
 `)
-	require.Equal(t, uint8(0x22), memory[0x0000], "$11+$11 failed")
-	require.Equal(t, uint8(0x14), memory[0x0001], "$0a+$0a failed")
-	require.Equal(t, uint8(0xfe), memory[0x0002], "$ff+$ff failed")
-	require.Equal(t, uint8(0x00), memory[0x0003], "$01+$ff failed")
-	require.Equal(t, uint8(0x22), memory[0x0004], "11+11 failed")
-	require.Equal(t, uint8(0x16), memory[0x0005], "8+8 failed")
-	require.Equal(t, uint8(0x01), memory[0x0006], "Absolute failed")
-	require.Equal(t, uint8(0x03), memory[0x0007], "Indexed X failed")
-	require.Equal(t, uint8(0x04), memory[0x0008], "Indirect X failed")
-	require.Equal(t, uint8(0x11), memory[0x0009], "Indirect Y failed")
+	require.Equal(t, uint8(0x22), memory.ReadByte(0x0000), "$11+$11 failed")
+	require.Equal(t, uint8(0x14), memory.ReadByte(0x0001), "$0a+$0a failed")
+	require.Equal(t, uint8(0xfe), memory.ReadByte(0x0002), "$ff+$ff failed")
+	require.Equal(t, uint8(0x00), memory.ReadByte(0x0003), "$01+$ff failed")
+	require.Equal(t, uint8(0x22), memory.ReadByte(0x0004), "11+11 failed")
+	require.Equal(t, uint8(0x16), memory.ReadByte(0x0005), "8+8 failed")
+	require.Equal(t, uint8(0x01), memory.ReadByte(0x0006), "Absolute failed")
+	require.Equal(t, uint8(0x03), memory.ReadByte(0x0007), "Indexed X failed")
+	require.Equal(t, uint8(0x04), memory.ReadByte(0x0008), "Indirect X failed")
+	require.Equal(t, uint8(0x11), memory.ReadByte(0x0009), "Indirect Y failed")
 }
 
 func TestSubtract(t *testing.T) {
@@ -542,16 +570,16 @@ DONE	BRK
 DATA	.DB $01,$02
 ADDR	.DW DATA-1
 `)
-	require.Equal(t, uint8(0x00), memory[0x0000], "$11-$11 failed")
-	require.Equal(t, uint8(0x07), memory[0x0001], "$11-$0a failed")
-	require.Equal(t, uint8(0x00), memory[0x0002], "$ff-$ff failed")
-	require.Equal(t, uint8(0x02), memory[0x0003], "$01-$ff failed")
-	require.Equal(t, uint8(0x00), memory[0x0004], "11-11 failed")
-	require.Equal(t, uint8(0x09), memory[0x0005], "18-9 failed")
-	require.Equal(t, uint8(0xff), memory[0x0006], "Absolute failed")
-	require.Equal(t, uint8(0x0d), memory[0x0007], "Indexed X failed")
-	require.Equal(t, uint8(0x02), memory[0x0008], "Indirect X failed")
-	require.Equal(t, uint8(0x0f), memory[0x0009], "Indirect Y failed")
+	require.Equal(t, uint8(0x00), memory.ReadByte(0x0000), "$11-$11 failed")
+	require.Equal(t, uint8(0x07), memory.ReadByte(0x0001), "$11-$0a failed")
+	require.Equal(t, uint8(0x00), memory.ReadByte(0x0002), "$ff-$ff failed")
+	require.Equal(t, uint8(0x02), memory.ReadByte(0x0003), "$01-$ff failed")
+	require.Equal(t, uint8(0x00), memory.ReadByte(0x0004), "11-11 failed")
+	require.Equal(t, uint8(0x09), memory.ReadByte(0x0005), "18-9 failed")
+	require.Equal(t, uint8(0xff), memory.ReadByte(0x0006), "Absolute failed")
+	require.Equal(t, uint8(0x0d), memory.ReadByte(0x0007), "Indexed X failed")
+	require.Equal(t, uint8(0x02), memory.ReadByte(0x0008), "Indirect X failed")
+	require.Equal(t, uint8(0x0f), memory.ReadByte(0x0009), "Indirect Y failed")
 }
 
 func TestOr(t *testing.T) {
@@ -602,14 +630,14 @@ DONE	BRK
 DATA	.DB $01,$02
 ADDR	.DW DATA-1
 `)
-	require.Equal(t, uint8(0xff), memory[0x0000], "$0a | $05 failed")
-	require.Equal(t, uint8(0xab), memory[0x0001], "$0a & $01 failed")
-	require.Equal(t, uint8(0xff), memory[0x0002], "$00 & $00 failed")
-	require.Equal(t, uint8(0x01), memory[0x0003], "$f0 & $0f failed")
-	require.Equal(t, uint8(0x01), memory[0x0006], "Absolute failed")
-	require.Equal(t, uint8(0x02), memory[0x0007], "Indexed X failed")
-	require.Equal(t, uint8(0x01), memory[0x0008], "Indirect X failed")
-	require.Equal(t, uint8(0x01), memory[0x0009], "Indirect Y failed")
+	require.Equal(t, uint8(0xff), memory.ReadByte(0x0000), "$0a | $05 failed")
+	require.Equal(t, uint8(0xab), memory.ReadByte(0x0001), "$0a & $01 failed")
+	require.Equal(t, uint8(0xff), memory.ReadByte(0x0002), "$00 & $00 failed")
+	require.Equal(t, uint8(0x01), memory.ReadByte(0x0003), "$f0 & $0f failed")
+	require.Equal(t, uint8(0x01), memory.ReadByte(0x0006), "Absolute failed")
+	require.Equal(t, uint8(0x02), memory.ReadByte(0x0007), "Indexed X failed")
+	require.Equal(t, uint8(0x01), memory.ReadByte(0x0008), "Indirect X failed")
+	require.Equal(t, uint8(0x01), memory.ReadByte(0x0009), "Indirect Y failed")
 }
 
 func TestAnd(t *testing.T) {
@@ -660,14 +688,71 @@ DONE	BRK
 DATA	.DB $01,$02
 ADDR	.DW DATA-1
 `)
-	require.Equal(t, uint8(0x11), memory[0x0000], "$11 & $11 failed")
-	require.Equal(t, uint8(0xaa), memory[0x0001], "$ff & aa failed")
-	require.Equal(t, uint8(0x01), memory[0x0002], "$f0 & $0f failed")
-	require.Equal(t, uint8(0x01), memory[0x0006], "Absolute failed")
-	require.Equal(t, uint8(0x02), memory[0x0007], "Indexed X failed")
-	require.Equal(t, uint8(0x01), memory[0x0008], "Indirect X failed")
-	require.Equal(t, uint8(0x01), memory[0x0009], "Indirect Y failed")
+	require.Equal(t, uint8(0x11), memory.ReadByte(0x0000), "$11 & $11 failed")
+	require.Equal(t, uint8(0xaa), memory.ReadByte(0x0001), "$ff & aa failed")
+	require.Equal(t, uint8(0x01), memory.ReadByte(0x0002), "$f0 & $0f failed")
+	require.Equal(t, uint8(0x01), memory.ReadByte(0x0006), "Absolute failed")
+	require.Equal(t, uint8(0x02), memory.ReadByte(0x0007), "Indexed X failed")
+	require.Equal(t, uint8(0x01), memory.ReadByte(0x0008), "Indirect X failed")
+	require.Equal(t, uint8(0x01), memory.ReadByte(0x0009), "Indirect Y failed")
 }
+
+func TestEor(t *testing.T) {
+	memory := runProgram(`
+		.ORG $1000
+		; Basic EOR
+		LDA #$11
+		EOR #$11
+		BNE DONE
+		STA $00 ; $00
+		LDA #$FF
+		EOR #$AA
+		BEQ DONE
+		STA $01 ; $55
+		LDA #$F0
+		EOR #$0F
+		BEQ DONE
+		STA $02 ; $ff
+		LDA #$01
+		EOR #$FF
+		BEQ DONE
+		STA $03	; $FE
+		; Addressing modes
+		LDA #$FF
+		EOR DATA ; Absolute
+		STA $06 ; $01
+		LDA #$FF
+		LDX #$01
+		EOR DATA,X ; Indexed X
+		STA $07 ; $02
+		LDA	#DATA & $0ff
+		STA $20
+		LDA #DATA >> 8
+		STA $21
+		LDA #$ff
+		EOR ($1f,X) ; Indirect X
+		STA $08 ; $fe
+		LDY #$01
+		LDA	#DONE & $ff
+		STA $20
+		LDA #DONE >> 8
+		STA $21
+		LDA #$ff
+		EOR	($20),Y
+		STA $09 ; $fe
+DONE	BRK
+DATA	.DB $01,$02
+ADDR	.DW DATA-1
+`)
+	require.Equal(t, uint8(0x00), memory.ReadByte(0x0000), "$11 ^ $11 failed")
+	require.Equal(t, uint8(0x55), memory.ReadByte(0x0001), "$ff ^ $aa failed")
+	require.Equal(t, uint8(0xff), memory.ReadByte(0x0002), "$f0 ^ $0f failed")
+	require.Equal(t, uint8(0xfe), memory.ReadByte(0x0006), "Absolute failed")
+	require.Equal(t, uint8(0xfd), memory.ReadByte(0x0007), "Indexed X failed")
+	require.Equal(t, uint8(0xfe), memory.ReadByte(0x0008), "Indirect X failed")
+	require.Equal(t, uint8(0xfe), memory.ReadByte(0x0009), "Indirect Y failed")
+}
+
 
 func TestAsl(t *testing.T) {
 	memory := runProgram(`
@@ -715,13 +800,13 @@ DONE	BRK
 DATA	.DB $01
 		
 `)
-	require.Equal(t, uint8(0x02), memory[0x0000], "1 << 1 failed")
-	require.Equal(t, uint8(0x03), memory[0x0001], "1 << 1 with carry in failed")
-	require.Equal(t, uint8(0x01), memory[0x0002], "$80 << 1 with carry out failed")
-	require.Equal(t, uint8(0x02), memory[0x0003], "Zero page failed")
-	require.Equal(t, uint8(0x02), memory[0x0004], "Zero page + X failed")
-	require.Equal(t, uint8(0x02), memory[0x0005], "Absolute failed")
-	require.Equal(t, uint8(0x04), memory[0x0006], "Absolute + X failed")
+	require.Equal(t, uint8(0x02), memory.ReadByte(0x0000), "1 << 1 failed")
+	require.Equal(t, uint8(0x03), memory.ReadByte(0x0001), "1 << 1 with carry in failed")
+	require.Equal(t, uint8(0x01), memory.ReadByte(0x0002), "$80 << 1 with carry out failed")
+	require.Equal(t, uint8(0x02), memory.ReadByte(0x0003), "Zero page failed")
+	require.Equal(t, uint8(0x02), memory.ReadByte(0x0004), "Zero page + X failed")
+	require.Equal(t, uint8(0x02), memory.ReadByte(0x0005), "Absolute failed")
+	require.Equal(t, uint8(0x04), memory.ReadByte(0x0006), "Absolute + X failed")
 }
 
 func TestFibonacci(t *testing.T) {
@@ -763,7 +848,7 @@ LOOP	CLC
 		BNE LOOP
 		BRK
 `)
-	require.Equal(t, 6765, int(memory[0x0002])+int(memory[0x0003])<<8)
+	require.Equal(t, 6765, int(memory.ReadByte(0x0002))+int(memory.ReadByte(0x0003))<<8)
 }
 
 func TestMultiply(t *testing.T) {
@@ -833,11 +918,11 @@ END		LDA LOSUM
 		LDX HISUM
 		RTS
 `)
-	require.Equal(t, uint16(6), uint16(memory[0x0010]) + uint16(memory[0x0011]) << 8, "2*3 failed")
-	require.Equal(t, uint16(110),uint16(memory[0x0012]) + uint16(memory[0x0013]) << 8, "10*11 failed")
-	require.Equal(t, uint16(200),uint16(memory[0x0014]) + uint16(memory[0x0015]) << 8, "100*2 failed")
-	require.Equal(t, uint16(200),uint16(memory[0x0016]) + uint16(memory[0x0017]) << 8, "2*100 failed")
-	require.Equal(t, uint16(40000),uint16(memory[0x0018]) + uint16(memory[0x0019]) << 8, "200*2000 failed")
+	require.Equal(t, uint16(6), uint16(memory.ReadByte(0x0010)) + uint16(memory.ReadByte(0x0011)) << 8, "2*3 failed")
+	require.Equal(t, uint16(110),uint16(memory.ReadByte(0x0012)) + uint16(memory.ReadByte(0x0013)) << 8, "10*11 failed")
+	require.Equal(t, uint16(200),uint16(memory.ReadByte(0x0014)) + uint16(memory.ReadByte(0x0015)) << 8, "100*2 failed")
+	require.Equal(t, uint16(200),uint16(memory.ReadByte(0x0016)) + uint16(memory.ReadByte(0x0017)) << 8, "2*100 failed")
+	require.Equal(t, uint16(40000),uint16(memory.ReadByte(0x0018)) + uint16(memory.ReadByte(0x0019)) << 8, "200*2000 failed")
 }
 
 func TestCmp(t *testing.T) {
@@ -896,20 +981,20 @@ DATA	.DB $AA
 ADDR	.EQ $31
 
 `)
-	require.Equal(t, FLAG_Z|FLAG_C, memory[0x01ff], "CMP $00,$00 failed")
-	require.Equal(t, FLAG_Z|FLAG_C, memory[0x01fe], "CMP $AA,$AA failed")
-	require.Equal(t, FLAG_N, memory[0x01fd], "CMP $01,$02 failed")
-	require.Equal(t, FLAG_C, memory[0x01fc], "CMP $02,$01 failed")
+	require.Equal(t, FLAG_Z|FLAG_C, memory.ReadByte(0x01ff), "CMP $00,$00 failed")
+	require.Equal(t, FLAG_Z|FLAG_C, memory.ReadByte(0x01fe), "CMP $AA,$AA failed")
+	require.Equal(t, FLAG_N, memory.ReadByte(0x01fd), "CMP $01,$02 failed")
+	require.Equal(t, FLAG_C, memory.ReadByte(0x01fc), "CMP $02,$01 failed")
 
-	require.Equal(t, FLAG_N, memory[0x01fb], "CMP $fe,$ff failed")
-	require.Equal(t, FLAG_C, memory[0x01fa], "CMP $ff,$fe failed")
+	require.Equal(t, FLAG_N, memory.ReadByte(0x01fb), "CMP $fe,$ff failed")
+	require.Equal(t, FLAG_C, memory.ReadByte(0x01fa), "CMP $ff,$fe failed")
 
-	require.Equal(t, FLAG_Z|FLAG_C, memory[0x01f9], "CMP Zero page failed")
-	require.Equal(t, FLAG_Z|FLAG_C, memory[0x01f8], "CMP Zero page X failed")
-	require.Equal(t, FLAG_Z|FLAG_C, memory[0x01f7], "CMP Abs X failed")
-	require.Equal(t, FLAG_Z|FLAG_C, memory[0x01f6], "CMP Abs Y failed")
-	require.Equal(t, FLAG_Z|FLAG_C, memory[0x01f5], "CMP Ind X failed")
-	require.Equal(t, FLAG_Z|FLAG_C, memory[0x01f4], "CMP Ind Y failed")
+	require.Equal(t, FLAG_Z|FLAG_C, memory.ReadByte(0x01f9), "CMP Zero page failed")
+	require.Equal(t, FLAG_Z|FLAG_C, memory.ReadByte(0x01f8), "CMP Zero page X failed")
+	require.Equal(t, FLAG_Z|FLAG_C, memory.ReadByte(0x01f7), "CMP Abs X failed")
+	require.Equal(t, FLAG_Z|FLAG_C, memory.ReadByte(0x01f6), "CMP Abs Y failed")
+	require.Equal(t, FLAG_Z|FLAG_C, memory.ReadByte(0x01f5), "CMP Ind X failed")
+	require.Equal(t, FLAG_Z|FLAG_C, memory.ReadByte(0x01f4), "CMP Ind Y failed")
 
 }
 
@@ -991,4 +1076,134 @@ END		LDA LOSUM
 	fmt.Printf("Elapsed time: %s, cycles: %d, speed: %d\n", elapsed, cycles, (cycles*1000) / int(elapsed))
 }
 
+func TestIRQ(t *testing.T) {
+	memory := runProgram(`
+		.ORG $1000
+TRIGGER	.EQ $8000
+		LDA #IRQ & $FF
+		STA $FFFE
+		LDA #IRQ >> 8
+		STA $FFFF
+LOOP	STA $8000 ; Triggers interrupt
+		LDA $00
+		CMP #$42
+		BNE LOOP
+		TSX
+		STX $01
+		; Try with interrupt disable bit set
+		LDA #IRQ2 & $FF
+		STA $FFFE
+		LDA #IRQ2 >> 8
+		STA $FFFF
+		SEI
+		STA $8000 ; Triggers interrupt (but won't, since I bit is set)
+		BRK
+IRQ		PHA
+		LDA #$42
+		STA $00
+		PLA
+		RTI
+IRQ2	PHA
+		LDA #$43
+		STA $00
+		PLA
+		RTI
+`)
+	require.Equal(t, uint8(0x2c), memory.ReadByte(0xfffe), "IRQ setup lo failed")
+	require.Equal(t, uint8(0x10), memory.ReadByte(0xffff), "IRQ setup hi failed")
+	require.Equal(t, uint8(0x42), memory.ReadByte(0x0000), "IRQ failed")
+	require.Equal(t, uint8(0xfd), memory.ReadByte(0x0001), "Stack pointer incorrect")
+
+}
+
+func TestNMI(t *testing.T) {
+	memory := runProgram(`
+		.ORG $1000
+TRIGGER	.EQ $8000
+		LDA #NMI & $FF
+		STA $FFFA
+		LDA #NMI >> 8
+		STA $FFFB
+LOOP	STA $8100 ; Triggers interrupt
+		LDA $00
+		CMP #$42
+		BNE LOOP
+		TSX
+		STX $01
+		BRK
+NMI		PHA
+		LDA #$42
+		STA $00
+		PLA
+		RTI
+`)
+	require.Equal(t, uint8(0x17), memory.ReadByte(0xfffa), "NMI setup lo failed")
+	require.Equal(t, uint8(0x10), memory.ReadByte(0xfffb), "NMI setup hi failed")
+	require.Equal(t, uint8(0x42), memory.ReadByte(0x0000), "NMI failed")
+	require.Equal(t, uint8(0xfd), memory.ReadByte(0x0001), "Stack pointer incorrect")
+}
+
+func TestNMIDuringIRQ(t *testing.T) {
+	memory := runProgram(`
+		.ORG $1000
+		; Set up vectors
+		LDA #NMI & $FF
+		STA $FFFA
+		LDA #NMI >> 8
+		STA $FFFB
+		LDA #IRQ & $FF
+		STA $FFFE
+		LDA #IRQ >> 8
+		STA $FFFF
+LOOP	STA $8000 ; Triggers IRQ
+		LDA $00
+		CMP #$42
+		BNE LOOP
+		TSX
+		STX $02
+		BRK
+NMI		PHA
+		LDA #$42
+		STA $00
+		PLA
+		RTI
+IRQ		PHA
+		LDA #$42
+		STA $8100 ; Triggers NMI
+		STA $01
+		PLA
+		RTI
+`)
+
+	require.Equal(t, uint8(0x42), memory.ReadByte(0x0000), "NMI failed")
+	require.Equal(t, uint8(0x42), memory.ReadByte(0x0001), "IRQ failed")
+	require.Equal(t, uint8(0xfd), memory.ReadByte(0x0002), "Stack pointer incorrect")
+}
+
+func TestKlaus(t *testing.T) {
+	bytes := make([]byte, 65546)
+	mem := RAM{ bytes: bytes }
+	bus := Bus{}
+	cpu := CPU{}
+	bus.Connect(&mem, 0x0000, 0xffff)
+	cpu.Trace = true
+	cpu.CrashOnInvalidInst = true
+	cpu.Init(&bus)
+	cpu.pc = 0x0400
+	err := Load("../testsuite/6502_functional_test.bin", &bus, 0)
+	if err != nil {
+		panic(err)
+	}
+	cycles := 100000000
+	for !cpu.IsHalted() {
+		cpu.Clock()
+		cycles--
+		if cycles == 0 {
+			break
+		}
+		if cpu.pc == 0x0b96 {
+			fmt.Println("Hit BP")
+		}
+	}
+}
 

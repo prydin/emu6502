@@ -8,6 +8,7 @@ import (
 // Instructions
 const (
 	BRK = 0x00
+	NOP = 0xea
 
 	// Accumulator instructions
 	STA_A    = 0x8d
@@ -62,9 +63,9 @@ const (
 	// Jumps
 	JMP     = 0x4c
 	JMP_IND = 0x6c
-	JSR     = 0x20
+	JSR_A   = 0x20
 	RTS     = 0x60
-	RTI		= 0x40
+	RTI     = 0x40
 
 	// Branches
 	BCC_R = 0x90
@@ -134,6 +135,14 @@ const (
 	ORA_AY   = 0x19
 	ORA_INDX = 0x01
 	ORA_INDY = 0x11
+	EOR_I    = 0x49
+	EOR_Z    = 0x45
+	EOR_ZX   = 0x55
+	EOR_A    = 0x4d
+	EOR_AX   = 0x5d
+	EOR_AY   = 0x59
+	EOR_INDX = 0x41
+	EOR_INDY = 0x51
 	ASL_ACC  = 0x0a
 	ASL_Z    = 0x06
 	ASL_ZX   = 0x16
@@ -145,7 +154,7 @@ const (
 	LSR_A    = 0x4e
 	LSR_AX   = 0x5e
 
-	// Comparison
+	// Comparisons
 	CMP_I    = 0xc9
 	CMP_Z    = 0xc5
 	CMP_ZX   = 0xd5
@@ -154,6 +163,12 @@ const (
 	CMP_AY   = 0xd9
 	CMP_INDX = 0xc1
 	CMP_INDY = 0xd1
+	CPX_I    = 0xe0
+	CPX_Z    = 0xe4
+	CPX_A    = 0xec
+	CPY_I    = 0xc0
+	CPY_Z    = 0xc4
+	CPY_A    = 0xcc
 )
 
 // CPU Status flags
@@ -163,6 +178,7 @@ const (
 	FLAG_I = uint8(0x04)
 	FLAG_D = uint8(0x08)
 	FLAG_B = uint8(0x10)
+	FLAG_U = uint8(0x20) // Unused, always 1
 	FLAG_V = uint8(0x40)
 	FLAG_N = uint8(0x80)
 )
@@ -181,15 +197,16 @@ type CPU struct {
 	flags uint8
 
 	// Internal registers
-	operand            uint16 // Current operand address
-	address            uint8  // Intermediate address storage during indirect addressing op
-	alu                uint8  // ALU internal accumulator
-	halted             bool   // Halt CPU. Used for debugging
-	irqPending         bool   // Handle IRQ after current instruction
-	nmiPending         bool   // Handle NMI after current instruction
-	CrashOnInvalidInst bool   // Used for debugging
-	Trace              bool   // Trace each instruction to stdout
-	instruction *Instruction // Current instruction
+	operand            uint16       // Current operand address
+	address            uint8        // Intermediate address storage during indirect addressing op
+	alu                uint8        // ALU internal accumulator
+	halted             bool         // Halt CPU. Used for debugging
+	irqPending         bool         // Handle IRQ after current instruction
+	nmiPending         bool         // Handle NMI after current instruction
+	CrashOnInvalidInst bool         // Used for debugging
+	HaltOnBRK          bool         // Used for debugging
+	Trace              bool         // Trace each instruction to stdout
+	instruction        *Instruction // Current instruction
 
 	// AddressSpace abstraction
 	bus AddressSpace
@@ -223,7 +240,24 @@ func (c *CPU) Init(mem AddressSpace) {
 	indirectY := []func(){c.fetchAddressLow, c.fetchIndirectLow, c.fetchIndirectHighAndAddY, c.nop}
 
 	// Processor control instructions
-	c.instructionSet[BRK] = MkInstr("BRK", []func(){c.brk})
+	if c.HaltOnBRK {
+		c.instructionSet[BRK] = MkInstr("BRK", []func(){func() { c.halted = true }})
+	} else {
+		c.instructionSet[BRK] = MkInstr("BRK", []func(){
+			func() {
+				c.operand = uint16(c.bus.ReadByte(IRQ_VEC))
+			},
+			func() {
+				c.operand |= uint16(c.bus.ReadByte(IRQ_VEC+1)) << 8
+				c.pc++ // BRK is a two-byte instruction
+			},
+			c.pushInterruptReturnAddressHigh,
+			c.pushInterruptReturnAddressLow,
+			c.php_brk,
+			c.jump,
+		})
+	}
+	c.instructionSet[NOP] = MkInstr("NOP", []func(){c.nop})
 
 	// Accumulator load/store
 	c.instructionSet[LDA_A] = MkInstr("LDA_A", append(fetch16Bits, c.lda))
@@ -283,26 +317,25 @@ func (c *CPU) Init(mem AddressSpace) {
 	c.instructionSet[JMP_IND] = MkInstr("JMP_IND", []func(){c.fetchOperandLow, c.fetchOperandHigh, c.loadPCLow, c.loadPCHigh})
 
 	// JSR/RTS
-	c.instructionSet[JSR] = MkInstr("JSR", append(fetch16Bits, c.pushReturnAddressHigh, c.pushReturnAddressLow, c.jump))
-	c.instructionSet[RTS] = MkInstr("RTS", []func(){c.nop, c.pullOperandLow, c.pullOperandHigh, c.nop, c.jump}) // TODO: Questionable NOP!
-	c.instructionSet[RTI] = MkInstr("RTI", []func(){c.plp, c.pullOperandLow, c.pullOperandHigh, c.nop, c.jump}) // TODO: Questionable NOP!
-
+	c.instructionSet[JSR_A] = MkInstr("JSR_A", append(fetch16Bits, c.pushReturnAddressHigh, c.pushReturnAddressLow, c.jump))
+	c.instructionSet[RTS] = MkInstr("RTS", []func(){c.nop, c.pullOperandLow, c.pullOperandHigh, c.jump, c.incPc})
+	c.instructionSet[RTI] = MkInstr("RTI", []func(){c.plp, c.pullOperandLow, c.pullOperandHigh, c.jump, c.nop})
 
 	// Branching
 	c.instructionSet[BCC_R] = MkInstr("BCC_R", []func(){c.bcc, c.doBranch, c.nop})
-	c.instructionSet[BCS_R] = MkInstr("BCS_R", []func() {c.bcs, c.doBranch, c.nop})
-	c.instructionSet[BEQ_R] = MkInstr("BEQ_R", []func() {c.beq, c.doBranch, c.nop})
-	c.instructionSet[BNE_R] = MkInstr("BNE_R", []func() {c.bne, c.doBranch, c.nop})
-	c.instructionSet[BMI_R] = MkInstr("BMI_R", []func() {c.bmi, c.doBranch, c.nop})
-	c.instructionSet[BPL_R] = MkInstr("BPL_R", []func() {c.bpl, c.doBranch, c.nop})
-	c.instructionSet[BVC_R] = MkInstr("BVC_R", []func() {c.bvc, c.doBranch, c.nop})
-	c.instructionSet[BVS_R] = MkInstr("BVS_R", []func() {c.bvs, c.doBranch, c.nop})
+	c.instructionSet[BCS_R] = MkInstr("BCS_R", []func(){c.bcs, c.doBranch, c.nop})
+	c.instructionSet[BEQ_R] = MkInstr("BEQ_R", []func(){c.beq, c.doBranch, c.nop})
+	c.instructionSet[BNE_R] = MkInstr("BNE_R", []func(){c.bne, c.doBranch, c.nop})
+	c.instructionSet[BMI_R] = MkInstr("BMI_R", []func(){c.bmi, c.doBranch, c.nop})
+	c.instructionSet[BPL_R] = MkInstr("BPL_R", []func(){c.bpl, c.doBranch, c.nop})
+	c.instructionSet[BVC_R] = MkInstr("BVC_R", []func(){c.bvc, c.doBranch, c.nop})
+	c.instructionSet[BVS_R] = MkInstr("BVS_R", []func(){c.bvs, c.doBranch, c.nop})
 
 	// Flag manipulations
 	c.instructionSet[CLC] = MkInstr("CLC", []func(){c.clc})
 	c.instructionSet[CLD] = MkInstr("CLD", []func(){c.cld})
 	c.instructionSet[CLV] = MkInstr("CLV", []func(){c.clv})
-	c.instructionSet[CLI] = MkInstr("CLI", []func(){c.clc})
+	c.instructionSet[CLI] = MkInstr("CLI", []func(){c.cli})
 	c.instructionSet[SEC] = MkInstr("SEC", []func(){c.sec})
 	c.instructionSet[SED] = MkInstr("SED", []func(){c.sed})
 	c.instructionSet[SEI] = MkInstr("SEI", []func(){c.sei})
@@ -360,6 +393,15 @@ func (c *CPU) Init(mem AddressSpace) {
 	c.instructionSet[ORA_INDX] = MkInstr("ORA_INDX", append(indirectX, c.ora))
 	c.instructionSet[ORA_INDY] = MkInstr("ORA_INDY", append(indirectY, c.ora))
 	c.instructionSet[ORA_Z] = MkInstr("ORA_Z", append(fetch8Bits, c.ora))
+	c.instructionSet[EOR_A] = MkInstr("EOR_A", append(fetch16Bits, c.eor))
+	c.instructionSet[EOR_I] = MkInstr("EOR_I", []func(){c.eor_i})
+	c.instructionSet[EOR_ZX] = MkInstr("EOR_ZX", append(zeroPageX, c.eor))
+	c.instructionSet[EOR_AX] = MkInstr("EOR_AX", append(absXOverlap, c.eor))
+	c.instructionSet[EOR_AY] = MkInstr("EOR_AY", append(absYOverlap, c.eor))
+	c.instructionSet[EOR_INDX] = MkInstr("EOR_INDX", append(indirectX, c.eor))
+	c.instructionSet[EOR_INDY] = MkInstr("EOR_INDY", append(indirectY, c.eor))
+	c.instructionSet[EOR_Z] = MkInstr("EOR_Z", append(fetch8Bits, c.eor))
+
 	c.instructionSet[ASL_ACC] = MkInstr("ASL_ACC", []func(){c.asl_acc})
 	c.instructionSet[ASL_Z] = MkInstr("ASL_Z", append(fetch8Bits, c.loadALU, c.asl_alu, c.storeALU))
 	c.instructionSet[ASL_ZX] = MkInstr("ASL_ZX", append(zeroPageX, c.loadALU, c.asl_alu, c.storeALU))
@@ -380,31 +422,37 @@ func (c *CPU) Init(mem AddressSpace) {
 	c.instructionSet[CMP_INDX] = MkInstr("CMP_INDX", append(indirectX, c.cmp))
 	c.instructionSet[CMP_INDY] = MkInstr("CMP_INDY", append(indirectY, c.cmp))
 	c.instructionSet[CMP_Z] = MkInstr("CMP_Z", append(fetch8Bits, c.cmp))
+	c.instructionSet[CPX_I] = MkInstr("CPX_I", []func(){c.cpx_i})
+	c.instructionSet[CPX_Z] = MkInstr("CPX_Z", append(fetch8Bits, c.cpx))
+	c.instructionSet[CPX_A] = MkInstr("CPX_A", append(fetch16Bits, c.cpx))
+	c.instructionSet[CPY_I] = MkInstr("CPY_I", []func(){c.cpy_i})
+	c.instructionSet[CPY_Z] = MkInstr("CPY_Z", append(fetch8Bits, c.cpy))
+	c.instructionSet[CPY_A] = MkInstr("CPY_A", append(fetch16Bits, c.cpy))
 
-	interruptTail := []func() {
-		c.pushReturnAddressHigh,
-		c.pushReturnAddressLow,
-		c.php,
+	interruptTail := []func(){
+		c.pushInterruptReturnAddressHigh,
+		c.pushInterruptReturnAddressLow,
+		c.php_hw,
 		c.nop,
 		c.jump,
 	}
 
 	// Interrupt pseudo instructions
-	c.irqPI = MkInstr("[IRQ]", append([]func() {
+	c.irqPI = MkInstr("[IRQ]", append([]func(){
 		func() {
 			c.operand = uint16(c.bus.ReadByte(IRQ_VEC))
 		},
 		func() {
-			c.operand |= uint16(c.bus.ReadByte(IRQ_VEC+1) << 8)
+			c.operand |= uint16(c.bus.ReadByte(IRQ_VEC+1)) << 8
 		}}, interruptTail...))
-	c.rstPI = MkInstr("[RST]", append([]func() {
+	c.rstPI = MkInstr("[RST]", append([]func(){
 		func() {
 			c.operand = uint16(c.bus.ReadByte(RST_VEC))
 		},
 		func() {
 			c.operand |= uint16(c.bus.ReadByte(RST_VEC+1)) << 8
 		}}, c.jump))
-	c.nmiPI = MkInstr("[NMI]", append([]func() {
+	c.nmiPI = MkInstr("[NMI]", append([]func(){
 		func() {
 			c.operand = uint16(c.bus.ReadByte(NMI_VEC))
 		},
@@ -422,7 +470,7 @@ func (c *CPU) Reset() {
 }
 
 func (c *CPU) IRQ() {
-	if c.flags & FLAG_I == 0 {
+	if c.flags&FLAG_I == 0 {
 		c.irqPending = true
 	}
 }
@@ -450,7 +498,7 @@ func (c *CPU) Clock() {
 	}
 	if c.Trace {
 		code := ""
-		if(c.microPc == 0) {
+		if c.microPc == 0 {
 			code = c.instruction.Dissasemble(c.bus, c.pc)
 		}
 		fmt.Printf("PC=%04x [PC]=%02x MPC=%02x SP=%04x A=%02x X=%02x Y=%02x Flags=%02x Oper=%04x, Addr=%02x %s\n",
@@ -510,8 +558,8 @@ func (c *CPU) loadPCLow() {
 
 func (c *CPU) loadPCHigh() {
 	// Implements 6502 indirect jump bug. MSB is not incremented when crossing page boundaries
-	if c.operand & 0x00ff == 0x00ff {
-		c.pc |= uint16(c.bus.ReadByte(c.operand & 0xff00)) << 8
+	if c.operand&0x00ff == 0x00ff {
+		c.pc |= uint16(c.bus.ReadByte(c.operand&0xff00)) << 8
 	} else {
 		c.pc |= uint16(c.bus.ReadByte(c.operand+1)) << 8
 	}
@@ -599,11 +647,23 @@ func (c *CPU) pull() uint8 {
 }
 
 func (c *CPU) pushReturnAddressLow() {
-	c.push(uint8(c.pc & 0xff))
+	c.push(uint8((c.pc - 1) & 0xff))
 }
 
 func (c *CPU) pushReturnAddressHigh() {
+	c.push(uint8((c.pc - 1) >> 8))
+}
+
+func (c *CPU) pushInterruptReturnAddressLow() {
+	c.push(uint8(c.pc & 0xff))
+}
+
+func (c *CPU) pushInterruptReturnAddressHigh() {
 	c.push(uint8(c.pc >> 8))
+}
+
+func (c *CPU) incPc() {
+	c.pc++
 }
 
 func (c *CPU) pullOperandHigh() {
@@ -763,7 +823,6 @@ func (c *CPU) txa() {
 
 func (c *CPU) txs() {
 	c.sp = c.x
-	c.updateNZ(c.sp)
 }
 
 func (c *CPU) tya() {
@@ -776,15 +835,27 @@ func (c *CPU) pha() {
 }
 
 func (c *CPU) php() {
-	c.push(c.flags)
+	c.push(c.flags | FLAG_B | FLAG_U)
+}
+
+// Hardware interrupts must clear the B flag
+func (c *CPU) php_hw() {
+	c.push((c.flags & ^(FLAG_B)) | FLAG_U)
+	c.flags |= FLAG_I
+}
+
+func (c *CPU) php_brk() {
+	c.push(c.flags | FLAG_B | FLAG_U)
+	c.flags |= FLAG_I
 }
 
 func (c *CPU) pla() {
 	c.a = c.pull()
+	c.updateNZ(c.a)
 }
 
 func (c *CPU) plp() {
-	c.flags = c.pull()
+	c.flags = c.pull() & ^(FLAG_B | FLAG_U)
 }
 
 func (c *CPU) nop() {
@@ -824,6 +895,14 @@ func (c *CPU) and() {
 	c.updateNZ(c.a)
 }
 
+func (c *CPU) bit() {
+	v := c.bus.ReadByte(c.operand)
+	if v == 0 {
+		c.flags |= FLAG_Z
+	}
+	c.flags |= v & 0xc0
+}
+
 func (c *CPU) ora_i() {
 	c.a |= c.bus.ReadByte(c.pc)
 	c.pc++
@@ -832,6 +911,17 @@ func (c *CPU) ora_i() {
 
 func (c *CPU) ora() {
 	c.a |= c.bus.ReadByte(c.operand)
+	c.updateNZ(c.a)
+}
+
+func (c *CPU) eor_i() {
+	c.a ^= c.bus.ReadByte(c.pc)
+	c.pc++
+	c.updateNZ(c.a)
+}
+
+func (c *CPU) eor() {
+	c.a ^= c.bus.ReadByte(c.operand)
 	c.updateNZ(c.a)
 }
 
@@ -885,7 +975,7 @@ func (c *CPU) cpx_i() {
 }
 
 func (c *CPU) cpy_i() {
-	c.compareTwo(c.x, c.bus.ReadByte(c.pc))
+	c.compareTwo(c.y, c.bus.ReadByte(c.pc))
 	c.pc++
 }
 

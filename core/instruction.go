@@ -21,8 +21,8 @@ const (
 )
 
 type Instruction struct {
-	Mnemonic string
-	AddrMode int
+	Mnemonic  string
+	AddrMode  int
 	Microcode []func()
 }
 
@@ -62,7 +62,7 @@ func MkInstr(mnemonic string, microcode []func()) Instruction {
 	}
 }
 
-func (i *Instruction) Dissasemble(memory AddressSpace, pc uint16) string{
+func (i *Instruction) Dissasemble(memory AddressSpace, pc uint16) string {
 	s := i.Mnemonic + " "
 	switch i.AddrMode {
 	case ModeImmediate:
@@ -73,24 +73,20 @@ func (i *Instruction) Dissasemble(memory AddressSpace, pc uint16) string{
 		s += fmt.Sprintf("$%02x,X", memory.ReadByte(pc))
 	case ModeZeroPageY:
 		s += fmt.Sprintf("$%02x,Y", memory.ReadByte(pc))
-		case ModeAbsolute:
-		s += fmt.Sprintf("$%02x,Y", memory.ReadByte(pc))
+	case ModeAbsolute:
+		s += fmt.Sprintf("$%04x",  uint16(memory.ReadByte(pc))+uint16(memory.ReadByte(pc+1))<<8)
 	case ModeAbsoluteX:
-		s += fmt.Sprintf("$%04x,X", uint16(memory.ReadByte(pc)) + uint16(memory.ReadByte(pc+1) << 8))
+		s += fmt.Sprintf("$%04x,X", uint16(memory.ReadByte(pc))+uint16(memory.ReadByte(pc+1))<<8)
 	case ModeAbsoluteY:
-		s += fmt.Sprintf("$%04x,Y", uint16(memory.ReadByte(pc)) + uint16(memory.ReadByte(pc+1) << 8))
+		s += fmt.Sprintf("$%04x,Y", uint16(memory.ReadByte(pc))+uint16(memory.ReadByte(pc+1))<<8)
 	case ModeIndirectX:
-		s += fmt.Sprintf("($%04x,X)", uint16(memory.ReadByte(pc)) + uint16(memory.ReadByte(pc+1) << 8))
+		s += fmt.Sprintf("($%02x,X)", uint16(memory.ReadByte(pc)))
 	case ModeIndirectY:
-		s += fmt.Sprintf("($%04x),Y", uint16(memory.ReadByte(pc)) + uint16(memory.ReadByte(pc+1) << 8))
+		s += fmt.Sprintf("($%02x),Y", uint16(memory.ReadByte(pc)))
 	case ModeIndirect:
-		s += fmt.Sprintf("($%04x)", uint16(memory.ReadByte(pc)) + uint16(memory.ReadByte(pc+1) << 8))
+		s += fmt.Sprintf("($%04x)", uint16(memory.ReadByte(pc))+uint16(memory.ReadByte(pc+1)<<8))
 	case ModeRelative:
 		s += fmt.Sprintf("%02x", memory.ReadByte(pc))
 	}
 	return s
 }
-
-
-
-

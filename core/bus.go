@@ -64,10 +64,11 @@ func (r *RAM) ReadByte(addr uint16) uint8 {
 	}
 }
 
-func (l *RAM) WriteByte(addr uint16, data uint8) {
-	if int(addr) < len(l.bytes) {
-		l.bytes[int(addr)] = data
+func (r *RAM) WriteByte(addr uint16, data uint8) {
+	if int(addr) < len(r.bytes) {
+		r.bytes[int(addr)] = data
 	}
 }
+
 
 
