@@ -1186,22 +1186,24 @@ func TestKlaus(t *testing.T) {
 	bus := Bus{}
 	cpu := CPU{}
 	bus.Connect(&mem, 0x0000, 0xffff)
-	cpu.Trace = true
-	cpu.CrashOnInvalidInst = true
+	cpu.CrashOnInvalidInst = false
 	cpu.Init(&bus)
 	cpu.pc = 0x0400
 	err := Load("../testsuite/6502_functional_test.bin", &bus, 0)
 	if err != nil {
 		panic(err)
 	}
-	cycles := 100000000
+	cycles := 100000000000
 	for !cpu.IsHalted() {
 		cpu.Clock()
 		cycles--
 		if cycles == 0 {
 			break
 		}
-		if cpu.pc == 0x0b96 {
+		if cpu.pc == 0x346f {
+			cpu.Trace = true
+		}
+		if cpu.pc == 0x3490 {
 			fmt.Println("Hit BP")
 		}
 	}

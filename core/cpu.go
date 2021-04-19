@@ -33,6 +33,7 @@ const (
 	LDX_I  = 0xa2
 	LDX_Z  = 0xa6
 	LDX_A  = 0xae
+	LDX_AY = 0xbe
 	LDX_ZY = 0xb6
 	STX_ZY = 0x96
 	INX    = 0xe8
@@ -43,6 +44,7 @@ const (
 	LDY_Z  = 0xa4
 	LDY_ZX = 0xb4
 	LDY_A  = 0xac
+	LDY_AX = 0xbc
 	STY_A  = 0x8c
 	STY_ZX = 0x94
 	STY_Z  = 0x84
@@ -153,6 +155,18 @@ const (
 	LSR_ZX   = 0x56
 	LSR_A    = 0x4e
 	LSR_AX   = 0x5e
+	ROL_ACC  = 0x2a
+	ROL_Z    = 0x26
+	ROL_ZX   = 0x36
+	ROL_A    = 0x2e
+	ROL_AX   = 0x3e
+	ROR_ACC  = 0x6a
+	ROR_Z    = 0x66
+	ROR_ZX   = 0x76
+	ROR_A    = 0x6e
+	ROR_AX   = 0x7e
+	BIT_Z    = 0x24
+	BIT_A    = 0x2c
 
 	// Comparisons
 	CMP_I    = 0xc9
@@ -278,6 +292,7 @@ func (c *CPU) Init(mem AddressSpace) {
 
 	// Index X load/store
 	c.instructionSet[LDX_A] = MkInstr("LDX_A", append(fetch16Bits, c.ldx))
+	c.instructionSet[LDX_AY] = MkInstr("LDX_AY", append(absYOverlap, c.ldx))
 	c.instructionSet[LDX_I] = MkInstr("LDX_I", []func(){c.ldx_i})
 	c.instructionSet[LDX_Z] = MkInstr("LDX_Z", append(fetch8Bits, c.ldx))
 	c.instructionSet[LDX_ZY] = MkInstr("LDX_ZY", append(zeroPageY, c.ldx))
@@ -290,9 +305,10 @@ func (c *CPU) Init(mem AddressSpace) {
 	c.instructionSet[LDY_ZX] = MkInstr("LDY_ZX", append(zeroPageX, c.ldy))
 	c.instructionSet[LDY_Z] = MkInstr("LDY_Z", append(fetch8Bits, c.ldy))
 	c.instructionSet[STY_A] = MkInstr("STY_A", append(fetch16Bits, c.sty))
-	c.instructionSet[STY_ZX] = MkInstr("STY_ZX", append(zeroPageY, c.sty))
+	c.instructionSet[STY_ZX] = MkInstr("STY_ZX", append(zeroPageX, c.sty))
 	c.instructionSet[STY_Z] = MkInstr("STY_Z", append(fetch8Bits, c.sty))
 	c.instructionSet[LDY_A] = MkInstr("LDY_A", append(fetch16Bits, c.ldy))
+	c.instructionSet[LDY_AX] = MkInstr("LDY_AX", append(absXOverlap, c.ldy))
 
 	// Inc/dec register
 	c.instructionSet[INX] = MkInstr("INX", []func(){c.inx})
@@ -401,7 +417,8 @@ func (c *CPU) Init(mem AddressSpace) {
 	c.instructionSet[EOR_INDX] = MkInstr("EOR_INDX", append(indirectX, c.eor))
 	c.instructionSet[EOR_INDY] = MkInstr("EOR_INDY", append(indirectY, c.eor))
 	c.instructionSet[EOR_Z] = MkInstr("EOR_Z", append(fetch8Bits, c.eor))
-
+	c.instructionSet[BIT_Z] = MkInstr("BIT_Z", append(fetch8Bits, c.bit))
+	c.instructionSet[BIT_A] = MkInstr("BIT_A", append(fetch16Bits, c.bit))
 	c.instructionSet[ASL_ACC] = MkInstr("ASL_ACC", []func(){c.asl_acc})
 	c.instructionSet[ASL_Z] = MkInstr("ASL_Z", append(fetch8Bits, c.loadALU, c.asl_alu, c.storeALU))
 	c.instructionSet[ASL_ZX] = MkInstr("ASL_ZX", append(zeroPageX, c.loadALU, c.asl_alu, c.storeALU))
@@ -412,6 +429,16 @@ func (c *CPU) Init(mem AddressSpace) {
 	c.instructionSet[LSR_ZX] = MkInstr("LSR_ZX", append(zeroPageX, c.loadALU, c.lsr_alu, c.storeALU))
 	c.instructionSet[LSR_A] = MkInstr("LSR_A", append(fetch16Bits, c.loadALU, c.lsr_alu, c.storeALU))
 	c.instructionSet[LSR_AX] = MkInstr("LSR_AX", append(absX, c.loadALU, c.lsr_alu, c.storeALU))
+	c.instructionSet[ROL_ACC] = MkInstr("ROL_ACC", []func(){c.rol_acc})
+	c.instructionSet[ROL_Z] = MkInstr("ROL_Z", append(fetch8Bits, c.loadALU, c.rol_alu, c.storeALU))
+	c.instructionSet[ROL_ZX] = MkInstr("ROL_ZX", append(zeroPageX, c.loadALU, c.rol_alu, c.storeALU))
+	c.instructionSet[ROL_A] = MkInstr("ROL_A", append(fetch16Bits, c.loadALU, c.rol_alu, c.storeALU))
+	c.instructionSet[ROL_AX] = MkInstr("ROL_AX", append(absX, c.loadALU, c.rol_alu, c.storeALU))
+	c.instructionSet[ROR_ACC] = MkInstr("ROR_ACC", []func(){c.ror_acc})
+	c.instructionSet[ROR_Z] = MkInstr("ROR_Z", append(fetch8Bits, c.loadALU, c.ror_alu, c.storeALU))
+	c.instructionSet[ROR_ZX] = MkInstr("ROR_ZX", append(zeroPageX, c.loadALU, c.ror_alu, c.storeALU))
+	c.instructionSet[ROR_A] = MkInstr("ROR_A", append(fetch16Bits, c.loadALU, c.ror_alu, c.storeALU))
+	c.instructionSet[ROR_AX] = MkInstr("ROR_AX", append(absX, c.loadALU, c.ror_alu, c.storeALU))
 
 	// Comparisons
 	c.instructionSet[CMP_A] = MkInstr("CMP_A", append(fetch16Bits, c.cmp))
@@ -501,8 +528,8 @@ func (c *CPU) Clock() {
 		if c.microPc == 0 {
 			code = c.instruction.Dissasemble(c.bus, c.pc)
 		}
-		fmt.Printf("PC=%04x [PC]=%02x MPC=%02x SP=%04x A=%02x X=%02x Y=%02x Flags=%02x Oper=%04x, Addr=%02x %s\n",
-			c.pc, c.bus.ReadByte(c.pc), c.microPc, c.sp, c.a, c.x, c.y, c.flags, c.operand, c.address, code)
+		fmt.Printf("PC=%04x [PC]=%02x MPC=%02x SP=%04x A=%02x X=%02x Y=%02x Flags=%02x Oper=%04x, [Oper]=%02x ALU=%02x Addr=%02x %s\n",
+			c.pc, c.bus.ReadByte(c.pc), c.microPc, c.sp, c.a, c.x, c.y, c.flags, c.operand, c.bus.ReadByte(c.operand), c.alu, c.address, code)
 	}
 }
 
@@ -897,10 +924,8 @@ func (c *CPU) and() {
 
 func (c *CPU) bit() {
 	v := c.bus.ReadByte(c.operand)
-	if v == 0 {
-		c.flags |= FLAG_Z
-	}
-	c.flags |= v & 0xc0
+	c.updateFlag(FLAG_Z, v&c.a == 0)
+	c.flags = (c.flags & ^uint8(0xc0)) | v&0xc0
 }
 
 func (c *CPU) ora_i() {
@@ -926,13 +951,8 @@ func (c *CPU) eor() {
 }
 
 func (c *CPU) asl(v *uint8) {
-	carry := uint8(0)
-	if c.flags&FLAG_C != 0 {
-		carry = uint8(1)
-	}
 	c.updateFlag(FLAG_C, *v&0x80 != 0)
 	*v <<= 1
-	*v += carry
 	c.updateNZ(*v)
 }
 
@@ -942,6 +962,38 @@ func (c *CPU) asl_acc() {
 
 func (c *CPU) asl_alu() {
 	c.asl(&c.alu)
+}
+
+func (c *CPU) rol(v *uint8) {
+	carry := c.flags & FLAG_C
+	c.updateFlag(FLAG_C, *v&0x80 != 0)
+	*v <<= 1
+	*v |= carry
+	c.updateNZ(*v)
+}
+
+func (c *CPU) rol_acc() {
+	c.rol(&c.a)
+}
+
+func (c *CPU) rol_alu() {
+	c.rol(&c.alu)
+}
+
+func (c *CPU) ror(v *uint8) {
+	carry := (c.flags & FLAG_C) << 7
+	c.updateFlag(FLAG_C, *v&0x01 != 0)
+	*v >>= 1
+	*v |= carry
+	c.updateNZ(*v)
+}
+
+func (c *CPU) ror_acc() {
+	c.ror(&c.a)
+}
+
+func (c *CPU) ror_alu() {
+	c.ror(&c.alu)
 }
 
 func (c *CPU) lsr(v *uint8) {
@@ -995,9 +1047,6 @@ func (c *CPU) add(addend uint8) {
 	acc := uint16(c.a)
 	add := uint16(addend)
 	carryIn := c.flags & FLAG_C
-	if carryIn > 1 {
-		carryIn = 1
-	}
 	var v uint16
 
 	if c.flags&FLAG_D != 0 {
@@ -1040,41 +1089,20 @@ func (c *CPU) subtract(addend uint8) {
 	acc := uint16(c.a)
 	sub := uint16(addend)
 	carryIn := c.flags & FLAG_C
-	if carryIn > 1 {
-		carryIn = 1
-	}
 	var v uint16
 
 	if c.flags&FLAG_D != 0 {
-		lo := (acc & 0x0f) - (sub & 0x0f) - uint16(carryIn)
-
-		var carrylo uint16
-		if lo&0x10 != 0 {
-			lo = (lo - 0x06) & 0x0f
-			carrylo = 0x10
+		v = (acc & 0x0f) - (sub & 0x0f) - (1 - uint16(carryIn))
+		if v&0x10 != 0 {
+			v = (v - 0x06) & 0x0f | ((acc & 0xf0) - (sub & 0xf0) - 0x10)
 		} else {
-			carrylo = 0
+			v = (v & 0x0f) | ((acc & 0xf0) - (sub & 0xf0))
 		}
-
-		hi := (acc & 0xf0) - (sub & 0xf0) - carrylo
-
-		if hi&0x100 != 0 {
-			c.flags |= FLAG_C
-			hi = (hi - 0x60) & 0xff
-		} else {
-			c.flags &= ^FLAG_C
-		}
-
-		v = hi | lo
-
-		c.updateFlag(FLAG_V, ((acc^v)&0x80) != 0 && ((acc^sub)&0x80) != 0)
-
 	} else {
-		v = acc - sub - uint16(carryIn)
-		c.updateFlag(FLAG_C, v >= 0x100)
-		c.updateFlag(FLAG_V, ((acc&0x80) != (sub&0x80)) && ((acc&0x80) != (v&0x80)))
+		v = acc - sub - (1 - uint16(carryIn))
 	}
-
+	c.updateFlag(FLAG_C, v < 0x100)
+	c.updateFlag(FLAG_V, ((acc&0x80) != (sub&0x80)) && ((acc&0x80) != (v&0x80)))
 	c.a = uint8(v)
 	c.updateNZ(c.a)
 }
@@ -1084,7 +1112,7 @@ func (c *CPU) addXToLowOperand() {
 }
 
 func (c *CPU) addYToLowOperand() {
-	c.operand = uint16(uint8(c.operand&0xff) + c.x)
+	c.operand = uint16(uint8(c.operand&0xff) + c.y)
 }
 
 func (c *CPU) addXToOperand() {
