@@ -185,8 +185,8 @@
       <recent name="$PROJECT_DIR$/core" />
     </key>
   </component>
-  <component name="RunManager" selected="Go Test.TestKlaus in github.com/prydin/emu6502/core">
-    <configuration name="TestEor in github.com/prydin/emu6502/core" type="GoTestRunConfiguration" factoryName="Go Test" temporary="true" nameIsGenerated="true">
+  <component name="RunManager" selected="Go Test.go test github.com/prydin/emu6502/core">
+    <configuration name="TestAsl in github.com/prydin/emu6502/core" type="GoTestRunConfiguration" factoryName="Go Test" temporary="true" nameIsGenerated="true">
       <module name="emu6502" />
       <working_directory value="$PROJECT_DIR$/core" />
       <root_directory value="$PROJECT_DIR$" />
@@ -195,10 +195,10 @@
       <directory value="$PROJECT_DIR$" />
       <filePath value="$PROJECT_DIR$" />
       <framework value="gotest" />
-      <pattern value="^\QTestEor\E$" />
+      <pattern value="^\QTestAsl\E$" />
       <method v="2" />
     </configuration>
-    <configuration name="TestIRQ in github.com/prydin/emu6502/core" type="GoTestRunConfiguration" factoryName="Go Test" temporary="true" nameIsGenerated="true">
+    <configuration name="TestCmp in github.com/prydin/emu6502/core" type="GoTestRunConfiguration" factoryName="Go Test" temporary="true" nameIsGenerated="true">
       <module name="emu6502" />
       <working_directory value="$PROJECT_DIR$/core" />
       <root_directory value="$PROJECT_DIR$" />
@@ -207,10 +207,10 @@
       <directory value="$PROJECT_DIR$" />
       <filePath value="$PROJECT_DIR$" />
       <framework value="gotest" />
-      <pattern value="^\QTestIRQ\E$" />
+      <pattern value="^\QTestCmp\E$" />
       <method v="2" />
     </configuration>
-    <configuration name="TestKlaus in github.com/prydin/emu6502/core" type="GoTestRunConfiguration" factoryName="Go Test" temporary="true" nameIsGenerated="true">
+    <configuration name="TestMultiply in github.com/prydin/emu6502/core" type="GoTestRunConfiguration" factoryName="Go Test" temporary="true" nameIsGenerated="true">
       <module name="emu6502" />
       <working_directory value="$PROJECT_DIR$/core" />
       <root_directory value="$PROJECT_DIR$" />
@@ -219,10 +219,10 @@
       <directory value="$PROJECT_DIR$" />
       <filePath value="$PROJECT_DIR$" />
       <framework value="gotest" />
-      <pattern value="^\QTestKlaus\E$" />
+      <pattern value="^\QTestMultiply\E$" />
       <method v="2" />
     </configuration>
-    <configuration name="TestNMI in github.com/prydin/emu6502/core" type="GoTestRunConfiguration" factoryName="Go Test" temporary="true" nameIsGenerated="true">
+    <configuration name="TestSubtract in github.com/prydin/emu6502/core" type="GoTestRunConfiguration" factoryName="Go Test" temporary="true" nameIsGenerated="true">
       <module name="emu6502" />
       <working_directory value="$PROJECT_DIR$/core" />
       <root_directory value="$PROJECT_DIR$" />
@@ -231,7 +231,7 @@
       <directory value="$PROJECT_DIR$" />
       <filePath value="$PROJECT_DIR$" />
       <framework value="gotest" />
-      <pattern value="^\QTestNMI\E$" />
+      <pattern value="^\QTestSubtract\E$" />
       <method v="2" />
     </configuration>
     <configuration name="go test github.com/prydin/emu6502/core" type="GoTestRunConfiguration" factoryName="Go Test" temporary="true" nameIsGenerated="true">
@@ -247,11 +247,11 @@
     </configuration>
     <recent_temporary>
       <list>
-        <item itemvalue="Go Test.TestKlaus in github.com/prydin/emu6502/core" />
         <item itemvalue="Go Test.go test github.com/prydin/emu6502/core" />
-        <item itemvalue="Go Test.TestNMI in github.com/prydin/emu6502/core" />
-        <item itemvalue="Go Test.TestIRQ in github.com/prydin/emu6502/core" />
-        <item itemvalue="Go Test.TestEor in github.com/prydin/emu6502/core" />
+        <item itemvalue="Go Test.TestAsl in github.com/prydin/emu6502/core" />
+        <item itemvalue="Go Test.TestCmp in github.com/prydin/emu6502/core" />
+        <item itemvalue="Go Test.TestMultiply in github.com/prydin/emu6502/core" />
+        <item itemvalue="Go Test.TestSubtract in github.com/prydin/emu6502/core" />
       </list>
     </recent_temporary>
   </component>
@@ -279,12 +279,12 @@
       <breakpoints>
         <line-breakpoint enabled="true" type="DlvLineBreakpoint">
           <url>file://$PROJECT_DIR$/core/cpu_test.go</url>
-          <line>828</line>
+          <line>829</line>
           <option name="timeStamp" value="73" />
         </line-breakpoint>
         <line-breakpoint enabled="true" type="DlvLineBreakpoint">
           <url>file://$PROJECT_DIR$/core/cpu_test.go</url>
-          <line>942</line>
+          <line>943</line>
           <option name="timeStamp" value="82" />
         </line-breakpoint>
         <line-breakpoint enabled="true" type="DlvLineBreakpoint">
@@ -294,16 +294,11 @@
         </line-breakpoint>
         <line-breakpoint enabled="true" type="DlvLineBreakpoint">
           <url>file://$PROJECT_DIR$/core/cpu_test.go</url>
-          <line>903</line>
-          <option name="timeStamp" value="97" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" type="DlvLineBreakpoint">
-          <url>file://$PROJECT_DIR$/core/cpu_test.go</url>
           <option name="timeStamp" value="99" />
         </line-breakpoint>
         <line-breakpoint enabled="true" type="DlvLineBreakpoint">
           <url>file://$PROJECT_DIR$/core/cpu.go</url>
-          <line>538</line>
+          <line>542</line>
           <option name="timeStamp" value="103" />
         </line-breakpoint>
         <line-breakpoint enabled="true" type="DlvLineBreakpoint">
@@ -318,18 +313,13 @@
         </line-breakpoint>
         <line-breakpoint enabled="true" type="DlvLineBreakpoint">
           <url>file://$PROJECT_DIR$/core/cpu_test.go</url>
-          <line>1145</line>
+          <line>1146</line>
           <option name="timeStamp" value="114" />
         </line-breakpoint>
         <line-breakpoint enabled="true" type="DlvLineBreakpoint">
-          <url>file://$PROJECT_DIR$/core/cpu_test.go</url>
-          <line>1206</line>
-          <option name="timeStamp" value="124" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" type="DlvLineBreakpoint">
           <url>file://$PROJECT_DIR$/core/cpu.go</url>
-          <line>1094</line>
-          <option name="timeStamp" value="125" />
+          <line>1092</line>
+          <option name="timeStamp" value="128" />
         </line-breakpoint>
       </breakpoints>
     </breakpoint-manager>

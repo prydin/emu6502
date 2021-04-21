@@ -416,7 +416,7 @@ func TestStack(t *testing.T) {
 	require.Equal(t, uint8(0xfe), memory.ReadByte(0x0000), "PHA failed")
 	require.Equal(t, uint8(0x42), memory.ReadByte(0x0001), "PLA failed")
 	require.Equal(t, uint8(0xff), memory.ReadByte(0x0002), "PLA sp failed")
-	require.Equal(t, uint8(0x03), memory.ReadByte(0x0003), "PHP failed")
+	require.Equal(t, uint8(0x33), memory.ReadByte(0x0003), "PHP failed")
 	require.Equal(t, uint8(0xfe), memory.ReadByte(0x0004), "PLP failed")
 }
 
@@ -511,26 +511,27 @@ ADDR	.DW DATA-1
 func TestSubtract(t *testing.T) {
 	memory := runProgram(`
 		.ORG $1000
-		CLC
+		SEC
 		; Basic subtractions 
 		LDA #$11
 		SBC #$11
-		BCS DONE
+		BCC DONE
 		STA $00 ; $00
 		LDA #$11
+		SEC
 		SBC #$0A
-		BCS DONE
+		BCC DONE
 		STA $01 ; $07
 		LDA #$FF
 		SBC #$FF
-		BCS DONE
+		BCC DONE
 		STA $02 ; $00
-		CLC
+		SEC
 		LDA #$01
 		SBC #$FF 
-		BCC DONE
+		BCS DONE
 		STA $03	; $02
-		CLC
+		SEC
 		; Decimal mode
 		SED
 		LDA #$11
@@ -541,7 +542,7 @@ func TestSubtract(t *testing.T) {
 		STA $05 ; $09
 		; Addressing modes
 		CLD
-		CLC
+		SEC
 		LDA #$00
 		SBC DATA ; Absolute
 		STA $06 ; $01
@@ -553,7 +554,7 @@ func TestSubtract(t *testing.T) {
 		STA $20
 		LDA #DATA >> 8
 		STA $21
-		CLC
+		SEC
 		LDA #$03
 		SBC ($1f,X) ; Indirect X
 		STA $08 ; $02
@@ -563,7 +564,7 @@ func TestSubtract(t *testing.T) {
 		LDA #DONE >> 8
 		STA $21
 		LDA #$10
-		CLC 
+		SEC 
 		SBC	($20),Y
 		STA $09
 DONE	BRK
@@ -768,13 +769,13 @@ func TestAsl(t *testing.T) {
 		LDA #$01
 		ASL
 		BCS DONE
-		STA $01 ; $03
+		STA $01 ; $02
 		; Carry out 
 		SEC
 		LDA #$80
 		ASL
 		BCC DONE
-		STA $02 ; $01
+		STA $02 ; $00
 		; Zero page
 		LDA #$01
 		STA $03
@@ -801,8 +802,8 @@ DATA	.DB $01
 		
 `)
 	require.Equal(t, uint8(0x02), memory.ReadByte(0x0000), "1 << 1 failed")
-	require.Equal(t, uint8(0x03), memory.ReadByte(0x0001), "1 << 1 with carry in failed")
-	require.Equal(t, uint8(0x01), memory.ReadByte(0x0002), "$80 << 1 with carry out failed")
+	require.Equal(t, uint8(0x02), memory.ReadByte(0x0001), "1 << 1 with carry in failed")
+	require.Equal(t, uint8(0x00), memory.ReadByte(0x0002), "$80 << 1 with carry out failed")
 	require.Equal(t, uint8(0x02), memory.ReadByte(0x0003), "Zero page failed")
 	require.Equal(t, uint8(0x02), memory.ReadByte(0x0004), "Zero page + X failed")
 	require.Equal(t, uint8(0x02), memory.ReadByte(0x0005), "Absolute failed")
@@ -911,7 +912,7 @@ SHIFT	TYA
 		LSR
 		CLC
 		ASL LOTERM	; Shift the second term and continue
-		ASL HITERM
+		ROL HITERM
 		CLC
 		BCC LOOP
 END		LDA LOSUM
@@ -981,20 +982,20 @@ DATA	.DB $AA
 ADDR	.EQ $31
 
 `)
-	require.Equal(t, FLAG_Z|FLAG_C, memory.ReadByte(0x01ff), "CMP $00,$00 failed")
-	require.Equal(t, FLAG_Z|FLAG_C, memory.ReadByte(0x01fe), "CMP $AA,$AA failed")
-	require.Equal(t, FLAG_N, memory.ReadByte(0x01fd), "CMP $01,$02 failed")
-	require.Equal(t, FLAG_C, memory.ReadByte(0x01fc), "CMP $02,$01 failed")
+	require.Equal(t, FLAG_Z|FLAG_C|FLAG_U|FLAG_B, memory.ReadByte(0x01ff), "CMP $00,$00 failed")
+	require.Equal(t, FLAG_Z|FLAG_C|FLAG_U|FLAG_B, memory.ReadByte(0x01fe), "CMP $AA,$AA failed")
+	require.Equal(t, FLAG_N|FLAG_U|FLAG_B, memory.ReadByte(0x01fd), "CMP $01,$02 failed")
+	require.Equal(t, FLAG_C|FLAG_U|FLAG_B, memory.ReadByte(0x01fc), "CMP $02,$01 failed")
 
-	require.Equal(t, FLAG_N, memory.ReadByte(0x01fb), "CMP $fe,$ff failed")
-	require.Equal(t, FLAG_C, memory.ReadByte(0x01fa), "CMP $ff,$fe failed")
+	require.Equal(t, FLAG_N|FLAG_U|FLAG_B, memory.ReadByte(0x01fb), "CMP $fe,$ff failed")
+	require.Equal(t, FLAG_C|FLAG_U|FLAG_B, memory.ReadByte(0x01fa), "CMP $ff,$fe failed")
 
-	require.Equal(t, FLAG_Z|FLAG_C, memory.ReadByte(0x01f9), "CMP Zero page failed")
-	require.Equal(t, FLAG_Z|FLAG_C, memory.ReadByte(0x01f8), "CMP Zero page X failed")
-	require.Equal(t, FLAG_Z|FLAG_C, memory.ReadByte(0x01f7), "CMP Abs X failed")
-	require.Equal(t, FLAG_Z|FLAG_C, memory.ReadByte(0x01f6), "CMP Abs Y failed")
-	require.Equal(t, FLAG_Z|FLAG_C, memory.ReadByte(0x01f5), "CMP Ind X failed")
-	require.Equal(t, FLAG_Z|FLAG_C, memory.ReadByte(0x01f4), "CMP Ind Y failed")
+	require.Equal(t, FLAG_Z|FLAG_C|FLAG_U|FLAG_B, memory.ReadByte(0x01f9), "CMP Zero page failed")
+	require.Equal(t, FLAG_Z|FLAG_C|FLAG_U|FLAG_B, memory.ReadByte(0x01f8), "CMP Zero page X failed")
+	require.Equal(t, FLAG_Z|FLAG_C|FLAG_U|FLAG_B, memory.ReadByte(0x01f7), "CMP Abs X failed")
+	require.Equal(t, FLAG_Z|FLAG_C|FLAG_U|FLAG_B, memory.ReadByte(0x01f6), "CMP Abs Y failed")
+	require.Equal(t, FLAG_Z|FLAG_C|FLAG_U|FLAG_B, memory.ReadByte(0x01f5), "CMP Ind X failed")
+	require.Equal(t, FLAG_Z|FLAG_C|FLAG_U|FLAG_B, memory.ReadByte(0x01f4), "CMP Ind Y failed")
 
 }
 
@@ -1193,18 +1194,15 @@ func TestKlaus(t *testing.T) {
 	if err != nil {
 		panic(err)
 	}
-	cycles := 100000000000
+	lastPC := uint16(0)
 	for !cpu.IsHalted() {
 		cpu.Clock()
-		cycles--
-		if cycles == 0 {
+		if cpu.microPc == 0 {
+			require.NotEqual(t, lastPC, cpu.pc, "TRAP: " + cpu.StateAsString())
+			lastPC = cpu.pc
+		}
+		if cpu.pc == 0x3469 {
 			break
-		}
-		if cpu.pc == 0x346f {
-			cpu.Trace = true
-		}
-		if cpu.pc == 0x3490 {
-			fmt.Println("Hit BP")
 		}
 	}
 }

@@ -524,13 +524,17 @@ func (c *CPU) Clock() {
 		c.microPc++
 	}
 	if c.Trace {
-		code := ""
-		if c.microPc == 0 {
-			code = c.instruction.Dissasemble(c.bus, c.pc)
-		}
-		fmt.Printf("PC=%04x [PC]=%02x MPC=%02x SP=%04x A=%02x X=%02x Y=%02x Flags=%02x Oper=%04x, [Oper]=%02x ALU=%02x Addr=%02x %s\n",
-			c.pc, c.bus.ReadByte(c.pc), c.microPc, c.sp, c.a, c.x, c.y, c.flags, c.operand, c.bus.ReadByte(c.operand), c.alu, c.address, code)
+		fmt.Println(c.StateAsString())
 	}
+}
+
+func (c *CPU) StateAsString() string {
+	code := ""
+	if c.microPc == 0 {
+		code = c.instruction.Dissasemble(c.bus, c.pc)
+	}
+	return fmt.Sprintf("PC=%04x [PC]=%02x MPC=%02x SP=%04x A=%02x X=%02x Y=%02x Flags=%02x Oper=%04x, [Oper]=%02x ALU=%02x Addr=%02x %s",
+		c.pc, c.bus.ReadByte(c.pc), c.microPc, c.sp, c.a, c.x, c.y, c.flags, c.operand, c.bus.ReadByte(c.operand), c.alu, c.address, code)
 }
 
 func (c *CPU) fetchOpcode() {
@@ -1097,6 +1101,9 @@ func (c *CPU) subtract(addend uint8) {
 			v = (v - 0x06) & 0x0f | ((acc & 0xf0) - (sub & 0xf0) - 0x10)
 		} else {
 			v = (v & 0x0f) | ((acc & 0xf0) - (sub & 0xf0))
+		}
+		if v&0x100 != 0 {
+			v -= 0x60
 		}
 	} else {
 		v = acc - sub - (1 - uint16(carryIn))
