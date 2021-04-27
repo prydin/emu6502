@@ -5,6 +5,8 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="58c6cb47-3664-4a3a-a472-e4643dd7a4d6" name="Default Changelist" comment="">
+      <change afterPath="$PROJECT_DIR$/vic-ii/vic_ii.go" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/vic-ii/vic_ii_test.go" afterDir="false" />
       <change afterPath="$PROJECT_DIR$/../prata/build.gradle" afterDir="false" />
       <change afterPath="$PROJECT_DIR$/../prata/gradlew" afterDir="false" />
       <change afterPath="$PROJECT_DIR$/../prata/gradlew.bat" afterDir="false" />
@@ -33,6 +35,9 @@
       <change afterPath="$PROJECT_DIR$/../vexpress-scheduling/templates/application-properties.tpl" afterDir="false" />
       <change afterPath="$PROJECT_DIR$/../vra8gateway/src/main/java/com/fedex/cloudops/fake/security/redux/CipherCacheLoader.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/core/bus.go" beforeDir="false" afterPath="$PROJECT_DIR$/core/bus.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/core/clock.go" beforeDir="false" afterPath="$PROJECT_DIR$/core/clock.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/core/clock_test.go" beforeDir="false" afterPath="$PROJECT_DIR$/core/clock_test.go" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/core/cpu.go" beforeDir="false" afterPath="$PROJECT_DIR$/core/cpu.go" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/core/cpu_test.go" beforeDir="false" afterPath="$PROJECT_DIR$/core/cpu_test.go" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../fizzbuzz/fizzbuzz.iml" beforeDir="false" />
@@ -185,8 +190,8 @@
       <recent name="$PROJECT_DIR$/core" />
     </key>
   </component>
-  <component name="RunManager" selected="Go Test.go test github.com/prydin/emu6502/core">
-    <configuration name="TestAsl in github.com/prydin/emu6502/core" type="GoTestRunConfiguration" factoryName="Go Test" temporary="true" nameIsGenerated="true">
+  <component name="RunManager" selected="Go Test.TestVicII_Registers in github.com/prydin/emu6502/vic-ii">
+    <configuration name="TestHighPrecisionClock_NextTick in github.com/prydin/emu6502/core" type="GoTestRunConfiguration" factoryName="Go Test" temporary="true" nameIsGenerated="true">
       <module name="emu6502" />
       <working_directory value="$PROJECT_DIR$/core" />
       <root_directory value="$PROJECT_DIR$" />
@@ -195,10 +200,9 @@
       <directory value="$PROJECT_DIR$" />
       <filePath value="$PROJECT_DIR$" />
       <framework value="gotest" />
-      <pattern value="^\QTestAsl\E$" />
       <method v="2" />
     </configuration>
-    <configuration name="TestCmp in github.com/prydin/emu6502/core" type="GoTestRunConfiguration" factoryName="Go Test" temporary="true" nameIsGenerated="true">
+    <configuration name="TestPerformance in github.com/prydin/emu6502/core" type="GoTestRunConfiguration" factoryName="Go Test" temporary="true" nameIsGenerated="true">
       <module name="emu6502" />
       <working_directory value="$PROJECT_DIR$/core" />
       <root_directory value="$PROJECT_DIR$" />
@@ -207,10 +211,10 @@
       <directory value="$PROJECT_DIR$" />
       <filePath value="$PROJECT_DIR$" />
       <framework value="gotest" />
-      <pattern value="^\QTestCmp\E$" />
+      <pattern value="^\QTestPerformance\E$" />
       <method v="2" />
     </configuration>
-    <configuration name="TestMultiply in github.com/prydin/emu6502/core" type="GoTestRunConfiguration" factoryName="Go Test" temporary="true" nameIsGenerated="true">
+    <configuration name="TestTSC in github.com/prydin/emu6502/core" type="GoTestRunConfiguration" factoryName="Go Test" temporary="true" nameIsGenerated="true">
       <module name="emu6502" />
       <working_directory value="$PROJECT_DIR$/core" />
       <root_directory value="$PROJECT_DIR$" />
@@ -219,19 +223,19 @@
       <directory value="$PROJECT_DIR$" />
       <filePath value="$PROJECT_DIR$" />
       <framework value="gotest" />
-      <pattern value="^\QTestMultiply\E$" />
+      <pattern value="^\QTestTSC\E$" />
       <method v="2" />
     </configuration>
-    <configuration name="TestSubtract in github.com/prydin/emu6502/core" type="GoTestRunConfiguration" factoryName="Go Test" temporary="true" nameIsGenerated="true">
+    <configuration name="TestVicII_Registers in github.com/prydin/emu6502/vic-ii" type="GoTestRunConfiguration" factoryName="Go Test" temporary="true" nameIsGenerated="true">
       <module name="emu6502" />
-      <working_directory value="$PROJECT_DIR$/core" />
+      <working_directory value="$PROJECT_DIR$/vic-ii" />
       <root_directory value="$PROJECT_DIR$" />
       <kind value="PACKAGE" />
-      <package value="github.com/prydin/emu6502/core" />
+      <package value="github.com/prydin/emu6502/vic-ii" />
       <directory value="$PROJECT_DIR$" />
       <filePath value="$PROJECT_DIR$" />
       <framework value="gotest" />
-      <pattern value="^\QTestSubtract\E$" />
+      <pattern value="^\QTestVicII_Registers\E$" />
       <method v="2" />
     </configuration>
     <configuration name="go test github.com/prydin/emu6502/core" type="GoTestRunConfiguration" factoryName="Go Test" temporary="true" nameIsGenerated="true">
@@ -247,11 +251,11 @@
     </configuration>
     <recent_temporary>
       <list>
+        <item itemvalue="Go Test.TestVicII_Registers in github.com/prydin/emu6502/vic-ii" />
+        <item itemvalue="Go Test.TestHighPrecisionClock_NextTick in github.com/prydin/emu6502/core" />
+        <item itemvalue="Go Test.TestTSC in github.com/prydin/emu6502/core" />
+        <item itemvalue="Go Test.TestPerformance in github.com/prydin/emu6502/core" />
         <item itemvalue="Go Test.go test github.com/prydin/emu6502/core" />
-        <item itemvalue="Go Test.TestAsl in github.com/prydin/emu6502/core" />
-        <item itemvalue="Go Test.TestCmp in github.com/prydin/emu6502/core" />
-        <item itemvalue="Go Test.TestMultiply in github.com/prydin/emu6502/core" />
-        <item itemvalue="Go Test.TestSubtract in github.com/prydin/emu6502/core" />
       </list>
     </recent_temporary>
   </component>
@@ -288,11 +292,6 @@
           <option name="timeStamp" value="82" />
         </line-breakpoint>
         <line-breakpoint enabled="true" type="DlvLineBreakpoint">
-          <url>file://$PROJECT_DIR$/core/clock.go</url>
-          <line>42</line>
-          <option name="timeStamp" value="93" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" type="DlvLineBreakpoint">
           <url>file://$PROJECT_DIR$/core/cpu_test.go</url>
           <option name="timeStamp" value="99" />
         </line-breakpoint>
@@ -313,22 +312,25 @@
         </line-breakpoint>
         <line-breakpoint enabled="true" type="DlvLineBreakpoint">
           <url>file://$PROJECT_DIR$/core/cpu_test.go</url>
-          <line>1146</line>
+          <line>1148</line>
           <option name="timeStamp" value="114" />
         </line-breakpoint>
         <line-breakpoint enabled="true" type="DlvLineBreakpoint">
-          <url>file://$PROJECT_DIR$/core/cpu.go</url>
-          <line>1092</line>
-          <option name="timeStamp" value="128" />
+          <url>file://$PROJECT_DIR$/core/clock_test.go</url>
+          <line>40</line>
+          <option name="timeStamp" value="138" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="DlvLineBreakpoint">
+          <url>file://$PROJECT_DIR$/core/clock.go</url>
+          <line>87</line>
+          <option name="timeStamp" value="142" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="DlvLineBreakpoint">
+          <url>file://$PROJECT_DIR$/vic-ii/vic_ii.go</url>
+          <line>193</line>
+          <option name="timeStamp" value="149" />
         </line-breakpoint>
       </breakpoints>
     </breakpoint-manager>
-    <watches-manager>
-      <configuration name="GoTestRunConfiguration">
-        <watch expression="bytes[0x12]" language="go" />
-        <watch expression="cpu.pc" language="go" />
-        <watch expression="c.bus.ReadByte(0x12)" language="go" />
-      </configuration>
-    </watches-manager>
   </component>
 </project>

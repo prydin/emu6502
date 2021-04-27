@@ -6,6 +6,10 @@ type AddressSpace interface {
 	WriteByte(addr uint16, data uint8)
 }
 
+type Clockable interface {
+	Clock()
+}
+
 type ROM struct {
 	bytes []uint8
 }
@@ -22,10 +26,32 @@ type Device struct {
 
 type Bus struct {
 	devices []Device
+	phase1[] Clockable
+	phase2[] Clockable
 }
 
 func (b *Bus) Connect(device AddressSpace, start, end uint16) {
 	b.devices = append(b.devices, Device{ start, end, device })
+}
+
+func(b *Bus) ConnectClockablePh1(device Clockable) {
+	b.phase1 = append(b.phase1, device)
+}
+
+func(b *Bus) ConnectClockablePh2(device Clockable) {
+	b.phase2 = append(b.phase2, device)
+}
+
+func (b* Bus) ClockPh1() {
+	for _, c := range b.phase1 {
+		c.Clock()
+	}
+}
+
+func (b* Bus) ClockPh2() {
+	for _, c := range b.phase1 {
+		c.Clock()
+	}
 }
 
 func (b *Bus) ReadByte(addr uint16) uint8 {

@@ -1050,31 +1050,33 @@ END		LDA LOSUM
 		RTS
 `)
 	cycles := 0
+	bus := cpu.bus
+	bus.ConnectClockablePh1(cpu)
 	cpu.Trace = false
 	start := time.Now()
 	for !cpu.IsHalted() {
-		cpu.Clock()
+		bus.ClockPh1()
 		cycles++
 	}
 	elapsed := time.Now().Sub(start)
-	fmt.Printf("Elapsed time: %s, cycles: %d, speed: %d\n", elapsed, cycles, (cycles*1000) / int(elapsed))
+	ratio := float64(cycles*1000) / float64(elapsed)
+	fmt.Printf("Elapsed time: %s, cycles: %d, speed: %f\n", elapsed, cycles, float64(cycles*1000) / float64(elapsed))
+	require.Lessf(t, 2.0, ratio, "Emulation runs at %f times hardware speed. Should be at least 2", ratio)
 
 	// Run at 1MHz
 	start = time.Now()
 	cycles = 0
 	cpu.Reset()
+	clk := NewClock(1000000)
 	for !cpu.IsHalted() {
-		now := time.Now()
-		sleepTime := time.Duration(now.UnixNano() % 1000)
-		endTime := now.Add(sleepTime)
-		for time.Now().Before(endTime) {
-			time.Sleep(0)
-		}
-		cpu.Clock()
+		clk.NextTick()
+		bus.ClockPh1()
 		cycles++
 	}
 	elapsed = time.Now().Sub(start)
-	fmt.Printf("Elapsed time: %s, cycles: %d, speed: %d\n", elapsed, cycles, (cycles*1000) / int(elapsed))
+	ratio = float64(cycles*1000) / float64(elapsed)
+	fmt.Printf("Elapsed time: %s, cycles: %d, speed: %f\n", elapsed, cycles, float64(cycles*1000) / float64(elapsed))
+	require.Lessf(t, 1.0, ratio, "Realtime emulation runs at %f times hardware speed. Should be at least 1", ratio)
 }
 
 func TestIRQ(t *testing.T) {

@@ -223,7 +223,7 @@ type CPU struct {
 	instruction        *Instruction // Current instruction
 
 	// AddressSpace abstraction
-	bus AddressSpace
+	bus *Bus
 
 	// Pseudo-instructionSet
 	instructionSet []Instruction // Pseudo-instructionSet
@@ -236,8 +236,9 @@ type CPU struct {
 	rstPI Instruction
 }
 
-func (c *CPU) Init(mem AddressSpace) {
+func (c *CPU) Init(bus *Bus) {
 	c.instructionSet = make([]Instruction, 256)
+	c.bus = bus
 
 	// Basic memory access instructionSet
 	fetch16Bits := []func(){c.fetchOperandLow, c.fetchOperandHigh}
@@ -371,7 +372,6 @@ func (c *CPU) Init(mem AddressSpace) {
 	c.instructionSet[PHP] = MkInstr("PHP", []func(){c.nop, c.php})
 	c.instructionSet[PLA] = MkInstr("PLA", []func(){c.nop, c.pla})
 	c.instructionSet[PLP] = MkInstr("PLP", []func(){c.nop, c.plp})
-	c.bus = mem
 
 	// Arithmetic
 	c.instructionSet[ADC_A] = MkInstr("ADC_A", append(fetch16Bits, c.adc))
