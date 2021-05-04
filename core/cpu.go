@@ -215,8 +215,6 @@ type CPU struct {
 	address            uint8        // Intermediate address storage during indirect addressing op
 	alu                uint8        // ALU internal accumulator
 	halted             bool         // Halt CPU. Used for debugging
-	irqPending         bool         // Handle IRQ after current instruction
-	nmiPending         bool         // Handle NMI after current instruction
 	CrashOnInvalidInst bool         // Used for debugging
 	HaltOnBRK          bool         // Used for debugging
 	Trace              bool         // Trace each instruction to stdout
@@ -234,6 +232,13 @@ type CPU struct {
 	nmiPI Instruction
 	brkPI Instruction
 	rstPI Instruction
+
+	// Interupt service flags
+	inIRQ bool
+	inNMI bool
+
+	// Stunned by someone pulling RDY low?
+	stunned bool
 }
 
 func (c *CPU) Init(bus *Bus) {
@@ -260,10 +265,18 @@ func (c *CPU) Init(bus *Bus) {
 	} else {
 		c.instructionSet[BRK] = MkInstr("BRK", []func(){
 			func() {
-				c.operand = uint16(c.bus.ReadByte(IRQ_VEC))
+				t := c.readByte(IRQ_VEC)
+				if c.stunned {
+					return
+				}
+				c.operand = uint16(t)
 			},
 			func() {
-				c.operand |= uint16(c.bus.ReadByte(IRQ_VEC+1)) << 8
+				t := c.readByte(IRQ_VEC + 1)
+				if c.stunned {
+					return
+				}
+				c.operand |= uint16(t) << 8
 				c.pc++ // BRK is a two-byte instruction
 			},
 			c.pushInterruptReturnAddressHigh,
@@ -336,7 +349,7 @@ func (c *CPU) Init(bus *Bus) {
 	// JSR/RTS
 	c.instructionSet[JSR_A] = MkInstr("JSR_A", append(fetch16Bits, c.pushReturnAddressHigh, c.pushReturnAddressLow, c.jump))
 	c.instructionSet[RTS] = MkInstr("RTS", []func(){c.nop, c.pullOperandLow, c.pullOperandHigh, c.jump, c.incPc})
-	c.instructionSet[RTI] = MkInstr("RTI", []func(){c.plp, c.pullOperandLow, c.pullOperandHigh, c.jump, c.nop})
+	c.instructionSet[RTI] = MkInstr("RTI", []func(){c.plp, c.pullOperandLow, c.pullOperandHigh, c.jump, c.restoreCPUState})
 
 	// Branching
 	c.instructionSet[BCC_R] = MkInstr("BCC_R", []func(){c.bcc, c.doBranch, c.nop})
@@ -467,24 +480,48 @@ func (c *CPU) Init(bus *Bus) {
 	// Interrupt pseudo instructions
 	c.irqPI = MkInstr("[IRQ]", append([]func(){
 		func() {
-			c.operand = uint16(c.bus.ReadByte(IRQ_VEC))
+			t := uint16(c.readByte(IRQ_VEC))
+			if c.stunned {
+				return
+			}
+			c.operand = t
 		},
 		func() {
-			c.operand |= uint16(c.bus.ReadByte(IRQ_VEC+1)) << 8
+			t := uint16(c.readByte(IRQ_VEC + 1))
+			if c.stunned {
+				return
+			}
+			c.operand |= t << 8
 		}}, interruptTail...))
 	c.rstPI = MkInstr("[RST]", append([]func(){
 		func() {
-			c.operand = uint16(c.bus.ReadByte(RST_VEC))
+			t := uint16(c.readByte(RST_VEC))
+			if c.stunned {
+				return
+			}
+			c.operand = t
 		},
 		func() {
-			c.operand |= uint16(c.bus.ReadByte(RST_VEC+1)) << 8
+			t := uint16(c.readByte(RST_VEC + 1))
+			if c.stunned {
+				return
+			}
+			c.operand |= t << 8
 		}}, c.jump))
 	c.nmiPI = MkInstr("[NMI]", append([]func(){
 		func() {
-			c.operand = uint16(c.bus.ReadByte(NMI_VEC))
+			t := uint16(c.readByte(NMI_VEC))
+			if c.stunned {
+				return
+			}
+			c.operand = t
 		},
 		func() {
-			c.operand |= uint16(c.bus.ReadByte(NMI_VEC+1)) << 8
+			t := uint16(c.readByte(NMI_VEC + 1))
+			if c.stunned {
+				return
+			}
+			c.operand |= t << 8
 		}}, interruptTail...))
 }
 
@@ -496,31 +533,32 @@ func (c *CPU) Reset() {
 	c.microPc = 0
 }
 
-func (c *CPU) IRQ() {
-	if c.flags&FLAG_I == 0 {
-		c.irqPending = true
-	}
-}
-
-func (c *CPU) NMI() {
-	c.nmiPending = true
-}
-
 func (c *CPU) Clock() {
+	if c.bus.RDY.Get() {
+		c.stunned = false
+	}
+	if c.stunned {
+		return
+	}
 	if c.instruction == nil || c.microPc >= len(c.instruction.Microcode) {
-		if c.nmiPending {
+		if !(c.bus.NotNMI.Get() || c.inNMI) {
 			c.instruction = &c.nmiPI
-			c.nmiPending = false
-			c.irqPending = false // Interrupt hijacking: NMI during while waiting for IRQ to kick in cancels the IRQ
-		} else if c.irqPending {
+			c.inNMI = true
+		} else if !(c.flags&FLAG_I != 0 || c.inIRQ || c.inNMI || c.bus.NotIRQ.Get()) {
 			c.instruction = &c.irqPI
-			c.irqPending = false
+			c.inIRQ = true
 		} else {
 			c.fetchOpcode()
+			if c.stunned {
+				return
+			}
 		}
 		c.microPc = 0
 	} else {
 		c.instruction.Microcode[c.microPc]()
+		if c.stunned {
+			return
+		}
 		c.microPc++
 	}
 	if c.Trace {
@@ -537,8 +575,22 @@ func (c *CPU) StateAsString() string {
 		c.pc, c.bus.ReadByte(c.pc), c.microPc, c.sp, c.a, c.x, c.y, c.flags, c.operand, c.bus.ReadByte(c.operand), c.alu, c.address, code)
 }
 
+func (c *CPU) readByte(addr uint16) uint8 {
+	if !c.bus.RDY.Get() {
+		c.stunned = true
+	}
+	return c.bus.ReadByte(addr)
+}
+
+func (c *CPU) writeByte(addr uint16, data uint8) {
+	c.bus.WriteByte(addr, data)
+}
+
 func (c *CPU) fetchOpcode() {
-	opcode := c.bus.ReadByte(c.pc)
+	opcode := c.readByte(c.pc)
+	if c.stunned {
+		return
+	}
 	if c.CrashOnInvalidInst && len(c.instructionSet[opcode].Microcode) == 0 {
 		log.Fatalf("Unknown opcode: %2x at address %4x", opcode, c.pc)
 	}
@@ -547,17 +599,28 @@ func (c *CPU) fetchOpcode() {
 }
 
 func (c *CPU) fetchLow(target *uint16) {
-	*target = uint16(c.bus.ReadByte(c.pc))
+	t := uint16(c.readByte(c.pc))
+	if c.stunned {
+		return
+	}
+	*target = t
 	c.pc++
 }
 
 func (c *CPU) fetchHigh(target *uint16) {
-	*target |= uint16(c.bus.ReadByte(c.pc)) << 8
+	t := uint16(c.readByte(c.pc))
+	if c.stunned {
+		return
+	}
+	*target |= t << 8
 	c.pc++
 }
 
 func (c *CPU) fetchHighAndJump() {
 	c.fetchOperandHigh()
+	if c.stunned {
+		return
+	}
 	c.pc = c.operand
 }
 
@@ -574,36 +637,58 @@ func (c *CPU) fetchOperandHigh() {
 }
 
 func (c *CPU) fetchAddressLow() {
-	c.address = c.bus.ReadByte(c.pc)
+	c.address = c.readByte(c.pc)
+	if c.stunned {
+		return
+	}
 	c.pc++
 }
 
 func (c *CPU) fetchAddressHigh() {
-	c.address = c.bus.ReadByte(c.pc)
+	c.address = c.readByte(c.pc)
+	if c.stunned {
+		return
+	}
 	c.pc++
 }
 
 func (c *CPU) loadPCLow() {
-	c.pc = uint16(c.bus.ReadByte(c.operand))
+	t := uint16(c.readByte(c.operand))
+	if c.stunned {
+		return
+	}
+	c.pc = t
 }
 
 func (c *CPU) loadPCHigh() {
 	// Implements 6502 indirect jump bug. MSB is not incremented when crossing page boundaries
 	if c.operand&0x00ff == 0x00ff {
-		c.pc |= uint16(c.bus.ReadByte(c.operand&0xff00)) << 8
+		t := uint16(c.readByte(c.operand&0xff00))
+		if c.stunned {
+			return
+		}
+		c.pc |= t << 8
 	} else {
-		c.pc |= uint16(c.bus.ReadByte(c.operand+1)) << 8
+		t := uint16(c.readByte(c.operand+1))
+		if c.stunned {
+			return
+		}
+		c.pc |= t << 8
 	}
 }
 
 func (c *CPU) fetchOperandHighAndAdd(reg *uint8) {
-	c.operand |= uint16(c.bus.ReadByte(c.pc)) << 8
+	t := uint16(c.readByte(c.pc))
+	if c.stunned {
+		return
+	}
+	c.operand |= t << 8
 	c.pc++
-	t := c.operand + uint16(*reg)
+	op := c.operand + uint16(*reg)
 	if t&0xff00 == c.operand&0xff00 {
 		c.microPc++ // Skip extra clock cycle if it didn't cross page boundaries
 	}
-	c.operand = t
+	c.operand = op
 }
 
 func (c *CPU) fetchOperandHighAndAddX() {
@@ -615,42 +700,66 @@ func (c *CPU) fetchOperandHighAndAddY() {
 }
 
 func (c *CPU) loadRegister(reg *uint8) {
-	*reg = c.bus.ReadByte(c.operand)
+	t := c.readByte(c.operand)
+	if c.stunned {
+		return
+	}
+	*reg = t
 	c.updateNZ(*reg)
 }
 
 func (c *CPU) loadRegisterImmed(reg *uint8) {
-	*reg = c.bus.ReadByte(c.pc)
+	t := c.readByte(c.pc)
+	if c.stunned {
+		return
+	}
+	*reg = t
 	c.pc++
 	c.updateNZ(*reg)
 }
 
 func (c *CPU) storeRegister(reg *uint8) {
-	c.bus.WriteByte(c.operand, *reg)
+	c.writeByte(c.operand, *reg)
 }
 
 func (c *CPU) fetchIndirectLow() {
-	c.operand = uint16(c.bus.ReadByte(uint16(c.address)))
-}
-
-func (c *CPU) fetchIndirectHigh() {
-	c.operand |= uint16(c.bus.ReadByte(uint16(c.address+1))) << 8
-}
-
-func (c *CPU) fetchIndirectHighAndAddY() {
-	c.operand |= uint16(c.bus.ReadByte(uint16(c.address+1))) << 8
-	t := c.operand + uint16(c.y)
-	if t&0xf0 == c.operand&0xf0 {
-		c.microPc++ // Skip extra clock cycle
+	t := uint16(c.readByte(uint16(c.address)))
+	if c.stunned {
+		return
 	}
 	c.operand = t
 }
 
+func (c *CPU) fetchIndirectHigh() {
+	t := uint16(c.readByte(uint16(c.address + 1)))
+	if c.stunned {
+		return
+	}
+	c.operand |= t << 8
+}
+
+func (c *CPU) fetchIndirectHighAndAddY() {
+	t := uint16(c.readByte(uint16(c.address + 1)))
+	if c.stunned {
+		return
+	}
+	c.operand |= t << 8
+	op := c.operand + uint16(c.y)
+	if t&0xf0 == c.operand&0xf0 {
+		c.microPc++ // Skip extra clock cycle
+	}
+	c.operand = op
+}
+
 func (c *CPU) branchIf(mask, wanted uint8) {
+	t := uint16(c.readByte(c.pc)) // TODO: This feels weird. Should we really load this before we know if we take the branch?
+	if c.stunned {
+		return
+	}
+	c.operand = t
 	if c.flags&mask != wanted {
 		c.microPc += 2 // Skip jump and optional nop
 	}
-	c.operand = uint16(c.bus.ReadByte(c.pc))
 	c.pc++
 }
 
@@ -668,13 +777,17 @@ func (c *CPU) doBranch() {
 }
 
 func (c *CPU) push(v uint8) {
-	c.bus.WriteByte(uint16(c.sp)+0x0100, v)
+	c.writeByte(uint16(c.sp)+0x0100, v)
 	c.sp--
 }
 
 func (c *CPU) pull() uint8 {
+	t := c.readByte(uint16(c.sp+1) + 0x0100)
+	if c.stunned {
+		return 0
+	}
 	c.sp++
-	return c.bus.ReadByte(uint16(c.sp) + 0x0100)
+	return t
 }
 
 func (c *CPU) pushReturnAddressLow() {
@@ -693,16 +806,35 @@ func (c *CPU) pushInterruptReturnAddressHigh() {
 	c.push(uint8(c.pc >> 8))
 }
 
+func (c *CPU) restoreCPUState() {
+	if c.inNMI {
+		c.inNMI = false
+	} else if c.inIRQ {
+		// Notice the "else" here! We clear the flag if the NMI flag
+		// is cleared, since we might have been interrupted by an NMI
+		// while servicing an IRQ.
+		c.inIRQ = false
+	}
+}
+
 func (c *CPU) incPc() {
 	c.pc++
 }
 
 func (c *CPU) pullOperandHigh() {
-	c.operand |= uint16(c.pull()) << 8
+	t := uint16(c.pull())
+	if c.stunned {
+		return
+	}
+	c.operand |= t << 8
 }
 
 func (c *CPU) pullOperandLow() {
-	c.operand = uint16(c.pull())
+	t := uint16(c.pull())
+	if c.stunned {
+		return
+	}
+	c.operand = t
 }
 
 func (c *CPU) bne() {
@@ -881,12 +1013,20 @@ func (c *CPU) php_brk() {
 }
 
 func (c *CPU) pla() {
-	c.a = c.pull()
+	t := c.pull()
+	if c.stunned {
+		return
+	}
+	c.a = t
 	c.updateNZ(c.a)
 }
 
 func (c *CPU) plp() {
-	c.flags = c.pull() & ^(FLAG_B | FLAG_U)
+	t := c.pull()
+	if c.stunned {
+		return
+	}
+	c.flags = t & ^(FLAG_B | FLAG_U)
 }
 
 func (c *CPU) nop() {
@@ -906,51 +1046,85 @@ func (c *CPU) updateFlag(flag uint8, value bool) {
 }
 
 func (c *CPU) adc_i() {
-	t := c.bus.ReadByte(c.pc)
+	t := c.readByte(c.pc)
+	if c.stunned {
+		return
+	}
 	c.pc++
 	c.add(t)
 }
 
 func (c *CPU) adc() {
-	c.add(c.bus.ReadByte(c.operand))
+	t := c.readByte(c.operand)
+	if c.stunned {
+		return
+	}
+	c.add(t)
 }
 
 func (c *CPU) and_i() {
-	c.a &= c.bus.ReadByte(c.pc)
+	t := c.readByte(c.pc)
+	if c.stunned {
+		return
+	}
+	c.a &= t
 	c.pc++
 	c.updateNZ(c.a)
 }
 
 func (c *CPU) and() {
-	c.a &= c.bus.ReadByte(c.operand)
+	t := c.readByte(c.operand)
+	if c.stunned {
+		return
+	}
+	c.a &= t
 	c.updateNZ(c.a)
 }
 
 func (c *CPU) bit() {
-	v := c.bus.ReadByte(c.operand)
+	v := c.readByte(c.operand)
+	if c.stunned {
+		return
+	}
 	c.updateFlag(FLAG_Z, v&c.a == 0)
 	c.flags = (c.flags & ^uint8(0xc0)) | v&0xc0
 }
 
 func (c *CPU) ora_i() {
-	c.a |= c.bus.ReadByte(c.pc)
+	t := c.readByte(c.pc)
+	if c.stunned {
+		return
+	}
+	c.a |= t
 	c.pc++
 	c.updateNZ(c.a)
 }
 
 func (c *CPU) ora() {
-	c.a |= c.bus.ReadByte(c.operand)
+	t := c.readByte(c.operand)
+	if c.stunned {
+		return
+	}
+	c.a |= t
 	c.updateNZ(c.a)
 }
 
 func (c *CPU) eor_i() {
-	c.a ^= c.bus.ReadByte(c.pc)
+	t := c.readByte(c.pc)
+	if c.stunned {
+		return
+	}
+	c.a ^= t
 	c.pc++
 	c.updateNZ(c.a)
 }
 
 func (c *CPU) eor() {
-	c.a ^= c.bus.ReadByte(c.operand)
+	t := c.readByte(c.operand)
+	if c.stunned {
+		return
+	}
+	c.a ^= t
 	c.updateNZ(c.a)
 }
 
@@ -1021,30 +1195,54 @@ func (c *CPU) compareTwo(a, b uint8) {
 }
 
 func (c *CPU) cmp_i() {
-	c.compareTwo(c.a, c.bus.ReadByte(c.pc))
+	t := c.readByte(c.pc)
+	if c.stunned {
+		return
+	}
+	c.compareTwo(c.a, t)
 	c.pc++
 }
 
 func (c *CPU) cpx_i() {
-	c.compareTwo(c.x, c.bus.ReadByte(c.pc))
+	t := c.readByte(c.pc)
+	if c.stunned {
+		return
+	}
+	c.compareTwo(c.x, t)
 	c.pc++
 }
 
 func (c *CPU) cpy_i() {
-	c.compareTwo(c.y, c.bus.ReadByte(c.pc))
+	t := c.readByte(c.pc)
+	if c.stunned {
+		return
+	}
+	c.compareTwo(c.y, t)
 	c.pc++
 }
 
 func (c *CPU) cmp() {
-	c.compareTwo(c.a, c.bus.ReadByte(c.operand))
+	t := c.readByte(c.operand)
+	if c.stunned {
+		return
+	}
+	c.compareTwo(c.a, t)
 }
 
 func (c *CPU) cpx() {
-	c.compareTwo(c.x, c.bus.ReadByte(c.operand))
+	t := c.readByte(c.operand)
+	if c.stunned {
+		return
+	}
+	c.compareTwo(c.x, t)
 }
 
 func (c *CPU) cpy() {
-	c.compareTwo(c.y, c.bus.ReadByte(c.operand))
+	t := c.readByte(c.operand)
+	if c.stunned {
+		return
+	}
+	c.compareTwo(c.y, t)
 }
 
 func (c *CPU) add(addend uint8) {
@@ -1080,11 +1278,18 @@ func (c *CPU) add(addend uint8) {
 }
 
 func (c *CPU) sbc() {
-	c.subtract(c.bus.ReadByte(c.operand))
+	t := c.readByte(c.operand)
+	if c.stunned {
+		return
+	}
+	c.subtract(t)
 }
 
 func (c *CPU) sbc_i() {
-	t := c.bus.ReadByte(c.pc)
+	t := c.readByte(c.pc)
+	if c.stunned {
+		return
+	}
 	c.pc++
 	c.subtract(t)
 }
@@ -1098,7 +1303,7 @@ func (c *CPU) subtract(addend uint8) {
 	if c.flags&FLAG_D != 0 {
 		v = (acc & 0x0f) - (sub & 0x0f) - (1 - uint16(carryIn))
 		if v&0x10 != 0 {
-			v = (v - 0x06) & 0x0f | ((acc & 0xf0) - (sub & 0xf0) - 0x10)
+			v = (v-0x06)&0x0f | ((acc & 0xf0) - (sub & 0xf0) - 0x10)
 		} else {
 			v = (v & 0x0f) | ((acc & 0xf0) - (sub & 0xf0))
 		}
@@ -1135,11 +1340,15 @@ func (c *CPU) addXToAddress() {
 }
 
 func (c *CPU) loadALU() {
-	c.alu = c.bus.ReadByte(c.operand)
+	t := c.readByte(c.operand)
+	if c.stunned {
+		return
+	}
+	c.alu = t
 }
 
 func (c *CPU) storeALU() {
-	c.bus.WriteByte(c.operand, c.alu)
+	c.writeByte(c.operand, c.alu)
 }
 
 func (c *CPU) brk() {

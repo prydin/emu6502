@@ -1,5 +1,7 @@
 package vic_ii
 
+import "github.com/prydin/emu6502/core"
+
 const (
 	REG_M0X             = 0x00
 	REG_M0Y             = 0x01
@@ -75,6 +77,14 @@ const (
 	IRQ_ENABLED            = 0x80
 )
 
+// Screen refresh states
+const (
+	STATE_VBLANK = iota
+	STATE_HBLANK
+	STATE_BORDER
+	STATE_CONTENT
+)
+
 type Sprite struct {
 	enabled     bool
 	x           uint16
@@ -87,9 +97,13 @@ type Sprite struct {
 }
 
 type VicII struct {
+	bus *core.Bus
+	dimensions ScreenDimensions
+	clockPhase2 bool
 	borderCol              uint8 // Border color
 	sprites                []Sprite
 	rasterLine             uint16
+	rasterCycle            uint16
 	scrollX                uint16
 	scrollY                uint16
 	line25                 bool
@@ -145,13 +159,13 @@ func (v *VicII) ReadByte(addr uint16) uint8 {
 		}
 		return r
 	case addr >= REG_BG0 && addr <= REG_BG3:
-		return v.backgroundColors[addr-REG_BG0]
+		return v.backgroundColors[addr-REG_BG0] | 0xf0
 	case addr >= REG_SPRITE_COL0 && addr <= REG_SPRITE_COL7:
-		return v.sprites[addr-REG_SPRITE_COL0].color
+		return v.sprites[addr-REG_SPRITE_COL0].color | 0xf0
 	}
 	switch addr {
 	case REG_CTRL1:
-		r := v.rasterLine >> 1
+		r := (v.rasterLine & 0x100) >> 1
 		if v.extendedClr {
 			r |= CR1_EXTCLR
 		}
@@ -182,14 +196,14 @@ func (v *VicII) ReadByte(addr uint16) uint8 {
 		}
 		return r
 	case REG_CTRL2:
-		r := uint8(v.scrollY)
+		r := uint8(v.scrollX)
 		if v.col40 {
 			r |= CR2_40COLS
 		}
 		if v.multiColor {
 			r |= CR2_MULTICOLOR
 		}
-		return r
+		return r | 0xc0
 	case REG_MX_EXP:
 		r := uint8(0)
 		for i := range v.sprites {
@@ -202,7 +216,7 @@ func (v *VicII) ReadByte(addr uint16) uint8 {
 	case REG_MEMPTR:
 		r := uint8(v.charSetPtr >> 10)
 		r |= uint8(v.screenMemPtr >> 6)
-		return r
+		return r | 0x01
 	case REG_IRQ:
 		r := uint8(0)
 		if v.irqRaster {
@@ -220,7 +234,7 @@ func (v *VicII) ReadByte(addr uint16) uint8 {
 		if r != 0 {
 			r |= IRQ_HAPPENED
 		}
-		return r
+		return r | 0x70
 	case REG_IRQ_ENABLE:
 		r := uint8(0)
 		if v.irqRasterEnabled {
@@ -238,7 +252,7 @@ func (v *VicII) ReadByte(addr uint16) uint8 {
 		if v.irqEnabled {
 			r |= IRQ_ENABLED
 		}
-		return r
+		return r | 0xf0
 	case REG_SPRITE_PRIO:
 		r := uint8(0)
 		for i := range v.sprites {
@@ -318,7 +332,7 @@ func (v *VicII) WriteByte(addr uint16, data uint8) {
 			data >>= 1
 		}
 	case REG_CTRL2:
-		v.scrollY = uint16(data & 0x07)
+		v.scrollX = uint16(data & 0x07)
 		v.col40 = data&CR2_40COLS != 0
 		v.multiColor = data&CR2_MULTICOLOR != 0
 	case REG_MX_EXP:

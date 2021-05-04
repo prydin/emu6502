@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/beevik/go6502/asm"
 	"github.com/stretchr/testify/require"
+	"math/rand"
 	"os"
 	"strings"
 	"testing"
@@ -19,7 +20,11 @@ type NMIGenerator struct {
 }
 
 func (i *IRQGenerator) WriteByte(addr uint16, data uint8) {
-	i.cpu.IRQ()
+	if data == 0 {
+		i.cpu.bus.NotIRQ.PullDown()
+	} else {
+		i.cpu.bus.NotIRQ.Release()
+	}
 }
 
 func (i *IRQGenerator) ReadByte(addr uint16) uint8 {
@@ -27,7 +32,11 @@ func (i *IRQGenerator) ReadByte(addr uint16) uint8 {
 }
 
 func (n *NMIGenerator) WriteByte(addr uint16, data uint8) {
-	n.cpu.NMI()
+	if data == 0 {
+		n.cpu.bus.NotNMI.PullDown()
+	} else {
+		n.cpu.bus.NotNMI.Release()
+	}
 }
 
 func (n *NMIGenerator) ReadByte(addr uint16) uint8 {
@@ -1076,7 +1085,7 @@ END		LDA LOSUM
 	elapsed = time.Now().Sub(start)
 	ratio = float64(cycles*1000) / float64(elapsed)
 	fmt.Printf("Elapsed time: %s, cycles: %d, speed: %f\n", elapsed, cycles, float64(cycles*1000) / float64(elapsed))
-	require.Lessf(t, 1.0, ratio, "Realtime emulation runs at %f times hardware speed. Should be at least 1", ratio)
+	require.Lessf(t, 0.9, ratio, "Realtime emulation runs at %f times hardware speed. Should be at least 0.9", ratio)
 }
 
 func TestIRQ(t *testing.T) {
@@ -1087,7 +1096,8 @@ TRIGGER	.EQ $8000
 		STA $FFFE
 		LDA #IRQ >> 8
 		STA $FFFF
-LOOP	STA $8000 ; Triggers interrupt
+LOOP	LDA #$00
+		STA $8000 ; Triggers interrupt
 		LDA $00
 		CMP #$42
 		BNE LOOP
@@ -1099,20 +1109,23 @@ LOOP	STA $8000 ; Triggers interrupt
 		LDA #IRQ2 >> 8
 		STA $FFFF
 		SEI
+		LDA #$00
 		STA $8000 ; Triggers interrupt (but won't, since I bit is set)
 		BRK
 IRQ		PHA
 		LDA #$42
 		STA $00
+		STA $8000 ; Releases interrupt
 		PLA
 		RTI
 IRQ2	PHA
 		LDA #$43
 		STA $00
+		STA $8000 ; Releases interrupt
 		PLA
 		RTI
 `)
-	require.Equal(t, uint8(0x2c), memory.ReadByte(0xfffe), "IRQ setup lo failed")
+	require.Equal(t, uint8(0x33), memory.ReadByte(0xfffe), "IRQ setup lo failed")
 	require.Equal(t, uint8(0x10), memory.ReadByte(0xffff), "IRQ setup hi failed")
 	require.Equal(t, uint8(0x42), memory.ReadByte(0x0000), "IRQ failed")
 	require.Equal(t, uint8(0xfd), memory.ReadByte(0x0001), "Stack pointer incorrect")
@@ -1127,7 +1140,8 @@ TRIGGER	.EQ $8000
 		STA $FFFA
 		LDA #NMI >> 8
 		STA $FFFB
-LOOP	STA $8100 ; Triggers interrupt
+LOOP	LDA #$00
+		STA $8100 ; Triggers interrupt
 		LDA $00
 		CMP #$42
 		BNE LOOP
@@ -1137,10 +1151,11 @@ LOOP	STA $8100 ; Triggers interrupt
 NMI		PHA
 		LDA #$42
 		STA $00
+		STA $8100 ; Releases interrupt pin
 		PLA
 		RTI
 `)
-	require.Equal(t, uint8(0x17), memory.ReadByte(0xfffa), "NMI setup lo failed")
+	require.Equal(t, uint8(0x19), memory.ReadByte(0xfffa), "NMI setup lo failed")
 	require.Equal(t, uint8(0x10), memory.ReadByte(0xfffb), "NMI setup hi failed")
 	require.Equal(t, uint8(0x42), memory.ReadByte(0x0000), "NMI failed")
 	require.Equal(t, uint8(0xfd), memory.ReadByte(0x0001), "Stack pointer incorrect")
@@ -1158,7 +1173,8 @@ func TestNMIDuringIRQ(t *testing.T) {
 		STA $FFFE
 		LDA #IRQ >> 8
 		STA $FFFF
-LOOP	STA $8000 ; Triggers IRQ
+LOOP	LDA #$00
+		STA $8000 ; Triggers IRQ
 		LDA $00
 		CMP #$42
 		BNE LOOP
@@ -1168,11 +1184,14 @@ LOOP	STA $8000 ; Triggers IRQ
 NMI		PHA
 		LDA #$42
 		STA $00
+		STA $8100 ; Releases NMI
 		PLA
 		RTI
 IRQ		PHA
-		LDA #$42
+		LDA #$00
 		STA $8100 ; Triggers NMI
+		LDA #$42
+		STA $8000 ; Releases IRQ
 		STA $01
 		PLA
 		RTI
@@ -1209,3 +1228,36 @@ func TestKlaus(t *testing.T) {
 	}
 }
 
+func TestCPUStun(t *testing.T) {
+	bytes := make([]byte, 65546)
+	mem := RAM{ bytes: bytes }
+	bus := Bus{}
+	cpu := CPU{}
+	bus.Connect(&mem, 0x0000, 0xffff)
+	cpu.CrashOnInvalidInst = false
+	cpu.Init(&bus)
+	cpu.pc = 0x0400
+	//cpu.Trace = true
+	err := Load("../testsuite/6502_functional_test.bin", &bus, 0)
+	if err != nil {
+		panic(err)
+	}
+	lastPC := uint16(0)
+	for !cpu.IsHalted() {
+		if rand.Intn(100) > 25 {
+			if bus.RDY.Get() {
+				bus.RDY.PullDown()
+			} else {
+				bus.RDY.Release()
+			}
+		}
+		cpu.Clock()
+		if cpu.microPc == 0 && !cpu.stunned {
+			require.NotEqual(t, lastPC, cpu.pc, "TRAP: " + cpu.StateAsString())
+			lastPC = cpu.pc
+		}
+		if cpu.pc == 0x3469 {
+			break
+		}
+	}
+}

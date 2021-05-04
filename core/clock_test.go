@@ -11,7 +11,7 @@ func TestTSC(t *testing.T) {
 
 	high := uint64(0)
 	low := uint64(1e15)
-	for i :=0; i < 10; i++ {
+	for i :=0; i < 2; i++ {
 		t1 := gotsc.BenchStart()
 		time.Sleep(10 * time.Second)
 		t2 := gotsc.BenchEnd()

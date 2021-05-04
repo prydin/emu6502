@@ -10,6 +10,10 @@ type Clockable interface {
 	Clock()
 }
 
+type TriState struct {
+	pullers int
+}
+
 type ROM struct {
 	bytes []uint8
 }
@@ -28,6 +32,11 @@ type Bus struct {
 	devices []Device
 	phase1[] Clockable
 	phase2[] Clockable
+
+	// Event pins
+	RDY    TriState
+	NotIRQ TriState
+	NotNMI TriState
 }
 
 func (b *Bus) Connect(device AddressSpace, start, end uint16) {
@@ -95,6 +104,20 @@ func (r *RAM) WriteByte(addr uint16, data uint8) {
 		r.bytes[int(addr)] = data
 	}
 }
+
+func (t *TriState) PullDown() {
+	t.pullers++
+}
+
+func (t *TriState) Release() {
+	t.pullers--
+}
+
+func (t *TriState) Get() bool {
+	return t.pullers == 0
+}
+
+
 
 
 
