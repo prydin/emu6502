@@ -16,6 +16,7 @@ const (
 	PalTopContent    = PalScreenHeight/2 - PalContentHeight/2
 	PalBottomBorder  = PalScreenHeight - PalTopContent
 	PalBottomBlank   = PalScreenHeight - PalTopBorder
+	PalCycles        = uint16((uint32(PalScreenWidth) * uint32(PalScreenHeight)) / 8)
 )
 
 type ScreenDimensions struct {
@@ -33,6 +34,7 @@ type ScreenDimensions struct {
 	TopContent    uint16
 	BottomBorder  uint16
 	BottomBlank   uint16
+	Cycles        uint16
 }
 
 var PALDimensions = ScreenDimensions{
@@ -50,4 +52,5 @@ var PALDimensions = ScreenDimensions{
 	TopContent:    PalTopContent,
 	BottomBorder:  PalBottomBorder,
 	BottomBlank:   PalBottomBlank,
+	Cycles:        PalCycles,
 }

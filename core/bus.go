@@ -15,11 +15,11 @@ type TriState struct {
 }
 
 type ROM struct {
-	bytes []uint8
+	Bytes []uint8
 }
 
 type RAM struct {
-	bytes []uint8
+	Bytes []uint8
 }
 
 type Device struct {
@@ -81,8 +81,8 @@ func (b *Bus) WriteByte(addr uint16, data uint8) {
 }
 
 func (r *ROM) ReadByte(addr uint16) uint8 {
-	if int(addr) < len(r.bytes) {
-		return r.bytes[int(addr)]
+	if int(addr) < len(r.Bytes) {
+		return r.Bytes[int(addr)]
 	} else {
 		return 0
 	}
@@ -92,16 +92,16 @@ func (r *ROM) WriteByte(addr uint16, data uint8) {
 }
 
 func (r *RAM) ReadByte(addr uint16) uint8 {
-	if int(addr) < len(r.bytes) {
-		return r.bytes[int(addr)]
+	if int(addr) < len(r.Bytes) {
+		return r.Bytes[int(addr)]
 	} else {
 		return 0
 	}
 }
 
 func (r *RAM) WriteByte(addr uint16, data uint8) {
-	if int(addr) < len(r.bytes) {
-		r.bytes[int(addr)] = data
+	if int(addr) < len(r.Bytes) {
+		r.Bytes[int(addr)] = data
 	}
 }
 

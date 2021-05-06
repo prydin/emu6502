@@ -61,7 +61,7 @@ func loadProgram(source string) (*CPU, Bus) {
 		panic(err)
 	}
 	copy(bytes[0x1000:], program)
-	mem := RAM{ bytes: bytes }
+	mem := RAM{ Bytes: bytes }
 	bus := Bus{}
 	cpu := CPU{}
 	bus.Connect(&mem, 0x0000, 0x7fff)
@@ -1204,7 +1204,7 @@ IRQ		PHA
 
 func TestKlaus(t *testing.T) {
 	bytes := make([]byte, 65546)
-	mem := RAM{ bytes: bytes }
+	mem := RAM{ Bytes: bytes }
 	bus := Bus{}
 	cpu := CPU{}
 	bus.Connect(&mem, 0x0000, 0xffff)
@@ -1230,7 +1230,7 @@ func TestKlaus(t *testing.T) {
 
 func TestCPUStun(t *testing.T) {
 	bytes := make([]byte, 65546)
-	mem := RAM{ bytes: bytes }
+	mem := RAM{ Bytes: bytes }
 	bus := Bus{}
 	cpu := CPU{}
 	bus.Connect(&mem, 0x0000, 0xffff)

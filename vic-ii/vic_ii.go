@@ -79,8 +79,10 @@ const (
 
 // Screen refresh states
 const (
-	STATE_VBLANK = iota
-	STATE_HBLANK
+	STATE_VBLANKT = iota
+	STATE_VBLANKB
+	STATE_HBLANKL
+	STATE_HBLANKR
 	STATE_BORDER
 	STATE_CONTENT
 )
@@ -97,13 +99,12 @@ type Sprite struct {
 }
 
 type VicII struct {
-	bus *core.Bus
-	dimensions ScreenDimensions
-	clockPhase2 bool
+	bus                    *core.Bus
+	dimensions             ScreenDimensions
+	clockPhase2            bool
 	borderCol              uint8 // Border color
 	sprites                []Sprite
-	rasterLine             uint16
-	rasterCycle            uint16
+	rasterLineTrigger      uint16
 	scrollX                uint16
 	scrollY                uint16
 	line25                 bool
@@ -126,11 +127,16 @@ type VicII struct {
 	spriteMultiClr1        uint8
 	charSetPtr             uint16
 	screenMemPtr           uint16
+	badLine                bool
+
+	// Screen refresh state
+	cycle      uint16
+	screen     Raster
 }
 
 func (v *VicII) Init() {
 	v.sprites = make([]Sprite, 8)
-	v.scrollX = 3
+	v.scrollY = 3
 	v.scrollX = 0
 	v.line25 = true
 	v.col40 = true
@@ -139,6 +145,14 @@ func (v *VicII) Init() {
 	v.extendedClr = false
 	v.multiColor = false
 	v.backgroundColors = make([]uint8, 4)
+}
+
+func (v *VicII) GetRasterLine() uint16 {
+	line := v.cycle / (v.dimensions.ScreenWidth >> 3)
+	if line < v.dimensions.TopBorder {
+		return 0
+	}
+	return line - v.dimensions.TopBorder
 }
 
 func (v *VicII) ReadByte(addr uint16) uint8 {
@@ -165,7 +179,7 @@ func (v *VicII) ReadByte(addr uint16) uint8 {
 	}
 	switch addr {
 	case REG_CTRL1:
-		r := (v.rasterLine & 0x100) >> 1
+		r := (v.GetRasterLine() & 0x100) >> 1
 		if v.extendedClr {
 			r |= CR1_EXTCLR
 		}
@@ -181,7 +195,7 @@ func (v *VicII) ReadByte(addr uint16) uint8 {
 		r |= v.scrollY & 0x07
 		return uint8(r)
 	case REG_RASTER_CNT:
-		return uint8(v.rasterLine & 0xff)
+		return uint8(v.GetRasterLine() & 0xff)
 	case REG_LPX:
 		return 0
 	case REG_LPY:
@@ -314,14 +328,14 @@ func (v *VicII) WriteByte(addr uint16, data uint8) {
 	}
 	switch addr {
 	case REG_CTRL1:
-		v.rasterLine = (v.rasterLine & 0x00ff) | uint16(data&CR1_RASTERHI)<<1
+		v.rasterLineTrigger = (v.rasterLineTrigger & 0x00ff) | uint16(data&CR1_RASTERHI)<<1
 		v.extendedClr = data&CR1_EXTCLR != 0
 		v.bitmapMode = data&CR1_BITMAP != 0
 		v.enable = data&CR1_ENABLE != 0
 		v.line25 = data&CR1_25LINES != 0
 		v.scrollY = uint16(data & 0x07)
 	case REG_RASTER_CNT:
-		v.rasterLine = (v.rasterLine & 0xff00) | uint16(data)
+		v.rasterLineTrigger = (v.rasterLineTrigger & 0xff00) | uint16(data)
 	case REG_LPX:
 		return
 	case REG_LPY:
