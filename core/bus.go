@@ -12,6 +12,7 @@ type Clockable interface {
 
 type TriState struct {
 	pullers int
+	edge int
 }
 
 type ROM struct {
@@ -106,11 +107,23 @@ func (r *RAM) WriteByte(addr uint16, data uint8) {
 }
 
 func (t *TriState) PullDown() {
+	if t.pullers == 0 {
+		t.edge = -1
+	}
 	t.pullers++
 }
 
 func (t *TriState) Release() {
 	t.pullers--
+	if t.pullers == 0 {
+		t.edge = 1
+	}
+}
+
+func (t *TriState) GetEdge() int {
+	 e := t.edge
+	 t.edge = 0
+	 return e
 }
 
 func (t *TriState) Get() bool {

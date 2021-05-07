@@ -20,7 +20,6 @@ type HighPrecisionClock struct {
 	totalTicks uint64
 	lastTsc uint64
 	overruns uint64
-	backwards uint64
 	tickDeficit uint64
 	lastCalibration time.Time
 }

@@ -540,8 +540,10 @@ func (c *CPU) Clock() {
 	if c.stunned {
 		return
 	}
+
+	// About to load a new instruction?
 	if c.instruction == nil || c.microPc >= len(c.instruction.Microcode) {
-		if !(c.bus.NotNMI.Get() || c.inNMI) {
+		if c.bus.NotNMI.GetEdge() == -1 && !c.inNMI {
 			c.instruction = &c.nmiPI
 			c.inNMI = true
 		} else if !(c.flags&FLAG_I != 0 || c.inIRQ || c.inNMI || c.bus.NotIRQ.Get()) {

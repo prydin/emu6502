@@ -65,15 +65,23 @@ func (v *VicII) renderText(x, y uint16) {
 	leftBorderOffset := v.dimensions.LeftContent - v.dimensions.LeftBorder
 	line := y - v.dimensions.TopContent
 	memOffset := x >> 3 + (line >> 3) * 40 // TODO: Handle 38 cols
+	bgIndex := 0
 	ch := v.bus.ReadByte(v.screenMemPtr + memOffset)
-	pattern := v.bus.ReadByte(uint16(ch) << 3 + v.charSetPtr + line &0x07)
-	//fgColor := v.ReadByte(memOffset + 0xd800)
+	if v.extendedClr {
+		bgIndex = int(ch >> 6)
+		ch &= 0x3f
+	}
+	pattern := uint8(0)
+	if ch != 0 {
+		pattern = v.bus.ReadByte(uint16(ch-1)<<3 + v.charSetPtr + line&0x07) // TODO: What about shifted characters?
+	}
+	fgColor := v.bus.ReadByte(memOffset + 0xd800) // TODO: Prefetch during bad lines
 	for i := uint16(0); i < 8; i++ {
 		color := uint8(0)
 		if pattern & 0x80 != 0 {
-			color = 1
+			color = fgColor
 		} else {
-			color = v.backgroundColors[0] // TODO: Support multi-colored background
+			color = v.backgroundColors[bgIndex]
 		}
 		pattern <<= 1
 		v.screen.setPixel(x + i + leftBorderOffset, y, C64Colors[color])
