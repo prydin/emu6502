@@ -12,7 +12,7 @@ type Clockable interface {
 
 type TriState struct {
 	pullers int
-	edge int
+	edge    int
 }
 
 type ROM struct {
@@ -24,15 +24,16 @@ type RAM struct {
 }
 
 type Device struct {
-	start uint16
-	end uint16
+	start  uint16
+	end    uint16
 	device AddressSpace
 }
 
 type Bus struct {
-	devices []Device
-	phase1[] Clockable
-	phase2[] Clockable
+	devices    []Device
+	phase1     []Clockable
+	phase2     []Clockable
+	dmaAllowed bool
 
 	// Event pins
 	RDY    TriState
@@ -41,24 +42,24 @@ type Bus struct {
 }
 
 func (b *Bus) Connect(device AddressSpace, start, end uint16) {
-	b.devices = append(b.devices, Device{ start, end, device })
+	b.devices = append(b.devices, Device{start, end, device})
 }
 
-func(b *Bus) ConnectClockablePh1(device Clockable) {
+func (b *Bus) ConnectClockablePh1(device Clockable) {
 	b.phase1 = append(b.phase1, device)
 }
 
-func(b *Bus) ConnectClockablePh2(device Clockable) {
+func (b *Bus) ConnectClockablePh2(device Clockable) {
 	b.phase2 = append(b.phase2, device)
 }
 
-func (b* Bus) ClockPh1() {
+func (b *Bus) ClockPh1() {
 	for _, c := range b.phase1 {
 		c.Clock()
 	}
 }
 
-func (b* Bus) ClockPh2() {
+func (b *Bus) ClockPh2() {
 	for _, c := range b.phase1 {
 		c.Clock()
 	}
@@ -76,9 +77,21 @@ func (b *Bus) ReadByte(addr uint16) uint8 {
 func (b *Bus) WriteByte(addr uint16, data uint8) {
 	for _, d := range b.devices {
 		if addr >= d.start && addr <= d.end {
-			d.device.WriteByte(addr - d.start, data)
+			d.device.WriteByte(addr-d.start, data)
 		}
 	}
+}
+
+func (b *Bus) CPUClaimBus() {
+	b.dmaAllowed = false
+}
+
+func (b *Bus) CPUReleaseBus() {
+	b.dmaAllowed = true
+}
+
+func (b *Bus) IsDMAAllowed() bool {
+	return b.dmaAllowed
 }
 
 func (r *ROM) ReadByte(addr uint16) uint8 {
@@ -114,6 +127,9 @@ func (t *TriState) PullDown() {
 }
 
 func (t *TriState) Release() {
+	if t.pullers == 0 {
+		return
+	}
 	t.pullers--
 	if t.pullers == 0 {
 		t.edge = 1
@@ -121,16 +137,11 @@ func (t *TriState) Release() {
 }
 
 func (t *TriState) GetEdge() int {
-	 e := t.edge
-	 t.edge = 0
-	 return e
+	e := t.edge
+	t.edge = 0
+	return e
 }
 
 func (t *TriState) Get() bool {
 	return t.pullers == 0
 }
-
-
-
-
-

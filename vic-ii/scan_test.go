@@ -48,7 +48,7 @@ func Test_CharacterMode(t *testing.T) {
 	vicii.bus.Connect(&charset.CharacterROM, 0xd000, 0xd7ff)
 	screenMem := make([]uint8, 1024)
 	for i := range screenMem {
-		screenMem[i] = uint8(i)
+		screenMem[i] = uint8(i % 10 + 0x30)
 	}
 	vicii.bus.Connect(&core.RAM{ Bytes: screenMem[:]}, 0x0400, 0x07ff)
 	colorMem := make([]uint8, 1024)

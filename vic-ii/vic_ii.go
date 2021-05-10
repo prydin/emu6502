@@ -103,7 +103,7 @@ type VicII struct {
 	dimensions             ScreenDimensions
 	clockPhase2            bool
 	borderCol              uint8 // Border color
-	sprites                []Sprite
+	sprites                [8]Sprite
 	rasterLineTrigger      uint16
 	scrollX                uint16
 	scrollY                uint16
@@ -122,20 +122,38 @@ type VicII struct {
 	irqSpriteBgEnabled     bool
 	irqSpriteSpriteEnabled bool
 	irqLpEnabled           bool
-	backgroundColors       []uint8
+	backgroundColors       [4]uint8
 	spriteMultiClr0        uint8
 	spriteMultiClr1        uint8
 	charSetPtr             uint16
 	screenMemPtr           uint16
-	badLine                bool
+	rasterLine uint16
+
+	// Internal registers
+	vc     uint16
+	rc     uint16
+	vcBase uint16
+	vmli   uint16
+
+	// Bad line flags
+	badLine bool
+
+	// Internal color and character buffers
+	cBuf       [40]uint16
+	gBuf       [40]uint8
+	charBufPtr uint16
 
 	// Screen refresh state
-	cycle      uint16
-	screen     Raster
+	displayState bool
+	cycle        uint16
+	screen       Raster
+
+	// Border flip-flops
+	vBorderFf bool
+	hBorderFf bool
 }
 
 func (v *VicII) Init() {
-	v.sprites = make([]Sprite, 8)
 	v.scrollY = 3
 	v.scrollX = 0
 	v.line25 = true
@@ -144,15 +162,9 @@ func (v *VicII) Init() {
 	v.bitmapMode = false
 	v.extendedClr = false
 	v.multiColor = false
-	v.backgroundColors = make([]uint8, 4)
-}
-
-func (v *VicII) GetRasterLine() uint16 {
-	line := v.cycle / (v.dimensions.ScreenWidth >> 3)
-	if line < v.dimensions.TopBorder {
-		return 0
-	}
-	return line - v.dimensions.TopBorder
+	v.hBorderFf = true
+	v.vBorderFf = true
+	v.borderCol = 4
 }
 
 func (v *VicII) ReadByte(addr uint16) uint8 {
@@ -179,7 +191,7 @@ func (v *VicII) ReadByte(addr uint16) uint8 {
 	}
 	switch addr {
 	case REG_CTRL1:
-		r := (v.GetRasterLine() & 0x100) >> 1
+		r := (v.rasterLine & 0x100) >> 1
 		if v.extendedClr {
 			r |= CR1_EXTCLR
 		}
@@ -195,7 +207,7 @@ func (v *VicII) ReadByte(addr uint16) uint8 {
 		r |= v.scrollY & 0x07
 		return uint8(r)
 	case REG_RASTER_CNT:
-		return uint8(v.GetRasterLine() & 0xff)
+		return uint8(v.rasterLine & 0xff)
 	case REG_LPX:
 		return 0
 	case REG_LPY:

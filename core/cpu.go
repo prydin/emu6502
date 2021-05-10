@@ -536,6 +536,7 @@ func (c *CPU) Reset() {
 func (c *CPU) Clock() {
 	if c.bus.RDY.Get() {
 		c.stunned = false
+		c.bus.CPUClaimBus() // No more DMA for you!
 	}
 	if c.stunned {
 		return
@@ -580,6 +581,7 @@ func (c *CPU) StateAsString() string {
 func (c *CPU) readByte(addr uint16) uint8 {
 	if !c.bus.RDY.Get() {
 		c.stunned = true
+		c.bus.CPUReleaseBus() // Allow DMA
 	}
 	return c.bus.ReadByte(addr)
 }

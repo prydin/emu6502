@@ -6,7 +6,7 @@ var C64Colors = []color.Color{
 	color.NRGBA{0, 0, 0, 255},       // Black
 	color.NRGBA{255, 255, 255, 255}, // White
 	color.NRGBA{136, 0, 0, 255},     // Red
-	color.NRGBA{170, 255, 238, 255}, // Cyan
+	color.NRGBA{0x70, 0xa4, 0xb2, 255}, // Cyan
 	color.NRGBA{204, 68, 204, 255},  // Purple
 	color.NRGBA{0, 204, 85, 255},    // Green
 	color.NRGBA{0, 0, 170, 255},     // Blue
@@ -17,6 +17,6 @@ var C64Colors = []color.Color{
 	color.NRGBA{51, 51, 51, 255},    // Dark grey
 	color.NRGBA{119, 119, 119, 255}, // Grey 2
 	color.NRGBA{170, 255, 102, 255}, // Light green
-	color.NRGBA{0, 136, 255, 255},   // Light blue
+	color.NRGBA{0x6c, 0x5e, 0xb5, 255},   // Light blue
 	color.NRGBA{187, 187, 187, 255}, // Light grey
 }
