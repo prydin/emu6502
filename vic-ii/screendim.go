@@ -1,87 +1,81 @@
 package vic_ii
 
-// Hardware independent constants
-const (
-	ContentTop25Lines    = 51
-	ContentTop24Lines    = 55
-	ContentBottom25Lines = 251
-	ContentBottom24Lines = 247
-	ContentLeft40Cols    = 128 // Zero based
-	ContentLeft38Cols    = 132 // Zero based
-	ContentRight40Cols   = 448
-	ContentRight38Cols   = 439
-	FirstContentCycle    = 16
-	LastContentCycle     = 56
-)
-
 // PAL screen constants
 const (
-	PalScreenHeight  = uint16(312)
-	PalVisibleHeight = uint16(284)
-	PalContentHeight = uint16(200)
-	PalScreenWidth   = uint16(504)
-	PalVisibleWidth  = uint16(403)
-	PalContentWidth  = uint16(320)
-	PalLeftBorder    = PalScreenWidth/2 - PalVisibleWidth/2
-	PalLeftContent   = PalScreenWidth/2 - PalContentWidth/2
-	PalRightBorder   = PalScreenWidth - PalLeftContent
-	PalRightBlank    = PalScreenWidth - PalLeftBorder
-	PalTopBorder     = PalScreenHeight/2 - PalVisibleHeight/2
-	PalTopContent    = PalScreenHeight/2 - PalContentHeight/2
-	PalBottomBorder  = PalScreenHeight - PalTopContent
-	PalBottomBlank   = PalScreenHeight - PalTopBorder
+	PalFirstVisibleCycle = 11
+	PalFirstVisibleLine  = 16
+	PalLastVisibleLine   = 287
+	PalCyclesPerLine     = 63
+	PalLastVisibleCycle = 58
 
-	PalFirstVisibleLine      = 16
-	PalLastVisibleLine       = 287
-	PalCyclesPerLine         = 63
-	PalLeftmostVisiblePixel  = 60  // TODO: Check!
-	PalRightmostVisiblePixel = 462 // TODO: Check
-	PalCycles                = uint16((uint32(PalScreenWidth) * uint32(PalScreenHeight)) / 8)
+	PalLeftBorderWidth40Cols  = 32
+	PalRightBorderWidth40Cols = 32
+	PalLeftBorderWidth38Cols  = 46
+	PalRightBorderWidth38Cols = 36
+
+	PalContentTop25Lines    = 51
+	PalContentTop24Lines    = 55
+	PalContentBottom25Lines = 251
+	PalContentBottom24Lines = 247
+
+	PalContentWidth40Cols = 320
+	PalContentWidth38Cols = PalContentWidth40Cols - 16
+
+	PalFirstContentCycle = 15
+	PalLastContentCycle  = 56
+	PalScreenWidth       = PalCyclesPerLine * 8
+	PalScreenHeight      = 312
+
+	PalCycles = PalCyclesPerLine * 312
 )
 
 type ScreenDimensions struct {
-	ScreenHeight  uint16
-	VisibleHeight uint16
-	ContentHeight uint16
-	ScreenWidth   uint16
-	VisibleWidth  uint16
-	ContentWidth  uint16
-	LeftBorder    uint16
-	LeftContent   uint16
-	RightBorder   uint16
-	RightBlank    uint16
-	TopBorder     uint16
-	TopContent    uint16
-	BottomBorder  uint16
-	BottomBlank   uint16
+	ScreenHeight      uint16
+	ScreenWidth       uint16
+	FirstVisibleCycle uint16
 
-	FirstVisibleLine      uint16
-	LastVisibleLine       uint16
-	LeftmostVisiblePixel  uint16
-	RightmostVisiblePixel uint16
-	CyclesPerLine         uint16
-	Cycles                uint16
+	ContentTop25Lines      uint16
+	ContentTop24Lines      uint16
+	ContentBottom25Lines   uint16
+	ContentBottom24Lines   uint16
+	LeftBorderWidth40Cols  uint16
+	LeftBorderWidth38Cols  uint16
+	RightBorderWidth40Cols uint16
+	RightBorderWidth38Cols uint16
+	ContentWidth40Cols     uint16
+	ContentWidth38Cols     uint16
+	FirstContentCycle      uint16
+	LastContentCycle       uint16
+
+	FirstVisibleLine uint16
+	LastVisibleLine  uint16
+	CyclesPerLine    uint16
+	Cycles           uint16
 }
 
 var PALDimensions = ScreenDimensions{
-	ScreenHeight:          PalScreenHeight,
-	VisibleHeight:         PalVisibleHeight,
-	ContentHeight:         PalContentHeight,
-	ScreenWidth:           PalScreenWidth,
-	VisibleWidth:          PalScreenWidth,
-	ContentWidth:          PalContentWidth,
-	LeftBorder:            PalLeftBorder,
-	LeftContent:           PalLeftContent,
-	RightBorder:           PalRightBorder,
-	RightBlank:            PalRightBlank,
-	TopBorder:             PalTopBorder,
-	TopContent:            PalTopContent,
-	BottomBorder:          PalBottomBorder,
-	BottomBlank:           PalBottomBlank,
-	FirstVisibleLine:      PalFirstVisibleLine,
-	LastVisibleLine:       PalLastVisibleLine,
-	LeftmostVisiblePixel:  PalLeftmostVisiblePixel,
-	RightmostVisiblePixel: PalRightmostVisiblePixel,
-	CyclesPerLine:         PalCyclesPerLine,
-	Cycles:                PalCycles,
+	ScreenHeight: PalScreenHeight,
+	ScreenWidth:  PalScreenWidth,
+
+	ContentTop25Lines:    PalContentTop25Lines,
+	ContentTop24Lines:    PalContentTop24Lines,
+	ContentBottom25Lines: PalContentBottom25Lines,
+	ContentBottom24Lines: PalContentBottom24Lines,
+
+	LeftBorderWidth38Cols:  PalLeftBorderWidth38Cols,
+	LeftBorderWidth40Cols:  PalLeftBorderWidth40Cols,
+	RightBorderWidth38Cols: PalRightBorderWidth38Cols,
+	RightBorderWidth40Cols: PalLeftBorderWidth40Cols,
+
+
+	ContentWidth40Cols: PalContentWidth40Cols,
+	ContentWidth38Cols: PalContentWidth38Cols,
+	FirstContentCycle:  PalFirstContentCycle,
+	LastContentCycle:   PalLastContentCycle,
+
+	FirstVisibleLine: PalFirstVisibleLine,
+	LastVisibleLine:  PalLastVisibleLine,
+	FirstVisibleCycle: PalFirstVisibleCycle,
+	CyclesPerLine:    PalCyclesPerLine,
+	Cycles:           PalCycles,
 }

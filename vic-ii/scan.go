@@ -5,14 +5,17 @@ import (
 )
 
 func (v *VicII) Clock() {
-	localCycle := v.cycle % (v.dimensions.ScreenWidth >> 3)
+	localCycle := v.cycle % v.dimensions.CyclesPerLine
 
 	if v.clockPhase2 {
 		// ******** CLOCK PHASE 2 ********
 		if v.badLine && localCycle >= 15 && localCycle <= 54 {
 			v.cAccess()
 		}
-		v.renderCycle()
+		if localCycle >= PalFirstVisibleCycle && localCycle <= PalLastVisibleCycle &&
+			v.rasterLine >= PalFirstVisibleLine && v.rasterLine <= PalLastVisibleLine {
+			v.renderCycle()
+		}
 		v.bus.ClockPh2()
 
 		// Move to next cycle
@@ -140,28 +143,24 @@ func (v *VicII) renderCycle() {
 	var contentTop uint16
 	var contentBottom uint16
 	if v.col40 {
-		contentLeft = ContentLeft40Cols
-		contentRight = ContentRight40Cols
+		contentLeft = v.dimensions.LeftBorderWidth40Cols
+		contentRight = contentLeft + v.dimensions.ContentWidth40Cols
 	} else {
-		contentLeft= ContentLeft38Cols
-		contentRight= ContentRight38Cols
+		contentLeft = v.dimensions.LeftBorderWidth40Cols
+		contentRight = contentLeft + v.dimensions.ContentWidth38Cols
 	}
 	if v.line25 {
-		contentTop = ContentTop25Lines
-		contentBottom = ContentBottom25Lines
+		contentTop = v.dimensions.ContentTop25Lines
+		contentBottom = v.dimensions.ContentBottom25Lines
 	} else {
-		contentTop = ContentTop24Lines
-		contentBottom = ContentBottom24Lines
+		contentTop = v.dimensions.ContentTop24Lines
+		contentBottom = v.dimensions.ContentBottom24Lines
 	}
 
-	localCycle := v.cycle % v.dimensions.CyclesPerLine
+	localCycle := (v.cycle  % v.dimensions.CyclesPerLine) - v.dimensions.FirstVisibleCycle
 	startPixel := localCycle << 3
 
 	switch {
-	// Outside of visible area?
-	case v.rasterLine < v.dimensions.FirstVisibleLine || v.rasterLine > v.dimensions.LastVisibleLine ||
-		startPixel < v.dimensions.LeftmostVisiblePixel || startPixel > v.dimensions.RightmostVisiblePixel:
-		break // Do nothing
 	// Vertical border?
 	case v.rasterLine < contentTop || v.rasterLine > contentBottom:
 		v.drawBorder(startPixel, 8)
@@ -176,23 +175,22 @@ func (v *VicII) renderCycle() {
 		if v.bitmapMode {
 			/// TODO
 		} else {
-		//	v.renderText(startPixel-contentLeft)
+			v.renderText(startPixel)
 		}
 	}
 }
 
 func (v *VicII) drawBorder(x, n uint16) {
 	for i := uint16(0); i < n; i++ {
-		v.screen.setPixel(i + x - v.dimensions.LeftmostVisiblePixel,
-			v.rasterLine - v.dimensions.FirstVisibleLine, C64Colors[v.borderCol])
+		v.screen.setPixel(i+x, v.rasterLine-v.dimensions.FirstVisibleLine, C64Colors[v.borderCol])
 	}
 }
 
 func (v *VicII) renderText(x uint16) {
 	// TODO: Handle smooth scroll
-	leftBorderOffset := v.dimensions.LeftContent - v.dimensions.LeftBorder
-	fmt.Println(v.cycle % v.dimensions.CyclesPerLine, v.rc)
-	index := v.cycle % v.dimensions.CyclesPerLine - FirstContentCycle
+	leftBorderOffset := uint16(0) // TODO... v.dimensions.LeftContent - v.dimensions.LeftBorder
+	fmt.Println(v.cycle%v.dimensions.CyclesPerLine, v.rc)
+	index := v.cycle%v.dimensions.CyclesPerLine - v.dimensions.FirstContentCycle
 	data := v.cBuf[index]
 	fgColor := uint8(data >> 8)
 	bgIndex := 0
