@@ -1,9 +1,5 @@
 package vic_ii
 
-import (
-	"fmt"
-)
-
 func (v *VicII) Clock() {
 	localCycle := v.cycle % v.dimensions.CyclesPerLine
 
@@ -22,6 +18,7 @@ func (v *VicII) Clock() {
 		v.cycle++
 		if v.cycle >= v.dimensions.Cycles {
 			v.cycle = 0
+			v.skipFrame = true // Skip unless DEN is set at line 48
 		}
 	} else {
 		// ******** CLOCK PHASE 1 ********
@@ -45,7 +42,14 @@ func (v *VicII) Clock() {
 		}
 
 		// Handle visible stuff
-		if v.rasterLine >= 0x30 {
+		contentBottom := v.dimensions.ContentBottom24Lines
+		if v.line25 {
+			contentBottom = v.dimensions.ContentBottom25Lines
+		}
+		if v.rasterLine >= 48 && v.rasterLine <= contentBottom {
+			if v.rasterLine == 48 && v.enable {
+				v.skipFrame = false
+			}
 			switch localCycle {
 			case 14:
 				v.vc = v.vcBase // vic-ii.txt: 3.7.2.2
@@ -77,7 +81,7 @@ func (v *VicII) Clock() {
 					}
 				}
 				if localCycle >= 12 && localCycle <= 54 {
-					if v.displayState && v.rasterLine&0x07 == v.scrollY {
+					if !v.skipFrame && v.rasterLine&0x07 == v.scrollY {
 						if !v.badLine {
 							// Flipping from normal to bad
 							v.badLine = true
@@ -123,11 +127,9 @@ func (v *VicII) gAccess() {
 			v.gBuf[v.vmli] = v.bus.ReadByte(addr)
 		}
 	}
-	// Increment counters and make sure they stay within 10 bits boundary
-	v.vmli++
-	v.vmli &= 0x003f
-	v.vc++
-	v.vc &= 0x03ff
+	// Increment counters and make sure they stay within 6 and 10 bits boundary respectively
+	v.vmli = (v.vmli + 1) & 0x003f
+	v.vc = (v.vc + 1) & 0x03ff
 }
 
 func (v *VicII) rasterInterrupt() {
@@ -162,7 +164,7 @@ func (v *VicII) renderCycle() {
 
 	switch {
 	// Vertical border?
-	case v.rasterLine < contentTop || v.rasterLine > contentBottom:
+	case v.rasterLine < contentTop || v.rasterLine >= contentBottom:
 		v.drawBorder(startPixel, 8)
 	// Left border?
 	case startPixel < contentLeft:
@@ -188,8 +190,7 @@ func (v *VicII) drawBorder(x, n uint16) {
 
 func (v *VicII) renderText(x uint16) {
 	// TODO: Handle smooth scroll
-	leftBorderOffset := uint16(0) // TODO... v.dimensions.LeftContent - v.dimensions.LeftBorder
-	fmt.Println(v.cycle%v.dimensions.CyclesPerLine, v.rc)
+	leftBorderOffset := uint16(0)
 	index := v.cycle%v.dimensions.CyclesPerLine - v.dimensions.FirstContentCycle
 	data := v.cBuf[index]
 	fgColor := uint8(data >> 8)

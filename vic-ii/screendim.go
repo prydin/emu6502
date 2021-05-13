@@ -13,10 +13,13 @@ const (
 	PalLeftBorderWidth38Cols  = 46
 	PalRightBorderWidth38Cols = 36
 
-	PalContentTop25Lines    = 51
-	PalContentTop24Lines    = 55
-	PalContentBottom25Lines = 251
-	PalContentBottom24Lines = 247
+	PalTopBorderHeight40Cols = 36
+	PalTopBorderHeight38Cols = 40
+
+	PalContentTop25Lines    = PalFirstVisibleLine + PalTopBorderHeight40Cols
+	PalContentTop24Lines    = PalFirstVisibleLine + PalTopBorderHeight38Cols
+	PalContentBottom25Lines = PalContentTop25Lines + 25 * 8
+	PalContentBottom24Lines = PalContentTop24Lines + 24 * 8
 
 	PalContentWidth40Cols = 320
 	PalContentWidth38Cols = PalContentWidth40Cols - 16

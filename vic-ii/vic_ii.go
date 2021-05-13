@@ -127,13 +127,14 @@ type VicII struct {
 	spriteMultiClr1        uint8
 	charSetPtr             uint16
 	screenMemPtr           uint16
-	rasterLine uint16
+	rasterLine             uint16
 
 	// Internal registers
-	vc     uint16
-	rc     uint16
-	vcBase uint16
-	vmli   uint16
+	vc        uint16
+	rc        uint16
+	vcBase    uint16
+	vmli      uint16
+	skipFrame bool
 
 	// Bad line flags
 	badLine bool
