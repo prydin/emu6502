@@ -1,13 +1,14 @@
 package vic_ii
 
 import (
+	"github.com/prydin/emu6502/core"
 	"github.com/stretchr/testify/require"
 	"testing"
 )
 
 func TestVicII_Registers(t *testing.T) {
 	v := VicII{}
-	v.Init()
+	v.Init(&core.Bus{}, nil, PALDimensions)
 	var mask uint8
 	for addr := uint16(0); addr < 0x2e; addr++ {
 		switch addr {
@@ -48,7 +49,7 @@ func TestVicII_Registers(t *testing.T) {
 
 func TestInterruptRegister(t *testing.T) {
 	v := VicII{}
-	v.Init()
+	v.Init(&core.Bus{}, nil, PALDimensions)
 	for i := 0; i < 16; i++ {
 		v.WriteByte(REG_IRQ, uint8(i))
 		if i == 0 {
@@ -81,7 +82,7 @@ func TestInterruptRegister(t *testing.T) {
 
 func TestInterruptEnabledRegister(t *testing.T) {
 	v := VicII{}
-	v.Init()
+	v.Init(&core.Bus{}, nil, PALDimensions)
 	for i := 0; i < 16; i++ {
 		v.WriteByte(REG_IRQ_ENABLE, uint8(i))
 		if i & IRQ_LP != 0 {

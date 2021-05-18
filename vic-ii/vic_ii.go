@@ -154,7 +154,8 @@ type VicII struct {
 	hBorderFf bool
 }
 
-func (v *VicII) Init() {
+func (v *VicII) Init(bus *core.Bus, screen Raster, dimensions ScreenDimensions) {
+	v.screenMemPtr = 0x0400
 	v.scrollY = 3
 	v.scrollX = 0
 	v.line25 = true
@@ -166,6 +167,9 @@ func (v *VicII) Init() {
 	v.hBorderFf = true
 	v.vBorderFf = true
 	v.borderCol = 4
+	v.bus = bus
+	v.screen = screen
+	v.dimensions = dimensions
 }
 
 func (v *VicII) ReadByte(addr uint16) uint8 {
@@ -368,7 +372,11 @@ func (v *VicII) WriteByte(addr uint16, data uint8) {
 			data >>= 1
 		}
 	case REG_MEMPTR:
-		v.charSetPtr = uint16(data&0x0e) << 10
+		if data&0x0e >> 1 == 2 || data&0x0e >> 1 == 3 {
+			v.charSetPtr = 0xd000 // TODO: Temporary hack. Fix when banking is implemented
+		} else {
+			v.charSetPtr = uint16(data&0x0e) << 10
+		}
 		v.screenMemPtr = uint16(data&0xf0) << 6
 	case REG_IRQ:
 		v.irqRaster = data&IRQ_RASTER != 0

@@ -5,6 +5,9 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="58c6cb47-3664-4a3a-a472-e4643dd7a4d6" name="Default Changelist" comment="">
+      <change afterPath="$PROJECT_DIR$/c64.go" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/c64_test.go" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/vic-ii/testsupport.go" afterDir="false" />
       <change afterPath="$PROJECT_DIR$/../prata/build.gradle" afterDir="false" />
       <change afterPath="$PROJECT_DIR$/../prata/gradlew" afterDir="false" />
       <change afterPath="$PROJECT_DIR$/../prata/gradlew.bat" afterDir="false" />
@@ -33,15 +36,20 @@
       <change afterPath="$PROJECT_DIR$/../vexpress-scheduling/templates/application-properties.tpl" afterDir="false" />
       <change afterPath="$PROJECT_DIR$/../vra8gateway/src/main/java/com/fedex/cloudops/fake/security/redux/CipherCacheLoader.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/core/bus.go" beforeDir="false" afterPath="$PROJECT_DIR$/core/bus.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/core/loader.go" beforeDir="false" afterPath="$PROJECT_DIR$/core/loader.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/vic-ii/colormap.go" beforeDir="false" afterPath="$PROJECT_DIR$/vic-ii/colormap.go" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/vic-ii/scan.go" beforeDir="false" afterPath="$PROJECT_DIR$/vic-ii/scan.go" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/vic-ii/scan_test.go" beforeDir="false" afterPath="$PROJECT_DIR$/vic-ii/scan_test.go" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/vic-ii/screendim.go" beforeDir="false" afterPath="$PROJECT_DIR$/vic-ii/screendim.go" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/vic-ii/vic_ii.go" beforeDir="false" afterPath="$PROJECT_DIR$/vic-ii/vic_ii.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/vic-ii/vic_ii_test.go" beforeDir="false" afterPath="$PROJECT_DIR$/vic-ii/vic_ii_test.go" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../fizzbuzz/fizzbuzz.iml" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/../gradle/wrapper/gradle-wrapper.jar" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/../gradle/wrapper/gradle-wrapper.properties" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/../gradlew" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/../gradlew.bat" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../settings.gradle" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/../src/main/java/net/querz/io/Deserializer.java" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/../src/main/java/net/querz/io/ExceptionBiFunction.java" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/../src/main/java/net/querz/io/ExceptionTriConsumer.java" beforeDir="false" />
@@ -187,17 +195,16 @@
       <recent name="$PROJECT_DIR$/core" />
     </key>
   </component>
-  <component name="RunManager" selected="Go Test.Test_CharacterMode in github.com/prydin/emu6502/vic-ii">
-    <configuration name="TestAcc in github.com/prydin/emu6502/core" type="GoTestRunConfiguration" factoryName="Go Test" temporary="true" nameIsGenerated="true">
+  <component name="RunManager" selected="Go Test.TestCommodore64_Boot in github.com/prydin/emu6502">
+    <configuration name="TestCommodore64_Boot in github.com/prydin/emu6502" type="GoTestRunConfiguration" factoryName="Go Test" temporary="true" nameIsGenerated="true">
       <module name="emu6502" />
-      <working_directory value="$PROJECT_DIR$/core" />
-      <root_directory value="$PROJECT_DIR$" />
+      <working_directory value="$PROJECT_DIR$" />
       <kind value="PACKAGE" />
-      <package value="github.com/prydin/emu6502/core" />
+      <package value="github.com/prydin/emu6502" />
       <directory value="$PROJECT_DIR$" />
       <filePath value="$PROJECT_DIR$" />
       <framework value="gotest" />
-      <pattern value="^\QTestAcc\E$" />
+      <pattern value="^\QTestCommodore64_Boot\E$" />
       <method v="2" />
     </configuration>
     <configuration name="TestNMI in github.com/prydin/emu6502/core" type="GoTestRunConfiguration" factoryName="Go Test" temporary="true" nameIsGenerated="true">
@@ -250,11 +257,11 @@
     </configuration>
     <recent_temporary>
       <list>
+        <item itemvalue="Go Test.TestCommodore64_Boot in github.com/prydin/emu6502" />
         <item itemvalue="Go Test.Test_CharacterMode in github.com/prydin/emu6502/vic-ii" />
         <item itemvalue="Go Test.TestScreenDim in github.com/prydin/emu6502/vic-ii" />
         <item itemvalue="Go Test.Test_ExtendedCharacterMode in github.com/prydin/emu6502/vic-ii" />
         <item itemvalue="Go Test.TestNMI in github.com/prydin/emu6502/core" />
-        <item itemvalue="Go Test.TestAcc in github.com/prydin/emu6502/core" />
       </list>
     </recent_temporary>
   </component>
@@ -316,23 +323,18 @@
         </line-breakpoint>
         <line-breakpoint enabled="true" type="DlvLineBreakpoint">
           <url>file://$PROJECT_DIR$/vic-ii/vic_ii.go</url>
-          <line>234</line>
+          <line>238</line>
           <option name="timeStamp" value="149" />
         </line-breakpoint>
         <line-breakpoint enabled="true" type="DlvLineBreakpoint">
           <url>file://$PROJECT_DIR$/vic-ii/vic_ii.go</url>
-          <line>265</line>
+          <line>269</line>
           <option name="timeStamp" value="155" />
         </line-breakpoint>
         <line-breakpoint enabled="true" type="DlvLineBreakpoint">
           <url>file://$PROJECT_DIR$/core/cpu_test.go</url>
           <line>37</line>
           <option name="timeStamp" value="160" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" type="DlvLineBreakpoint">
-          <url>file://$PROJECT_DIR$/core/cpu.go</url>
-          <line>958</line>
-          <option name="timeStamp" value="163" />
         </line-breakpoint>
         <line-breakpoint enabled="true" type="DlvLineBreakpoint">
           <url>file://$PROJECT_DIR$/core/cpu_test.go</url>
@@ -355,9 +357,14 @@
           <option name="timeStamp" value="169" />
         </line-breakpoint>
         <line-breakpoint enabled="true" type="DlvLineBreakpoint">
-          <url>file://$PROJECT_DIR$/core/cpu.go</url>
-          <line>536</line>
-          <option name="timeStamp" value="170" />
+          <url>file://$PROJECT_DIR$/c64_test.go</url>
+          <line>21</line>
+          <option name="timeStamp" value="171" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="DlvLineBreakpoint">
+          <url>file://$PROJECT_DIR$/vic-ii/vic_ii.go</url>
+          <line>377</line>
+          <option name="timeStamp" value="178" />
         </line-breakpoint>
       </breakpoints>
     </breakpoint-manager>

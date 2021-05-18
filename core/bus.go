@@ -1,5 +1,7 @@
 package core
 
+import "fmt"
+
 type AddressSpace interface {
 	ReadByte(addr uint16) uint8
 
@@ -39,6 +41,10 @@ type Bus struct {
 	RDY    TriState
 	NotIRQ TriState
 	NotNMI TriState
+}
+
+func MakeRAM(size uint16) *RAM {
+	return &RAM{Bytes: make([]uint8, size)}
 }
 
 func (b *Bus) Connect(device AddressSpace, start, end uint16) {
@@ -116,6 +122,8 @@ func (r *RAM) ReadByte(addr uint16) uint8 {
 func (r *RAM) WriteByte(addr uint16, data uint8) {
 	if int(addr) < len(r.Bytes) {
 		r.Bytes[int(addr)] = data
+	} else {
+		fmt.Printf("WARNING: Attempt to write outside RAM: %04x", addr)
 	}
 }
 

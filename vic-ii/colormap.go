@@ -3,20 +3,20 @@ package vic_ii
 import "image/color"
 
 var C64Colors = []color.Color{
-	color.NRGBA{0, 0, 0, 255},       // Black
-	color.NRGBA{255, 255, 255, 255}, // White
-	color.NRGBA{136, 0, 0, 255},     // Red
+	color.NRGBA{0, 0, 0, 255},          // Black
+	color.NRGBA{0xff, 0xff, 0xff, 255}, // White
+	color.NRGBA{0x68, 0x37, 0x2b, 255}, // Red
 	color.NRGBA{0x70, 0xa4, 0xb2, 255}, // Cyan
-	color.NRGBA{204, 68, 204, 255},  // Purple
-	color.NRGBA{0, 204, 85, 255},    // Green
-	color.NRGBA{0, 0, 170, 255},     // Blue
-	color.NRGBA{238, 238, 119, 255}, // Yellow
-	color.NRGBA{221, 136, 85, 255},  // Orange
-	color.NRGBA{102, 68, 0, 255},    // Brown
-	color.NRGBA{255, 119, 119, 255}, // Light red
-	color.NRGBA{51, 51, 51, 255},    // Dark grey
-	color.NRGBA{119, 119, 119, 255}, // Grey 2
-	color.NRGBA{170, 255, 102, 255}, // Light green
-	color.NRGBA{0x6c, 0x5e, 0xb5, 255},   // Light blue
-	color.NRGBA{187, 187, 187, 255}, // Light grey
+	color.NRGBA{0x6f, 0x3d, 0x86, 255}, // Purple
+	color.NRGBA{0x58, 0x8d, 0x43, 255}, // Green
+	color.NRGBA{0x35, 0x28, 0x79, 255}, // Blue
+	color.NRGBA{0xb8, 0xc7, 0x6f, 255}, // Yellow
+	color.NRGBA{0x6f, 0x4f, 0x25, 255}, // Orange
+	color.NRGBA{0x43, 0x39, 0x00, 255}, // Brown
+	color.NRGBA{0x9a, 0x67, 0x59, 255}, // Light red
+	color.NRGBA{0x44, 0x44, 0x44, 255}, // Dark grey
+	color.NRGBA{0x6c, 0x6c, 0x6c, 255}, // Grey 2
+	color.NRGBA{0x9a, 0xd2, 0x84, 255}, // Light green
+	color.NRGBA{0x6c, 0x5e, 0xb5, 255}, // Light blue
+	color.NRGBA{0x95, 0x95, 0x95, 255}, // Light grey
 }

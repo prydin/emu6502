@@ -144,6 +144,7 @@ func (v *VicII) renderCycle() {
 	var contentRight uint16
 	var contentTop uint16
 	var contentBottom uint16
+	var scrollOffset uint16
 	if v.col40 {
 		contentLeft = v.dimensions.LeftBorderWidth40Cols
 		contentRight = contentLeft + v.dimensions.ContentWidth40Cols
@@ -154,9 +155,11 @@ func (v *VicII) renderCycle() {
 	if v.line25 {
 		contentTop = v.dimensions.ContentTop25Lines
 		contentBottom = v.dimensions.ContentBottom25Lines
+		scrollOffset = v.dimensions.OptimalYScroll25Lines
 	} else {
 		contentTop = v.dimensions.ContentTop24Lines
 		contentBottom = v.dimensions.ContentBottom24Lines
+		scrollOffset = v.dimensions.OptimalYScroll24Lines
 	}
 
 	localCycle := (v.cycle  % v.dimensions.CyclesPerLine) - v.dimensions.FirstVisibleCycle
@@ -173,11 +176,15 @@ func (v *VicII) renderCycle() {
 	case startPixel > contentRight-8:
 		v.drawBorder(max(startPixel, contentRight+1), 8)
 	default:
-		// Visible area
-		if v.bitmapMode {
-			/// TODO
+		// Visible area? Maybe so, but check yscroll first!
+		if v.rasterLine+v.scrollY-scrollOffset <= contentBottom - 8 {
+			if v.bitmapMode {
+				/// TODO
+			} else {
+				v.renderText(startPixel)
+			}
 		} else {
-			v.renderText(startPixel)
+			v.drawBackground(startPixel, 8)
 		}
 	}
 }
@@ -185,6 +192,12 @@ func (v *VicII) renderCycle() {
 func (v *VicII) drawBorder(x, n uint16) {
 	for i := uint16(0); i < n; i++ {
 		v.screen.setPixel(i+x, v.rasterLine-v.dimensions.FirstVisibleLine, C64Colors[v.borderCol])
+	}
+}
+
+func (v *VicII) drawBackground(x, n uint16) {
+	for i := uint16(0); i < n; i++ {
+		v.screen.setPixel(i+x, v.rasterLine-v.dimensions.FirstVisibleLine, C64Colors[v.backgroundColors[0]]) // TODO: Support multicolor bg?
 	}
 }
 
@@ -208,7 +221,7 @@ func (v *VicII) renderText(x uint16) {
 			color = v.backgroundColors[bgIndex]
 		}
 		pattern <<= 1
-		v.screen.setPixel(x+i+leftBorderOffset, v.rasterLine-v.dimensions.FirstVisibleLine, C64Colors[color])
+		v.screen.setPixel(x+i+leftBorderOffset, v.rasterLine-v.dimensions.FirstVisibleLine, C64Colors[color & 0x0f])
 	}
 }
 

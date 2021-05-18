@@ -20,3 +20,16 @@ func Load(filename string, memory AddressSpace, start uint16) error {
 	}
 	return nil
 }
+
+func LoadROM(filename string) (*ROM, error) {
+	file, err := os.Open(filename)
+	if err != nil {
+		return nil, err
+	}
+	defer file.Close()
+	code, err := ioutil.ReadAll(file)
+	if err != nil {
+		return nil, err
+	}
+	return &ROM{ Bytes: code}, nil
+}

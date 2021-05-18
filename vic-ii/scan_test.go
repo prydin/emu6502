@@ -5,28 +5,16 @@ import (
 	"github.com/prydin/emu6502/charset"
 	"github.com/prydin/emu6502/core"
 	"image"
-	"image/color"
 	"image/png"
 	"os"
 	"testing"
 	"time"
 )
 
-type ImageRaster struct {
-	img *image.RGBA
-}
-
-func (i *ImageRaster) setPixel(x, y uint16, color color.Color) {
-	i.img.Set(int(x), int(y),color)
-}
-
 func initVicII() (*VicII, *image.RGBA) {
 	img := image.NewRGBA(image.Rectangle{image.Point{0,0}, image.Point{403, 312}})
 	vicii := VicII{}
-	vicii.Init()
-	vicii.dimensions = PALDimensions
-	vicii.bus = &core.Bus{}
-	vicii.screen = &ImageRaster{img}
+	vicii.Init(&core.Bus{}, &ImageRaster{img}, PALDimensions)
 	vicii.borderCol = 14
 	return &vicii, img
 }

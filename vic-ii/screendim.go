@@ -6,7 +6,7 @@ const (
 	PalFirstVisibleLine  = 16
 	PalLastVisibleLine   = 287
 	PalCyclesPerLine     = 63
-	PalLastVisibleCycle = 58
+	PalLastVisibleCycle  = 58
 
 	PalLeftBorderWidth40Cols  = 32
 	PalRightBorderWidth40Cols = 32
@@ -18,8 +18,8 @@ const (
 
 	PalContentTop25Lines    = PalFirstVisibleLine + PalTopBorderHeight40Cols
 	PalContentTop24Lines    = PalFirstVisibleLine + PalTopBorderHeight38Cols
-	PalContentBottom25Lines = PalContentTop25Lines + 25 * 8
-	PalContentBottom24Lines = PalContentTop24Lines + 24 * 8
+	PalContentBottom25Lines = PalContentTop25Lines + 25*8
+	PalContentBottom24Lines = PalContentTop24Lines + 24*8
 
 	PalContentWidth40Cols = 320
 	PalContentWidth38Cols = PalContentWidth40Cols - 16
@@ -28,6 +28,9 @@ const (
 	PalLastContentCycle  = 56
 	PalScreenWidth       = PalCyclesPerLine * 8
 	PalScreenHeight      = 312
+
+	PalOptimalYScroll25Lines = 3 // Top and bottom lines fully visible
+	PalOptimalYScroll24Lines = 7 // Top and bottom lines fully visible
 
 	PalCycles = PalCyclesPerLine * 312
 )
@@ -49,6 +52,8 @@ type ScreenDimensions struct {
 	ContentWidth38Cols     uint16
 	FirstContentCycle      uint16
 	LastContentCycle       uint16
+	OptimalYScroll25Lines  uint16
+	OptimalYScroll24Lines  uint16
 
 	FirstVisibleLine uint16
 	LastVisibleLine  uint16
@@ -71,14 +76,16 @@ var PALDimensions = ScreenDimensions{
 	RightBorderWidth40Cols: PalLeftBorderWidth40Cols,
 
 
-	ContentWidth40Cols: PalContentWidth40Cols,
-	ContentWidth38Cols: PalContentWidth38Cols,
-	FirstContentCycle:  PalFirstContentCycle,
-	LastContentCycle:   PalLastContentCycle,
+	ContentWidth40Cols:    PalContentWidth40Cols,
+	ContentWidth38Cols:    PalContentWidth38Cols,
+	FirstContentCycle:     PalFirstContentCycle,
+	LastContentCycle:      PalLastContentCycle,
+	OptimalYScroll25Lines: PalOptimalYScroll25Lines,
+	OptimalYScroll24Lines: PalOptimalYScroll24Lines,
 
-	FirstVisibleLine: PalFirstVisibleLine,
-	LastVisibleLine:  PalLastVisibleLine,
+	FirstVisibleLine:  PalFirstVisibleLine,
+	LastVisibleLine:   PalLastVisibleLine,
 	FirstVisibleCycle: PalFirstVisibleCycle,
-	CyclesPerLine:    PalCyclesPerLine,
-	Cycles:           PalCycles,
+	CyclesPerLine:     PalCyclesPerLine,
+	Cycles:            PalCycles,
 }
