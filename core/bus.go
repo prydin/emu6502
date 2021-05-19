@@ -33,6 +33,7 @@ type Device struct {
 
 type Bus struct {
 	devices    []Device
+	pages 	   [256]Device
 	phase1     []Clockable
 	phase2     []Clockable
 	dmaAllowed bool
@@ -48,7 +49,11 @@ func MakeRAM(size uint16) *RAM {
 }
 
 func (b *Bus) Connect(device AddressSpace, start, end uint16) {
-	b.devices = append(b.devices, Device{start, end, device})
+	d := Device{start, end, device}
+	b.devices = append(b.devices, d)
+	for page := start >> 8; page <= end >> 8; page++ {
+		b.pages[page] = d
+	}
 }
 
 func (b *Bus) ConnectClockablePh1(device Clockable) {
@@ -72,20 +77,17 @@ func (b *Bus) ClockPh2() {
 }
 
 func (b *Bus) ReadByte(addr uint16) uint8 {
-	for _, d := range b.devices {
-		if addr >= d.start && addr <= d.end {
-			return d.device.ReadByte(addr - d.start)
-		}
+	d := b.pages[addr >> 8]
+	if d.device != nil {
+		return d.device.ReadByte(addr - d.start)
+	} else {
+		return 0
 	}
-	return 0
 }
 
 func (b *Bus) WriteByte(addr uint16, data uint8) {
-	for _, d := range b.devices {
-		if addr >= d.start && addr <= d.end {
-			d.device.WriteByte(addr-d.start, data)
-		}
-	}
+	d := b.pages[addr >> 8]
+	d.device.WriteByte(addr-d.start, data)
 }
 
 func (b *Bus) CPUClaimBus() {
