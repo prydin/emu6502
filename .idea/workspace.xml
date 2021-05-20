@@ -5,6 +5,14 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="58c6cb47-3664-4a3a-a472-e4643dd7a4d6" name="Default Changelist" comment="">
+      <change afterPath="$PROJECT_DIR$/../OpenKOM/src/main/main.iml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../OpenKOM/src/test/test.iml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../code/code.iml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/codeStyles/codeStyleConfig.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/copyright/MIT.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/copyright/profiles_settings.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../jmandel/jmandel.iml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../pptest/pptest.iml" afterDir="false" />
       <change afterPath="$PROJECT_DIR$/../prata/build.gradle" afterDir="false" />
       <change afterPath="$PROJECT_DIR$/../prata/gradlew" afterDir="false" />
       <change afterPath="$PROJECT_DIR$/../prata/gradlew.bat" afterDir="false" />
@@ -25,16 +33,46 @@
       <change afterPath="$PROJECT_DIR$/../prata/src/main/java/nu/rydin/prata/repos/PostRepo.java" afterDir="false" />
       <change afterPath="$PROJECT_DIR$/../prata/src/main/resources/application-dev.properties" afterDir="false" />
       <change afterPath="$PROJECT_DIR$/../prata/src/main/resources/application.properties" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../springtest/springtest.iml" afterDir="false" />
       <change afterPath="$PROJECT_DIR$/../vexpress-frontend/.gitignore" afterDir="false" />
       <change afterPath="$PROJECT_DIR$/../vexpress-frontend/src/main/java/vexpress/frontend/Config.java" afterDir="false" />
       <change afterPath="$PROJECT_DIR$/../vexpress-frontend/src/main/java/vexpress/frontend/FrontendApplication.java" afterDir="false" />
       <change afterPath="$PROJECT_DIR$/../vexpress-frontend/src/main/java/vexpress/frontend/FrontendController.java" afterDir="false" />
       <change afterPath="$PROJECT_DIR$/../vexpress-pricing/templates/application-properties.tpl" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../vexpress-scheduling/src/main/main.iml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../vexpress-scheduling/src/test/test.iml" afterDir="false" />
       <change afterPath="$PROJECT_DIR$/../vexpress-scheduling/templates/application-properties.tpl" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../vmware-vra8-jenkins-plugin/vmware-vra8-jenkins-plugin.iml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../vmware-vra8-jenkins-plugin/vra8-jenkins-plugin.iml" afterDir="false" />
       <change afterPath="$PROJECT_DIR$/../vra8gateway/src/main/java/com/fedex/cloudops/fake/security/redux/CipherCacheLoader.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../vrealize-automation-plugin-for-jenkins/vmware-vra8-jenkins-plugin.iml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../vrealize-automation-plugin-for-jenkins/vra8-jenkins-plugin.iml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../vrealize-automation-plugin-for-jenkins/vrealize-automation-8.iml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/c64.go" beforeDir="false" afterPath="$PROJECT_DIR$/c64.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/c64_test.go" beforeDir="false" afterPath="$PROJECT_DIR$/c64_test.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/charset/mkgo.go" beforeDir="false" afterPath="$PROJECT_DIR$/charset/mkgo.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/charset/rom.go" beforeDir="false" afterPath="$PROJECT_DIR$/charset/rom.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/core/bankswitch.go" beforeDir="false" afterPath="$PROJECT_DIR$/core/bankswitch.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/core/bankswitch_test.go" beforeDir="false" afterPath="$PROJECT_DIR$/core/bankswitch_test.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/core/bus.go" beforeDir="false" afterPath="$PROJECT_DIR$/core/bus.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/core/clock.go" beforeDir="false" afterPath="$PROJECT_DIR$/core/clock.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/core/clock_test.go" beforeDir="false" afterPath="$PROJECT_DIR$/core/clock_test.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/core/cpu.go" beforeDir="false" afterPath="$PROJECT_DIR$/core/cpu.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/core/cpu_test.go" beforeDir="false" afterPath="$PROJECT_DIR$/core/cpu_test.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/core/instruction.go" beforeDir="false" afterPath="$PROJECT_DIR$/core/instruction.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/core/loader.go" beforeDir="false" afterPath="$PROJECT_DIR$/core/loader.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/main.go" beforeDir="false" afterPath="$PROJECT_DIR$/main.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/vic-ii/colormap.go" beforeDir="false" afterPath="$PROJECT_DIR$/vic-ii/colormap.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/vic-ii/colormap_test.go" beforeDir="false" afterPath="$PROJECT_DIR$/vic-ii/colormap_test.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/vic-ii/raster.go" beforeDir="false" afterPath="$PROJECT_DIR$/vic-ii/raster.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/vic-ii/scan.go" beforeDir="false" afterPath="$PROJECT_DIR$/vic-ii/scan.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/vic-ii/scan_test.go" beforeDir="false" afterPath="$PROJECT_DIR$/vic-ii/scan_test.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/vic-ii/screendim.go" beforeDir="false" afterPath="$PROJECT_DIR$/vic-ii/screendim.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/vic-ii/screendim_test.go" beforeDir="false" afterPath="$PROJECT_DIR$/vic-ii/screendim_test.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/vic-ii/testsupport.go" beforeDir="false" afterPath="$PROJECT_DIR$/vic-ii/testsupport.go" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/vic-ii/vic_ii.go" beforeDir="false" afterPath="$PROJECT_DIR$/vic-ii/vic_ii.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/vic-ii/vic_ii_test.go" beforeDir="false" afterPath="$PROJECT_DIR$/vic-ii/vic_ii_test.go" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../fizzbuzz/fizzbuzz.iml" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/../gradle/wrapper/gradle-wrapper.jar" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/../gradle/wrapper/gradle-wrapper.properties" beforeDir="false" />
@@ -164,6 +202,9 @@
       <filtered-out-file-type name="COMMIT_BY_MESSAGE" />
     </file-type-list>
   </component>
+  <component name="NamedScopeManager">
+    <scope name="Go FIles" pattern="file:*.go" />
+  </component>
   <component name="ProjectId" id="1qiNRgb9XS5wHhqnWxxTR4MfpKa" />
   <component name="ProjectLevelVcsManager" settingsEditedManually="true" />
   <component name="ProjectViewState">
@@ -173,13 +214,14 @@
   <component name="PropertiesComponent">
     <property name="DefaultGoTemplateProperty" value="Go File" />
     <property name="RunOnceActivity.ShowReadmeOnStart" value="true" />
+    <property name="SHARE_PROJECT_CONFIGURATION_FILES" value="true" />
     <property name="WebServerToolWindowFactoryState" value="false" />
     <property name="go.import.settings.migrated" value="true" />
     <property name="go.tried.to.enable.integration.vgo.integrator" value="true" />
     <property name="last_opened_file_path" value="$USER_HOME$" />
     <property name="nodejs_interpreter_path.stuck_in_default_project" value="undefined stuck path" />
     <property name="nodejs_npm_path_reset_for_default_project" value="true" />
-    <property name="settings.editor.selected.configurable" value="go.vgo" />
+    <property name="settings.editor.selected.configurable" value="copyright.profiles" />
   </component>
   <component name="RecentsManager">
     <key name="MoveFile.RECENT_KEYS">
@@ -196,18 +238,6 @@
       <filePath value="$PROJECT_DIR$" />
       <framework value="gotest" />
       <pattern value="^\QTestCommodore64_Boot\E$" />
-      <method v="2" />
-    </configuration>
-    <configuration name="TestKlaus in github.com/prydin/emu6502/core" type="GoTestRunConfiguration" factoryName="Go Test" temporary="true" nameIsGenerated="true">
-      <module name="emu6502" />
-      <working_directory value="$PROJECT_DIR$/core" />
-      <root_directory value="$PROJECT_DIR$" />
-      <kind value="PACKAGE" />
-      <package value="github.com/prydin/emu6502/core" />
-      <directory value="$PROJECT_DIR$" />
-      <filePath value="$PROJECT_DIR$" />
-      <framework value="gotest" />
-      <pattern value="^\QTestKlaus\E$" />
       <method v="2" />
     </configuration>
     <configuration name="TestPerformance in github.com/prydin/emu6502/core" type="GoTestRunConfiguration" factoryName="Go Test" temporary="true" nameIsGenerated="true">
@@ -246,13 +276,24 @@
       <pattern value="^\QTest_CharacterMode\E$" />
       <method v="2" />
     </configuration>
+    <configuration name="go test github.com/prydin/emu6502/core" type="GoTestRunConfiguration" factoryName="Go Test" temporary="true" nameIsGenerated="true">
+      <module name="emu6502" />
+      <working_directory value="$PROJECT_DIR$/core" />
+      <root_directory value="$PROJECT_DIR$" />
+      <kind value="PACKAGE" />
+      <package value="github.com/prydin/emu6502/core" />
+      <directory value="$PROJECT_DIR$" />
+      <filePath value="$PROJECT_DIR$" />
+      <framework value="gotest" />
+      <method v="2" />
+    </configuration>
     <recent_temporary>
       <list>
         <item itemvalue="Go Test.TestCommodore64_Boot in github.com/prydin/emu6502" />
+        <item itemvalue="Go Test.go test github.com/prydin/emu6502/core" />
         <item itemvalue="Go Test.Test_CharacterMode in github.com/prydin/emu6502/vic-ii" />
         <item itemvalue="Go Test.TestVicII_Registers in github.com/prydin/emu6502/vic-ii" />
         <item itemvalue="Go Test.TestPerformance in github.com/prydin/emu6502/core" />
-        <item itemvalue="Go Test.TestKlaus in github.com/prydin/emu6502/core" />
       </list>
     </recent_temporary>
   </component>
@@ -280,82 +321,48 @@
       <breakpoints>
         <line-breakpoint enabled="true" type="DlvLineBreakpoint">
           <url>file://$PROJECT_DIR$/core/cpu_test.go</url>
-          <line>838</line>
+          <line>859</line>
           <option name="timeStamp" value="73" />
         </line-breakpoint>
         <line-breakpoint enabled="true" type="DlvLineBreakpoint">
           <url>file://$PROJECT_DIR$/core/cpu_test.go</url>
-          <line>952</line>
+          <line>973</line>
           <option name="timeStamp" value="82" />
         </line-breakpoint>
         <line-breakpoint enabled="true" type="DlvLineBreakpoint">
           <url>file://$PROJECT_DIR$/core/cpu_test.go</url>
+          <line>21</line>
           <option name="timeStamp" value="99" />
         </line-breakpoint>
         <line-breakpoint enabled="true" type="DlvLineBreakpoint">
           <url>file://$PROJECT_DIR$/core/cpu_test.go</url>
-          <line>1163</line>
+          <line>1184</line>
           <option name="timeStamp" value="114" />
         </line-breakpoint>
         <line-breakpoint enabled="true" type="DlvLineBreakpoint">
           <url>file://$PROJECT_DIR$/core/clock_test.go</url>
-          <line>40</line>
+          <line>61</line>
           <option name="timeStamp" value="138" />
         </line-breakpoint>
         <line-breakpoint enabled="true" type="DlvLineBreakpoint">
           <url>file://$PROJECT_DIR$/core/clock.go</url>
-          <line>86</line>
+          <line>107</line>
           <option name="timeStamp" value="142" />
         </line-breakpoint>
         <line-breakpoint enabled="true" type="DlvLineBreakpoint">
           <url>file://$PROJECT_DIR$/core/cpu_test.go</url>
-          <line>37</line>
+          <line>58</line>
           <option name="timeStamp" value="160" />
         </line-breakpoint>
         <line-breakpoint enabled="true" type="DlvLineBreakpoint">
           <url>file://$PROJECT_DIR$/core/cpu_test.go</url>
-          <line>23</line>
+          <line>44</line>
           <option name="timeStamp" value="164" />
         </line-breakpoint>
         <line-breakpoint enabled="true" type="DlvLineBreakpoint">
           <url>file://$PROJECT_DIR$/core/cpu_test.go</url>
-          <line>25</line>
+          <line>46</line>
           <option name="timeStamp" value="166" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" type="DlvLineBreakpoint">
-          <url>file://$PROJECT_DIR$/vic-ii/vic_ii.go</url>
-          <line>378</line>
-          <option name="timeStamp" value="179" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" type="DlvLineBreakpoint">
-          <url>file://$PROJECT_DIR$/vic-ii/vic_ii.go</url>
-          <line>329</line>
-          <option name="timeStamp" value="190" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" type="DlvLineBreakpoint">
-          <url>file://$PROJECT_DIR$/core/bus.go</url>
-          <line>173</line>
-          <option name="timeStamp" value="192" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" type="DlvLineBreakpoint">
-          <url>file://$PROJECT_DIR$/core/bankswitch.go</url>
-          <line>16</line>
-          <option name="timeStamp" value="193" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" type="DlvLineBreakpoint">
-          <url>file://$PROJECT_DIR$/core/bus.go</url>
-          <line>90</line>
-          <option name="timeStamp" value="195" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" type="DlvLineBreakpoint">
-          <url>file://$PROJECT_DIR$/core/cpu.go</url>
-          <line>589</line>
-          <option name="timeStamp" value="196" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" type="DlvLineBreakpoint">
-          <url>file://$PROJECT_DIR$/c64_test.go</url>
-          <line>19</line>
-          <option name="timeStamp" value="197" />
         </line-breakpoint>
       </breakpoints>
     </breakpoint-manager>
