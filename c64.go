@@ -26,7 +26,7 @@ func (c *Commodore64) Init(screen vic_ii.Raster, dimensions vic_ii.ScreenDimensi
 	c.bus.ConnectClockablePh1(&c.cpu)
 	colorRam := core.MakeRAM(1024)
 	c.cpu.Init(&c.bus)
-	c.vic.Init(&c.bus, &vbus, colorRam, screen, dimensions)
+	c.vic.Init(&vbus, &c.bus, colorRam, screen, dimensions)
 	c.ram = core.RAM{Bytes: make([]uint8, 10000)} // TODO: Size
 
 	// Load ROMs

@@ -377,7 +377,7 @@ func (v *VicII) WriteByte(addr uint16, data uint8) {
 		}
 	case REG_MEMPTR:
 		if data&0x0e>>1 == 2 || data&0x0e>>1 == 3 {
-			v.charSetPtr = 0xd000 // TODO: Temporary hack. Fix when banking is implemented
+			v.charSetPtr = 0x1000 // TODO: Temporary hack. Fix when banking is implemented
 		} else {
 			v.charSetPtr = uint16(data&0x0e) << 10
 		}
