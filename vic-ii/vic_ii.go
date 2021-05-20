@@ -100,6 +100,8 @@ type Sprite struct {
 
 type VicII struct {
 	bus                    *core.Bus
+	clockSink              *core.Bus
+	colorRam               core.AddressSpace
 	dimensions             ScreenDimensions
 	clockPhase2            bool
 	borderCol              uint8 // Border color
@@ -154,7 +156,7 @@ type VicII struct {
 	hBorderFf bool
 }
 
-func (v *VicII) Init(bus *core.Bus, screen Raster, dimensions ScreenDimensions) {
+func (v *VicII) Init(bus *core.Bus, clockSink *core.Bus, colorRam core.AddressSpace, screen Raster, dimensions ScreenDimensions) {
 	v.screenMemPtr = 0x0400
 	v.scrollY = 3
 	v.scrollX = 0
@@ -170,6 +172,8 @@ func (v *VicII) Init(bus *core.Bus, screen Raster, dimensions ScreenDimensions) 
 	v.bus = bus
 	v.screen = screen
 	v.dimensions = dimensions
+	v.colorRam = colorRam
+	v.clockSink = clockSink
 }
 
 func (v *VicII) ReadByte(addr uint16) uint8 {
@@ -372,7 +376,7 @@ func (v *VicII) WriteByte(addr uint16, data uint8) {
 			data >>= 1
 		}
 	case REG_MEMPTR:
-		if data&0x0e >> 1 == 2 || data&0x0e >> 1 == 3 {
+		if data&0x0e>>1 == 2 || data&0x0e>>1 == 3 {
 			v.charSetPtr = 0xd000 // TODO: Temporary hack. Fix when banking is implemented
 		} else {
 			v.charSetPtr = uint16(data&0x0e) << 10

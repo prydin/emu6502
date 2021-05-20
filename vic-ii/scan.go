@@ -12,7 +12,7 @@ func (v *VicII) Clock() {
 			v.rasterLine >= PalFirstVisibleLine && v.rasterLine <= PalLastVisibleLine {
 			v.renderCycle()
 		}
-		v.bus.ClockPh2()
+		v.clockSink.ClockPh2()
 
 		// Move to next cycle
 		v.cycle++
@@ -97,7 +97,7 @@ func (v *VicII) Clock() {
 				}
 			}
 		}
-		v.bus.ClockPh1()
+		v.clockSink.ClockPh1()
 	}
 	v.clockPhase2 = !v.clockPhase2
 }
@@ -110,7 +110,7 @@ func (v *VicII) cAccess() {
 			// TODO
 		} else {
 			ch := v.bus.ReadByte(v.screenMemPtr | v.vc)
-			col := v.bus.ReadByte(0xd800 | v.vc)
+			col := v.colorRam.ReadByte(v.vc)
 			v.cBuf[v.vmli] = uint16(ch) | uint16(col)<<8
 		}
 	}

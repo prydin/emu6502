@@ -32,7 +32,6 @@ type Device struct {
 }
 
 type Bus struct {
-	devices    []Device
 	pages 	   [256]Device
 	phase1     []Clockable
 	phase2     []Clockable
@@ -44,13 +43,16 @@ type Bus struct {
 	NotNMI TriState
 }
 
+type PagedSpace struct {
+	pages []AddressSpace
+}
+
 func MakeRAM(size uint16) *RAM {
 	return &RAM{Bytes: make([]uint8, size)}
 }
 
 func (b *Bus) Connect(device AddressSpace, start, end uint16) {
 	d := Device{start, end, device}
-	b.devices = append(b.devices, d)
 	for page := start >> 8; page <= end >> 8; page++ {
 		b.pages[page] = d
 	}
@@ -71,7 +73,7 @@ func (b *Bus) ClockPh1() {
 }
 
 func (b *Bus) ClockPh2() {
-	for _, c := range b.phase1 {
+	for _, c := range b.phase2 {
 		c.Clock()
 	}
 }
@@ -154,4 +156,31 @@ func (t *TriState) GetEdge() int {
 
 func (t *TriState) Get() bool {
 	return t.pullers == 0
+}
+
+func (p *PagedSpace) ReadByte(addr uint16) uint8 {
+	n := int(addr >> 8)
+	if n >= len(p.pages) {
+		return 0
+	}
+	page := p.pages[n]
+	if page != nil {
+		return page.ReadByte(addr)
+	}
+	return 0
+}
+
+func (p *PagedSpace) WriteByte(addr uint16, data uint8) {
+	n := int(addr >> 8)
+	if n >= len(p.pages) {
+		return
+	}
+	page := p.pages[n]
+	if page != nil {
+		page.WriteByte(addr, data)
+	}
+}
+
+func NewPagedSpace(pages []AddressSpace) *PagedSpace {
+	return &PagedSpace{ pages: pages }
 }

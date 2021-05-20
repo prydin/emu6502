@@ -11,16 +11,17 @@ import (
 	"time"
 )
 
-func initVicII() (*VicII, *image.RGBA) {
+func initVicII(colorRam core.AddressSpace) (*VicII, *image.RGBA) {
 	img := image.NewRGBA(image.Rectangle{image.Point{0,0}, image.Point{403, 312}})
 	vicii := VicII{}
-	vicii.Init(&core.Bus{}, &ImageRaster{img}, PALDimensions)
+	bus := &core.Bus{}
+	vicii.Init(bus, bus, colorRam, &ImageRaster{img}, PALDimensions)
 	vicii.borderCol = 14
 	return &vicii, img
 }
 
 func Test_BlankScreen(t *testing.T) {
-	vicii, img := initVicII()
+	vicii, img := initVicII(core.MakeRAM(1024))
 	start := time.Now()
 	for i := 0; i < int(PalScreenWidth) * int(PalScreenHeight) / 4; i++ {
 		vicii.Clock()
@@ -32,7 +33,8 @@ func Test_BlankScreen(t *testing.T) {
 }
 
 func Test_CharacterMode(t *testing.T) {
-	vicii, img := initVicII()
+	colorRam := core.MakeRAM(1024)
+	vicii, img := initVicII(colorRam)
 	vicii.bus.Connect(&charset.CharacterROM, 0xd000, 0xd7ff)
 	screenMem := make([]uint8, 1024)
 	for i := range screenMem {
@@ -45,11 +47,10 @@ func Test_CharacterMode(t *testing.T) {
 		}
 	}
 	vicii.bus.Connect(&core.RAM{ Bytes: screenMem[:]}, 0x0400, 0x07ff)
-	colorMem := make([]uint8, 1024)
-	for i := range colorMem {
-		colorMem[i] = 14
+	for i := uint16(0); i < 1024; i++ {
+		colorRam.WriteByte(i, 14)
 	}
-	vicii.bus.Connect(&core.RAM{Bytes: colorMem[:]}, 0xd800, 0xdbff)
+	vicii.bus.Connect(colorRam, 0xd800, 0xdbff)
 	vicii.screenMemPtr = 0x0400
 	vicii.charSetPtr = 0xd000
 	vicii.backgroundColors[0] = 6
@@ -65,18 +66,18 @@ func Test_CharacterMode(t *testing.T) {
 }
 
 func Test_ExtendedCharacterMode(t *testing.T) {
-	vicii, img := initVicII()
+	colorRam := core.MakeRAM(1024)
+	vicii, img := initVicII(colorRam)
 	vicii.bus.Connect(&charset.CharacterROM, 0xd000, 0xd7ff)
 	screenMem := make([]uint8, 1024)
 	for i := range screenMem {
 		screenMem[i] = uint8(i)
 	}
 	vicii.bus.Connect(&core.RAM{ Bytes: screenMem[:]}, 0x0400, 0x07ff)
-	colorMem := make([]uint8, 1024)
-	for i := range colorMem {
-		colorMem[i] = 14
+	for i := uint16(0); i < 1024; i++ {
+		colorRam.WriteByte(i, 14)
 	}
-	vicii.bus.Connect(&core.RAM{Bytes: colorMem[:]}, 0xd800, 0xdbff)
+	vicii.bus.Connect(colorRam, 0xd800, 0xdbff)
 	vicii.screenMemPtr = 0x0400
 	vicii.charSetPtr = 0xd000
 	vicii.backgroundColors[0] = 1
