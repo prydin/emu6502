@@ -8,9 +8,6 @@
       <change afterPath="$PROJECT_DIR$/../OpenKOM/src/main/main.iml" afterDir="false" />
       <change afterPath="$PROJECT_DIR$/../OpenKOM/src/test/test.iml" afterDir="false" />
       <change afterPath="$PROJECT_DIR$/../code/code.iml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/codeStyles/codeStyleConfig.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/copyright/MIT.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/copyright/profiles_settings.xml" afterDir="false" />
       <change afterPath="$PROJECT_DIR$/../jmandel/jmandel.iml" afterDir="false" />
       <change afterPath="$PROJECT_DIR$/../pptest/pptest.iml" afterDir="false" />
       <change afterPath="$PROJECT_DIR$/../prata/build.gradle" afterDir="false" />
@@ -49,30 +46,8 @@
       <change afterPath="$PROJECT_DIR$/../vrealize-automation-plugin-for-jenkins/vra8-jenkins-plugin.iml" afterDir="false" />
       <change afterPath="$PROJECT_DIR$/../vrealize-automation-plugin-for-jenkins/vrealize-automation-8.iml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/c64.go" beforeDir="false" afterPath="$PROJECT_DIR$/c64.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/c64_test.go" beforeDir="false" afterPath="$PROJECT_DIR$/c64_test.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/charset/mkgo.go" beforeDir="false" afterPath="$PROJECT_DIR$/charset/mkgo.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/charset/rom.go" beforeDir="false" afterPath="$PROJECT_DIR$/charset/rom.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/core/bankswitch.go" beforeDir="false" afterPath="$PROJECT_DIR$/core/bankswitch.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/core/bankswitch_test.go" beforeDir="false" afterPath="$PROJECT_DIR$/core/bankswitch_test.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/core/bus.go" beforeDir="false" afterPath="$PROJECT_DIR$/core/bus.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/core/clock.go" beforeDir="false" afterPath="$PROJECT_DIR$/core/clock.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/core/clock_test.go" beforeDir="false" afterPath="$PROJECT_DIR$/core/clock_test.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/core/cpu.go" beforeDir="false" afterPath="$PROJECT_DIR$/core/cpu.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/core/cpu_test.go" beforeDir="false" afterPath="$PROJECT_DIR$/core/cpu_test.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/core/instruction.go" beforeDir="false" afterPath="$PROJECT_DIR$/core/instruction.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/core/loader.go" beforeDir="false" afterPath="$PROJECT_DIR$/core/loader.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/main.go" beforeDir="false" afterPath="$PROJECT_DIR$/main.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/vic-ii/colormap.go" beforeDir="false" afterPath="$PROJECT_DIR$/vic-ii/colormap.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/vic-ii/colormap_test.go" beforeDir="false" afterPath="$PROJECT_DIR$/vic-ii/colormap_test.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/vic-ii/raster.go" beforeDir="false" afterPath="$PROJECT_DIR$/vic-ii/raster.go" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/vic-ii/scan.go" beforeDir="false" afterPath="$PROJECT_DIR$/vic-ii/scan.go" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/vic-ii/scan_test.go" beforeDir="false" afterPath="$PROJECT_DIR$/vic-ii/scan_test.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/vic-ii/screendim.go" beforeDir="false" afterPath="$PROJECT_DIR$/vic-ii/screendim.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/vic-ii/screendim_test.go" beforeDir="false" afterPath="$PROJECT_DIR$/vic-ii/screendim_test.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/vic-ii/testsupport.go" beforeDir="false" afterPath="$PROJECT_DIR$/vic-ii/testsupport.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/vic-ii/vic_ii.go" beforeDir="false" afterPath="$PROJECT_DIR$/vic-ii/vic_ii.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/vic-ii/vic_ii_test.go" beforeDir="false" afterPath="$PROJECT_DIR$/vic-ii/vic_ii_test.go" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../fizzbuzz/fizzbuzz.iml" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/../gradle/wrapper/gradle-wrapper.jar" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/../gradle/wrapper/gradle-wrapper.properties" beforeDir="false" />
@@ -228,7 +203,7 @@
       <recent name="$PROJECT_DIR$/core" />
     </key>
   </component>
-  <component name="RunManager" selected="Go Test.TestCommodore64_Boot in github.com/prydin/emu6502">
+  <component name="RunManager" selected="Go Test.Test_CharacterMode in github.com/prydin/emu6502/vic-ii">
     <configuration name="TestCommodore64_Boot in github.com/prydin/emu6502" type="GoTestRunConfiguration" factoryName="Go Test" temporary="true" nameIsGenerated="true">
       <module name="emu6502" />
       <working_directory value="$PROJECT_DIR$" />
@@ -238,18 +213,6 @@
       <filePath value="$PROJECT_DIR$" />
       <framework value="gotest" />
       <pattern value="^\QTestCommodore64_Boot\E$" />
-      <method v="2" />
-    </configuration>
-    <configuration name="TestPerformance in github.com/prydin/emu6502/core" type="GoTestRunConfiguration" factoryName="Go Test" temporary="true" nameIsGenerated="true">
-      <module name="emu6502" />
-      <working_directory value="$PROJECT_DIR$/core" />
-      <root_directory value="$PROJECT_DIR$" />
-      <kind value="PACKAGE" />
-      <package value="github.com/prydin/emu6502/core" />
-      <directory value="$PROJECT_DIR$" />
-      <filePath value="$PROJECT_DIR$" />
-      <framework value="gotest" />
-      <pattern value="^\QTestPerformance\E$" />
       <method v="2" />
     </configuration>
     <configuration name="TestVicII_Registers in github.com/prydin/emu6502/vic-ii" type="GoTestRunConfiguration" factoryName="Go Test" temporary="true" nameIsGenerated="true">
@@ -276,6 +239,18 @@
       <pattern value="^\QTest_CharacterMode\E$" />
       <method v="2" />
     </configuration>
+    <configuration name="Test_ExtendedCharacterMode in github.com/prydin/emu6502/vic-ii" type="GoTestRunConfiguration" factoryName="Go Test" temporary="true" nameIsGenerated="true">
+      <module name="emu6502" />
+      <working_directory value="$PROJECT_DIR$/vic-ii" />
+      <root_directory value="$PROJECT_DIR$" />
+      <kind value="PACKAGE" />
+      <package value="github.com/prydin/emu6502/vic-ii" />
+      <directory value="$PROJECT_DIR$" />
+      <filePath value="$PROJECT_DIR$" />
+      <framework value="gotest" />
+      <pattern value="^\QTest_ExtendedCharacterMode\E$" />
+      <method v="2" />
+    </configuration>
     <configuration name="go test github.com/prydin/emu6502/core" type="GoTestRunConfiguration" factoryName="Go Test" temporary="true" nameIsGenerated="true">
       <module name="emu6502" />
       <working_directory value="$PROJECT_DIR$/core" />
@@ -289,11 +264,11 @@
     </configuration>
     <recent_temporary>
       <list>
+        <item itemvalue="Go Test.Test_CharacterMode in github.com/prydin/emu6502/vic-ii" />
+        <item itemvalue="Go Test.Test_ExtendedCharacterMode in github.com/prydin/emu6502/vic-ii" />
         <item itemvalue="Go Test.TestCommodore64_Boot in github.com/prydin/emu6502" />
         <item itemvalue="Go Test.go test github.com/prydin/emu6502/core" />
-        <item itemvalue="Go Test.Test_CharacterMode in github.com/prydin/emu6502/vic-ii" />
         <item itemvalue="Go Test.TestVicII_Registers in github.com/prydin/emu6502/vic-ii" />
-        <item itemvalue="Go Test.TestPerformance in github.com/prydin/emu6502/core" />
       </list>
     </recent_temporary>
   </component>

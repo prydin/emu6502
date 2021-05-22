@@ -26,12 +26,13 @@ func (v *VicII) Clock() {
 
 	if v.clockPhase2 {
 		// ******** CLOCK PHASE 2 ********
-		if v.badLine && localCycle >= 15 && localCycle <= 54 {
-			v.cAccess()
-		}
+
 		if localCycle >= PalFirstVisibleCycle && localCycle <= PalLastVisibleCycle &&
 			v.rasterLine >= PalFirstVisibleLine && v.rasterLine <= PalLastVisibleLine {
 			v.renderCycle()
+		}
+		if v.badLine && localCycle >= 15 && localCycle <= 54 {
+			v.cAccess()
 		}
 		v.clockSink.ClockPh2()
 
@@ -127,13 +128,9 @@ func (v *VicII) cAccess() {
 	if v.bitmapMode {
 		// TODO
 	} else {
-		if v.extendedClr {
-			// TODO
-		} else {
-			ch := v.bus.ReadByte(v.screenMemPtr | v.vc)
-			col := v.colorRam.ReadByte(v.vc)
-			v.cBuf[v.vmli] = uint16(ch) | uint16(col)<<8
-		}
+		ch := v.bus.ReadByte(v.screenMemPtr | v.vc)
+		col := v.colorRam.ReadByte(v.vc)
+		v.cBuf[v.vmli] = uint16(ch) | uint16(col)<<8
 	}
 }
 
@@ -141,12 +138,12 @@ func (v *VicII) gAccess() {
 	if v.bitmapMode {
 		// TODO
 	} else {
+		mask := uint16(0xff)
 		if v.extendedClr {
-			// TODO
-		} else {
-			addr := v.charSetPtr + ((v.cBuf[v.vmli]&0xff)<<3 | v.rc)
-			v.gBuf[v.vmli] = v.bus.ReadByte(addr)
+			mask = 0x3f
 		}
+		addr := v.charSetPtr + ((v.cBuf[v.vmli]&mask)<<3 | v.rc)
+		v.gBuf[v.vmli] = v.bus.ReadByte(addr)
 	}
 	// Increment counters and make sure they stay within 6 and 10 bits boundary respectively
 	v.vmli = (v.vmli + 1) & 0x003f
@@ -165,25 +162,29 @@ func (v *VicII) renderCycle() {
 	var contentRight uint16
 	var contentTop uint16
 	var contentBottom uint16
-	var scrollOffset uint16
+//	var scrollOffset uint16
+	var lines uint16
+	var cols uint16
 	if v.col40 {
 		contentLeft = v.dimensions.LeftBorderWidth40Cols
 		contentRight = contentLeft + v.dimensions.ContentWidth40Cols
+		cols = 40
 	} else {
-		contentLeft = v.dimensions.LeftBorderWidth40Cols
+		contentLeft = v.dimensions.LeftBorderWidth38Cols
 		contentRight = contentLeft + v.dimensions.ContentWidth38Cols
+		cols = 38
 	}
 	if v.line25 {
 		contentTop = v.dimensions.ContentTop25Lines
 		contentBottom = v.dimensions.ContentBottom25Lines
-		scrollOffset = v.dimensions.OptimalYScroll25Lines
+		lines = 25
 	} else {
 		contentTop = v.dimensions.ContentTop24Lines
 		contentBottom = v.dimensions.ContentBottom24Lines
-		scrollOffset = v.dimensions.OptimalYScroll24Lines
+		lines = 24
 	}
 
-	localCycle := (v.cycle  % v.dimensions.CyclesPerLine) - v.dimensions.FirstVisibleCycle
+	localCycle := (v.cycle % v.dimensions.CyclesPerLine) - v.dimensions.FirstVisibleCycle
 	startPixel := localCycle << 3
 
 	switch {
@@ -195,14 +196,17 @@ func (v *VicII) renderCycle() {
 		v.drawBorder(startPixel, min(8, contentLeft-1))
 	// Right border?
 	case startPixel > contentRight-8:
-		v.drawBorder(max(startPixel, contentRight+1), 8)
+		v.drawBorder(max(startPixel, contentRight), 8)
 	default:
-		// Visible area? Maybe so, but check yscroll first!
-		if v.rasterLine+v.scrollY-scrollOffset <= contentBottom - 8 {
+		// Check that we didn't run out of things to draw due to YSCROLL
+		if v.vc / cols < lines && (v.vc > cols || v.rasterLine < contentBottom - 8) {
+			if startPixel == contentLeft && v.scrollX > 0 {
+				v.drawBackground(startPixel, v.scrollX)
+			}
 			if v.bitmapMode {
 				/// TODO
 			} else {
-				v.renderText(startPixel)
+				v.renderText(startPixel+v.scrollX)
 			}
 		} else {
 			v.drawBackground(startPixel, 8)
@@ -223,16 +227,15 @@ func (v *VicII) drawBackground(x, n uint16) {
 }
 
 func (v *VicII) renderText(x uint16) {
-	// TODO: Handle smooth scroll
+	// TODO: Handle smooth X scroll
 	leftBorderOffset := uint16(0)
 	index := v.cycle%v.dimensions.CyclesPerLine - v.dimensions.FirstContentCycle
 	data := v.cBuf[index]
 	fgColor := uint8(data >> 8)
 	bgIndex := 0
-	/*if v.extendedClr {
-		bgIndex = int(ch >> 6)
-		ch &= 0x3f
-	}*/
+	if v.extendedClr {
+		bgIndex = int(data >> 6) & 0x03
+	}
 	pattern := v.gBuf[index]
 	for i := uint16(0); i < 8; i++ {
 		color := uint8(0)
@@ -242,7 +245,7 @@ func (v *VicII) renderText(x uint16) {
 			color = v.backgroundColors[bgIndex]
 		}
 		pattern <<= 1
-		v.screen.setPixel(x+i+leftBorderOffset, v.rasterLine-v.dimensions.FirstVisibleLine, C64Colors[color & 0x0f])
+		v.screen.setPixel(x+i+leftBorderOffset, v.rasterLine-v.dimensions.FirstVisibleLine, C64Colors[color&0x0f])
 	}
 }
 

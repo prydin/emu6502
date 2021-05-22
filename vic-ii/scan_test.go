@@ -75,7 +75,8 @@ func Test_CharacterMode(t *testing.T) {
 	vicii.screenMemPtr = 0x0400
 	vicii.charSetPtr = 0xd000
 	vicii.backgroundColors[0] = 6
-	vicii.scrollY = 0
+	vicii.scrollY = 3
+	vicii.scrollX = 3
 	start := time.Now()
 	for i := 0; i < int(PalScreenWidth) * int(PalScreenHeight) / 4; i++ {
 		vicii.Clock()
@@ -92,7 +93,7 @@ func Test_ExtendedCharacterMode(t *testing.T) {
 	vicii.bus.Connect(&charset.CharacterROM, 0xd000, 0xd7ff)
 	screenMem := make([]uint8, 1024)
 	for i := range screenMem {
-		screenMem[i] = uint8(i)
+		screenMem[i] = uint8(i + 64)
 	}
 	vicii.bus.Connect(&core.RAM{ Bytes: screenMem[:]}, 0x0400, 0x07ff)
 	for i := uint16(0); i < 1024; i++ {
