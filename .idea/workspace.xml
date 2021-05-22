@@ -203,7 +203,7 @@
       <recent name="$PROJECT_DIR$/core" />
     </key>
   </component>
-  <component name="RunManager" selected="Go Test.Test_CharacterMode in github.com/prydin/emu6502/vic-ii">
+  <component name="RunManager" selected="Go Test.Test_MultiColorCharacterMode in github.com/prydin/emu6502/vic-ii">
     <configuration name="TestCommodore64_Boot in github.com/prydin/emu6502" type="GoTestRunConfiguration" factoryName="Go Test" temporary="true" nameIsGenerated="true">
       <module name="emu6502" />
       <working_directory value="$PROJECT_DIR$" />
@@ -213,18 +213,6 @@
       <filePath value="$PROJECT_DIR$" />
       <framework value="gotest" />
       <pattern value="^\QTestCommodore64_Boot\E$" />
-      <method v="2" />
-    </configuration>
-    <configuration name="TestVicII_Registers in github.com/prydin/emu6502/vic-ii" type="GoTestRunConfiguration" factoryName="Go Test" temporary="true" nameIsGenerated="true">
-      <module name="emu6502" />
-      <working_directory value="$PROJECT_DIR$/vic-ii" />
-      <root_directory value="$PROJECT_DIR$" />
-      <kind value="PACKAGE" />
-      <package value="github.com/prydin/emu6502/vic-ii" />
-      <directory value="$PROJECT_DIR$" />
-      <filePath value="$PROJECT_DIR$" />
-      <framework value="gotest" />
-      <pattern value="^\QTestVicII_Registers\E$" />
       <method v="2" />
     </configuration>
     <configuration name="Test_CharacterMode in github.com/prydin/emu6502/vic-ii" type="GoTestRunConfiguration" factoryName="Go Test" temporary="true" nameIsGenerated="true">
@@ -251,6 +239,18 @@
       <pattern value="^\QTest_ExtendedCharacterMode\E$" />
       <method v="2" />
     </configuration>
+    <configuration name="Test_MultiColorCharacterMode in github.com/prydin/emu6502/vic-ii" type="GoTestRunConfiguration" factoryName="Go Test" temporary="true" nameIsGenerated="true">
+      <module name="emu6502" />
+      <working_directory value="$PROJECT_DIR$/vic-ii" />
+      <root_directory value="$PROJECT_DIR$" />
+      <kind value="PACKAGE" />
+      <package value="github.com/prydin/emu6502/vic-ii" />
+      <directory value="$PROJECT_DIR$" />
+      <filePath value="$PROJECT_DIR$" />
+      <framework value="gotest" />
+      <pattern value="^\QTest_MultiColorCharacterMode\E$" />
+      <method v="2" />
+    </configuration>
     <configuration name="go test github.com/prydin/emu6502/core" type="GoTestRunConfiguration" factoryName="Go Test" temporary="true" nameIsGenerated="true">
       <module name="emu6502" />
       <working_directory value="$PROJECT_DIR$/core" />
@@ -264,11 +264,11 @@
     </configuration>
     <recent_temporary>
       <list>
+        <item itemvalue="Go Test.Test_MultiColorCharacterMode in github.com/prydin/emu6502/vic-ii" />
         <item itemvalue="Go Test.Test_CharacterMode in github.com/prydin/emu6502/vic-ii" />
         <item itemvalue="Go Test.Test_ExtendedCharacterMode in github.com/prydin/emu6502/vic-ii" />
         <item itemvalue="Go Test.TestCommodore64_Boot in github.com/prydin/emu6502" />
         <item itemvalue="Go Test.go test github.com/prydin/emu6502/core" />
-        <item itemvalue="Go Test.TestVicII_Registers in github.com/prydin/emu6502/vic-ii" />
       </list>
     </recent_temporary>
   </component>
@@ -339,20 +339,12 @@
           <line>46</line>
           <option name="timeStamp" value="166" />
         </line-breakpoint>
+        <line-breakpoint enabled="true" type="DlvLineBreakpoint">
+          <url>file://$PROJECT_DIR$/vic-ii/scan.go</url>
+          <line>241</line>
+          <option name="timeStamp" value="169" />
+        </line-breakpoint>
       </breakpoints>
     </breakpoint-manager>
-    <watches-manager>
-      <configuration name="GoTestRunConfiguration">
-        <watch expression="v.rc" language="go" />
-        <watch expression="v.vc" language="go" />
-        <watch expression="v.vmli" language="go" />
-        <watch expression="v.cBuf[int(v.vmli)]" language="go" />
-        <watch expression="v.gBuf[int(v.vmli)]" language="go" />
-        <watch expression="v.rasterLine" language="go" />
-        <watch expression="v.cycle" language="go" />
-        <watch expression="v.rasterLine &amp; 7" language="go" />
-        <watch expression="v.cycle % 63" language="go" />
-      </configuration>
-    </watches-manager>
   </component>
 </project>

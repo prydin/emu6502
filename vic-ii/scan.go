@@ -227,7 +227,7 @@ func (v *VicII) drawBackground(x, n uint16) {
 }
 
 func (v *VicII) renderText(x uint16) {
-	// TODO: Handle smooth X scroll
+	line := v.rasterLine-v.dimensions.FirstVisibleLine
 	leftBorderOffset := uint16(0)
 	index := v.cycle%v.dimensions.CyclesPerLine - v.dimensions.FirstContentCycle
 	data := v.cBuf[index]
@@ -237,15 +237,36 @@ func (v *VicII) renderText(x uint16) {
 		bgIndex = int(data >> 6) & 0x03
 	}
 	pattern := v.gBuf[index]
-	for i := uint16(0); i < 8; i++ {
-		color := uint8(0)
-		if pattern&0x80 != 0 {
-			color = fgColor
-		} else {
-			color = v.backgroundColors[bgIndex]
+
+	// Multicolor mode
+	if v.multiColor {
+		// TODO: Handle illegal modes
+		for i := uint16(0); i < 4; i++ {
+			var color uint8
+			cIndex := pattern&0xc0 >> 6
+			if cIndex == 0x03 {
+				color = fgColor
+			} else {
+				color = v.backgroundColors[cIndex]
+			}
+			println(color)
+			nativeColor := C64Colors[color&0x0f]
+			v.screen.setPixel(x+i*2+leftBorderOffset, line, nativeColor)
+			v.screen.setPixel(x+i*2+leftBorderOffset+1, line, nativeColor)
+			pattern <<= 2
 		}
-		pattern <<= 1
-		v.screen.setPixel(x+i+leftBorderOffset, v.rasterLine-v.dimensions.FirstVisibleLine, C64Colors[color&0x0f])
+	} else {
+		// Standard monocrome text mode (including multi background)
+		for i := uint16(0); i < 8; i++ {
+			color := uint8(0)
+			if pattern&0x80 != 0 {
+				color = fgColor
+			} else {
+				color = v.backgroundColors[bgIndex]
+			}
+			pattern <<= 1
+			v.screen.setPixel(x+i+leftBorderOffset, line, C64Colors[color&0x0f])
+		}
 	}
 }
 

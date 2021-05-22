@@ -117,3 +117,33 @@ func Test_ExtendedCharacterMode(t *testing.T) {
 	png.Encode(f, img)
 	// TODO: Check image
 }
+
+func Test_MultiColorCharacterMode(t *testing.T) {
+	colorRam := core.MakeRAM(1024)
+	vicii, img := initVicII(colorRam)
+	vicii.bus.Connect(&charset.CharacterROM, 0xd000, 0xd7ff)
+	screenMem := make([]uint8, 1024)
+	for i := range screenMem {
+		screenMem[i] = uint8(i % 64)
+	}
+	vicii.bus.Connect(&core.RAM{ Bytes: screenMem[:]}, 0x0400, 0x07ff)
+	for i := uint16(0); i < 1024; i++ {
+		colorRam.WriteByte(i, 14)
+	}
+	vicii.bus.Connect(colorRam, 0xd800, 0xdbff)
+	vicii.screenMemPtr = 0x0400
+	vicii.charSetPtr = 0xd000
+	vicii.backgroundColors[0] = 0
+	vicii.backgroundColors[1] = 2
+	vicii.backgroundColors[2] = 3
+	vicii.multiColor = true
+
+	start := time.Now()
+	for i := 0; i < int(PalScreenWidth) * int(PalScreenHeight) / 4; i++ {
+		vicii.Clock()
+	}
+	fmt.Printf("Rendering time: %s", time.Now().Sub(start))
+	f, _ := os.Create("characters_multi.png")
+	png.Encode(f, img)
+	// TODO: Check image
+}
