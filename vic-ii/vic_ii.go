@@ -165,16 +165,11 @@ type VicII struct {
 	// Internal color and character buffers
 	cBuf       [40]uint16
 	gBuf       [40]uint8
-	charBufPtr uint16
 
 	// Screen refresh state
 	displayState bool
 	cycle        uint16
 	screen       Raster
-
-	// Border flip-flops
-	vBorderFf bool
-	hBorderFf bool
 }
 
 func (v *VicII) Init(bus *core.Bus, clockSink *core.Bus, colorRam core.AddressSpace, screen Raster, dimensions ScreenDimensions) {
@@ -187,8 +182,6 @@ func (v *VicII) Init(bus *core.Bus, clockSink *core.Bus, colorRam core.AddressSp
 	v.bitmapMode = false
 	v.extendedClr = false
 	v.multiColor = false
-	v.hBorderFf = true
-	v.vBorderFf = true
 	v.borderCol = 4
 	v.bus = bus
 	v.screen = screen

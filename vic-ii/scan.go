@@ -125,26 +125,30 @@ func (v *VicII) Clock() {
 }
 
 func (v *VicII) cAccess() {
+	ch := v.bus.ReadByte(v.screenMemPtr | v.vc)
+	col := v.colorRam.ReadByte(v.vc)
 	if v.bitmapMode {
-		// TODO
+		v.cBuf[v.vmli] = uint16(ch)&0x0f | (uint16(col)&0x0f)<<4
 	} else {
-		ch := v.bus.ReadByte(v.screenMemPtr | v.vc)
-		col := v.colorRam.ReadByte(v.vc)
 		v.cBuf[v.vmli] = uint16(ch) | uint16(col)<<8
 	}
 }
 
 func (v *VicII) gAccess() {
+	basePtr := v.charSetPtr
+	var addr uint16
 	if v.bitmapMode {
-		// TODO
+		basePtr &= 0x2000
+		addr = basePtr + v.rc + v.vc<<3
 	} else {
 		mask := uint16(0xff)
 		if v.extendedClr {
 			mask = 0x3f
 		}
-		addr := v.charSetPtr + ((v.cBuf[v.vmli]&mask)<<3 | v.rc)
-		v.gBuf[v.vmli] = v.bus.ReadByte(addr)
+		addr = basePtr + ((v.cBuf[v.vmli]&mask)<<3 | v.rc)
 	}
+	v.gBuf[v.vmli] = v.bus.ReadByte(addr)
+
 	// Increment counters and make sure they stay within 6 and 10 bits boundary respectively
 	v.vmli = (v.vmli + 1) & 0x003f
 	v.vc = (v.vc + 1) & 0x03ff
@@ -162,26 +166,22 @@ func (v *VicII) renderCycle() {
 	var contentRight uint16
 	var contentTop uint16
 	var contentBottom uint16
-//	var scrollOffset uint16
-	var lines uint16
-	var cols uint16
+	var scrollOffset uint16
 	if v.col40 {
 		contentLeft = v.dimensions.LeftBorderWidth40Cols
 		contentRight = contentLeft + v.dimensions.ContentWidth40Cols
-		cols = 40
 	} else {
 		contentLeft = v.dimensions.LeftBorderWidth38Cols
 		contentRight = contentLeft + v.dimensions.ContentWidth38Cols
-		cols = 38
 	}
 	if v.line25 {
 		contentTop = v.dimensions.ContentTop25Lines
 		contentBottom = v.dimensions.ContentBottom25Lines
-		lines = 25
+		scrollOffset = 3
 	} else {
 		contentTop = v.dimensions.ContentTop24Lines
 		contentBottom = v.dimensions.ContentBottom24Lines
-		lines = 24
+		scrollOffset = 7
 	}
 
 	localCycle := (v.cycle % v.dimensions.CyclesPerLine) - v.dimensions.FirstVisibleCycle
@@ -199,14 +199,14 @@ func (v *VicII) renderCycle() {
 		v.drawBorder(max(startPixel, contentRight), 8)
 	default:
 		// Check that we didn't run out of things to draw due to YSCROLL
-		if v.vc / cols < lines && (v.vc > cols || v.rasterLine < contentBottom - 8) {
+		if v.rasterLine-v.scrollY+scrollOffset < contentBottom {
 			if startPixel == contentLeft && v.scrollX > 0 {
 				v.drawBackground(startPixel, v.scrollX)
 			}
 			if v.bitmapMode {
-				/// TODO
+				v.renderBitmap(startPixel + v.scrollX)
 			} else {
-				v.renderText(startPixel+v.scrollX)
+				v.renderText(startPixel + v.scrollX)
 			}
 		} else {
 			v.drawBackground(startPixel, 8)
@@ -227,14 +227,14 @@ func (v *VicII) drawBackground(x, n uint16) {
 }
 
 func (v *VicII) renderText(x uint16) {
-	line := v.rasterLine-v.dimensions.FirstVisibleLine
+	line := v.rasterLine - v.dimensions.FirstVisibleLine
 	leftBorderOffset := uint16(0)
 	index := v.cycle%v.dimensions.CyclesPerLine - v.dimensions.FirstContentCycle
 	data := v.cBuf[index]
 	fgColor := uint8(data >> 8)
 	bgIndex := 0
 	if v.extendedClr {
-		bgIndex = int(data >> 6) & 0x03
+		bgIndex = int(data>>6) & 0x03
 	}
 	pattern := v.gBuf[index]
 
@@ -243,13 +243,12 @@ func (v *VicII) renderText(x uint16) {
 		// TODO: Handle illegal modes
 		for i := uint16(0); i < 4; i++ {
 			var color uint8
-			cIndex := pattern&0xc0 >> 6
+			cIndex := pattern & 0xc0 >> 6
 			if cIndex == 0x03 {
 				color = fgColor
 			} else {
 				color = v.backgroundColors[cIndex]
 			}
-			println(color)
 			nativeColor := C64Colors[color&0x0f]
 			v.screen.setPixel(x+i*2+leftBorderOffset, line, nativeColor)
 			v.screen.setPixel(x+i*2+leftBorderOffset+1, line, nativeColor)
@@ -263,6 +262,48 @@ func (v *VicII) renderText(x uint16) {
 				color = fgColor
 			} else {
 				color = v.backgroundColors[bgIndex]
+			}
+			pattern <<= 1
+			v.screen.setPixel(x+i+leftBorderOffset, line, C64Colors[color&0x0f])
+		}
+	}
+}
+
+func (v *VicII) renderBitmap(x uint16) {
+	line := v.rasterLine - v.dimensions.FirstVisibleLine
+	leftBorderOffset := uint16(0)
+	index := v.cycle%v.dimensions.CyclesPerLine - v.dimensions.FirstContentCycle
+	data := v.cBuf[index]
+	bgColor := uint8(data & 0x0f)
+	fgColor := uint8(data >> 4)
+	pattern := v.gBuf[index]
+	if v.multiColor {
+		// TODO: Handle illegal mode
+		for i := uint16(0); i < 4; i++ {
+			var color uint8
+			cIndex := pattern & 0xc0 >> 6
+			switch cIndex {
+			case 0:
+				color = v.backgroundColors[0]
+			case 1:
+				color = uint8(data>>4) & 0x0f
+			case 2:
+				color = uint8(data) & 0x0f
+			case 3:
+				color = uint8(data>>8) & 0x0f
+			}
+			nativeColor := C64Colors[color]
+			v.screen.setPixel(x+i*2+leftBorderOffset, line, nativeColor)
+			v.screen.setPixel(x+i*2+leftBorderOffset+1, line, nativeColor)
+			pattern <<= 2
+		}
+	} else {
+		for i := uint16(0); i < 8; i++ {
+			color := uint8(0)
+			if pattern&0x80 != 0 {
+				color = fgColor
+			} else {
+				color = bgColor
 			}
 			pattern <<= 1
 			v.screen.setPixel(x+i+leftBorderOffset, line, C64Colors[color&0x0f])

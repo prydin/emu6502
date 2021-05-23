@@ -56,7 +56,7 @@ func Test_BlankScreen(t *testing.T) {
 func Test_CharacterMode(t *testing.T) {
 	colorRam := core.MakeRAM(1024)
 	vicii, img := initVicII(colorRam)
-	vicii.bus.Connect(&charset.CharacterROM, 0xd000, 0xd7ff)
+	vicii.bus.Connect(&charset.CharacterROM, 0xd000, 0xdfff)
 	screenMem := make([]uint8, 1024)
 	for i := range screenMem {
 		if i > 1000 {
@@ -90,7 +90,7 @@ func Test_CharacterMode(t *testing.T) {
 func Test_ExtendedCharacterMode(t *testing.T) {
 	colorRam := core.MakeRAM(1024)
 	vicii, img := initVicII(colorRam)
-	vicii.bus.Connect(&charset.CharacterROM, 0xd000, 0xd7ff)
+	vicii.bus.Connect(&charset.CharacterROM, 0xd000, 0xdfff)
 	screenMem := make([]uint8, 1024)
 	for i := range screenMem {
 		screenMem[i] = uint8(i + 64)
@@ -121,7 +121,7 @@ func Test_ExtendedCharacterMode(t *testing.T) {
 func Test_MultiColorCharacterMode(t *testing.T) {
 	colorRam := core.MakeRAM(1024)
 	vicii, img := initVicII(colorRam)
-	vicii.bus.Connect(&charset.CharacterROM, 0xd000, 0xd7ff)
+	vicii.bus.Connect(&charset.CharacterROM, 0xd000, 0xdfff)
 	screenMem := make([]uint8, 1024)
 	for i := range screenMem {
 		screenMem[i] = uint8(i % 64)
@@ -144,6 +144,78 @@ func Test_MultiColorCharacterMode(t *testing.T) {
 	}
 	fmt.Printf("Rendering time: %s", time.Now().Sub(start))
 	f, _ := os.Create("characters_multi.png")
+	png.Encode(f, img)
+	// TODO: Check image
+}
+
+func Test_BitmapMode(t *testing.T) {
+	colorRam := core.MakeRAM(1024)
+	vicii, img := initVicII(colorRam)
+	vicii.bus.Connect(&charset.CharacterROM, 0x1000, 0x1fff)
+	vicii.bus.Connect(core.MakeRAM(0x2000), 0x2000, 0x3fff)
+	b := uint8(1)
+	for i := 0x2000; i < 0x3fff; i++ {
+		vicii.bus.WriteByte(uint16(i), b)
+		b <<= 1
+		if b == 0 {
+			b = 1
+		}
+	}
+	screenMem := make([]uint8, 1024)
+	for i := range screenMem {
+		screenMem[i] = uint8(i / 40)
+	}
+	vicii.bus.Connect(&core.RAM{ Bytes: screenMem[:]}, 0x0400, 0x07ff)
+	for i := uint16(0); i < 1024; i++ {
+		colorRam.WriteByte(i, 14)
+	}
+	vicii.bus.Connect(colorRam, 0xd800, 0xdbff)
+	vicii.screenMemPtr = 0x0400
+	vicii.charSetPtr = 0x2000
+	vicii.backgroundColors[0] = 6
+	vicii.scrollY = 3
+	vicii.scrollX = 0
+	vicii.bitmapMode = true
+	start := time.Now()
+	for i := 0; i < int(PalScreenWidth) * int(PalScreenHeight) / 4; i++ {
+		vicii.Clock()
+	}
+	fmt.Printf("Rendering time: %s", time.Now().Sub(start))
+	f, _ := os.Create("bitmap.png")
+	png.Encode(f, img)
+	// TODO: Check image
+}
+
+func Test_BitmapModeMultiColor(t *testing.T) {
+	colorRam := core.MakeRAM(1024)
+	vicii, img := initVicII(colorRam)
+	vicii.bus.Connect(&charset.CharacterROM, 0x1000, 0x1fff)
+	vicii.bus.Connect(core.MakeRAM(0x2000), 0x2000, 0x3fff)
+	for i := 0x2000; i < 0x3fff; i++ {
+		vicii.bus.WriteByte(uint16(i), uint8(i))
+	}
+	screenMem := make([]uint8, 1024)
+	for i := range screenMem {
+		screenMem[i] = uint8(i / 40)
+	}
+	vicii.bus.Connect(&core.RAM{ Bytes: screenMem[:]}, 0x0400, 0x07ff)
+	for i := uint16(0); i < 1024; i++ {
+		colorRam.WriteByte(i, 14)
+	}
+	vicii.bus.Connect(colorRam, 0xd800, 0xdbff)
+	vicii.screenMemPtr = 0x0400
+	vicii.charSetPtr = 0x2000
+	vicii.backgroundColors[0] = 6
+	vicii.multiColor = true
+	vicii.scrollY = 3
+	vicii.scrollX = 0
+	vicii.bitmapMode = true
+	start := time.Now()
+	for i := 0; i < int(PalScreenWidth) * int(PalScreenHeight) / 4; i++ {
+		vicii.Clock()
+	}
+	fmt.Printf("Rendering time: %s", time.Now().Sub(start))
+	f, _ := os.Create("bitmap_multi.png")
 	png.Encode(f, img)
 	// TODO: Check image
 }
