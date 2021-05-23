@@ -64,8 +64,8 @@ func (n *NMIGenerator) ReadByte(addr uint16) uint8 {
 	return 0
 }
 
-func assemble(program string) ([]byte, error) {
-	assy, _, err := asm.Assemble(strings.NewReader(program), "test.assm", os.Stderr, 0)
+func Assemble(program string) ([]byte, error) {
+	assy, _, err := asm.Assemble(strings.NewReader(program), "test.asm", os.Stderr, 0)
 	for _, e := range assy.Errors {
 		println(e)
 	}
@@ -77,7 +77,7 @@ func loadProgram(source string) (*CPU, Bus) {
 	romBytes := make([]byte, 0x1000)
 	romBytes[RST_VEC-0xf000] = 0
 	romBytes[RST_VEC+1-0xf000] = 0x10
-	program, err := assemble(source)
+	program, err := Assemble(source)
 	if err != nil {
 		panic(err)
 	}
@@ -97,7 +97,7 @@ func loadProgram(source string) (*CPU, Bus) {
 	return &cpu, bus
 }
 
-func runProgram(source string) Bus {
+func RunProgram(source string) Bus {
 	cpu, bus := loadProgram(source)
 	for !cpu.IsHalted() {
 		cpu.Clock()
@@ -106,7 +106,7 @@ func runProgram(source string) Bus {
 }
 
 func TestAcc(t *testing.T) {
-	memory := runProgram(`
+	memory := RunProgram(`
 	; Basic addressing modes
 	LDA #$42
 	STA $2000
@@ -169,7 +169,7 @@ func TestAcc(t *testing.T) {
 }
 
 func TestIndexX(t *testing.T) {
-	memory := runProgram(`
+	memory := RunProgram(`
 	LDX #$42
 	STX $2000
 	LDX $2000
@@ -194,7 +194,7 @@ func TestIndexX(t *testing.T) {
 }
 
 func TestIndexY(t *testing.T) {
-	memory := runProgram(`
+	memory := RunProgram(`
 	LDY #$42
 	STY $2000
 	LDY $2000
@@ -219,7 +219,7 @@ func TestIndexY(t *testing.T) {
 }
 
 func TestINX_DEX(t *testing.T) {
-	memory := runProgram(`
+	memory := RunProgram(`
 	LDX #$00
 	INX
 	STX $00 ; 1
@@ -242,7 +242,7 @@ func TestINX_DEX(t *testing.T) {
 }
 
 func TestINY_DEY(t *testing.T) {
-	memory := runProgram(`
+	memory := RunProgram(`
 	LDY #$00
 	INY
 	STY $00 ; 1
@@ -265,7 +265,7 @@ func TestINY_DEY(t *testing.T) {
 }
 
 func TestINC(t *testing.T) {
-	memory := runProgram(`
+	memory := RunProgram(`
 	; Zero page
 	LDA #$42
 	STA $10
@@ -294,7 +294,7 @@ func TestINC(t *testing.T) {
 }
 
 func TestDEC(t *testing.T) {
-	memory := runProgram(`
+	memory := RunProgram(`
 	; Zero page
 	LDA #$42
 	STA $10
@@ -322,7 +322,7 @@ func TestDEC(t *testing.T) {
 }
 
 func TestJMP(t *testing.T) {
-	memory := runProgram(`
+	memory := RunProgram(`
 		.ORG $1000
 		; Absolute
 		LDA #$42
@@ -342,7 +342,7 @@ ADDR	.DW	L2
 }
 
 func TestBranchOnCarry(t *testing.T) {
-	memory := runProgram(`
+	memory := RunProgram(`
 		.ORG $1000
 		LDA #$42
 		CLC
@@ -366,7 +366,7 @@ DONE	BRK
 }
 
 func TestBranchOnZero(t *testing.T) {
-	memory := runProgram(`
+	memory := RunProgram(`
 		.ORG $1000
 		LDA #$42
 		LDX #$01 ; Clear zero flag
@@ -391,7 +391,7 @@ DONE	BRK
 }
 
 func TestCountDown(t *testing.T) {
-	memory := runProgram(`
+	memory := RunProgram(`
 		.ORG $1000
 		LDX #$10
 LOOP	TXA
@@ -406,7 +406,7 @@ LOOP	TXA
 }
 
 func TestCountUp(t *testing.T) {
-	memory := runProgram(`
+	memory := RunProgram(`
 		.ORG $1000
 		LDX #$f0
 LOOP	TXA
@@ -421,7 +421,7 @@ LOOP	TXA
 }
 
 func TestStack(t *testing.T) {
-	memory := runProgram(`
+	memory := RunProgram(`
 		.ORG $1000
 		LDA #$42
 		LDX #$ff
@@ -451,7 +451,7 @@ func TestStack(t *testing.T) {
 }
 
 func TestSubroutine(t *testing.T) {
-	memory := runProgram(`
+	memory := RunProgram(`
 		.ORG $1000
 		LDX #$FF
 		TXS
@@ -466,7 +466,7 @@ L1		LDA #$42
 }
 
 func TestAdd(t *testing.T) {
-	memory := runProgram(`
+	memory := RunProgram(`
 		.ORG $1000
 		CLC
 		; Basic additions
@@ -539,7 +539,7 @@ ADDR	.DW DATA-1
 }
 
 func TestSubtract(t *testing.T) {
-	memory := runProgram(`
+	memory := RunProgram(`
 		.ORG $1000
 		SEC
 		; Basic subtractions 
@@ -614,7 +614,7 @@ ADDR	.DW DATA-1
 }
 
 func TestOr(t *testing.T) {
-	memory := runProgram(`
+	memory := RunProgram(`
 		.ORG $1000
 		; Basic ORA
 		LDA #$aa
@@ -672,7 +672,7 @@ ADDR	.DW DATA-1
 }
 
 func TestAnd(t *testing.T) {
-	memory := runProgram(`
+	memory := RunProgram(`
 		.ORG $1000
 		; Basic AND
 		LDA #$11
@@ -729,7 +729,7 @@ ADDR	.DW DATA-1
 }
 
 func TestEor(t *testing.T) {
-	memory := runProgram(`
+	memory := RunProgram(`
 		.ORG $1000
 		; Basic EOR
 		LDA #$11
@@ -786,7 +786,7 @@ ADDR	.DW DATA-1
 
 
 func TestAsl(t *testing.T) {
-	memory := runProgram(`
+	memory := RunProgram(`
 		.ORG $1000
 		; Basic shift
 		LDA #$01
@@ -841,7 +841,7 @@ DATA	.DB $01
 }
 
 func TestFibonacci(t *testing.T) {
-	memory := runProgram(`
+	memory := RunProgram(`
 		.ORG $1000
 
 		; Initialize
@@ -883,7 +883,7 @@ LOOP	CLC
 }
 
 func TestMultiply(t *testing.T) {
-	memory := runProgram(`
+	memory := RunProgram(`
 		.ORG $1000
 		; 2*3
 		LDA #$02
@@ -957,7 +957,7 @@ END		LDA LOSUM
 }
 
 func TestCmp(t *testing.T) {
-	memory := runProgram(`
+	memory := RunProgram(`
 		.ORG $1000
 		; Basic operations
 		LDX #$FF
@@ -1110,7 +1110,7 @@ END		LDA LOSUM
 }
 
 func TestIRQ(t *testing.T) {
-	memory := runProgram(`
+	memory := RunProgram(`
 		.ORG $1000
 TRIGGER	.EQ $8000
 		LDA #IRQ & $FF
@@ -1154,7 +1154,7 @@ IRQ2	PHA
 }
 
 func TestNMI(t *testing.T) {
-	memory := runProgram(`
+	memory := RunProgram(`
 		.ORG $1000
 TRIGGER	.EQ $8000
 		LDA #NMI & $FF
@@ -1183,7 +1183,7 @@ NMI		PHA
 }
 
 func TestNMIDuringIRQ(t *testing.T) {
-	memory := runProgram(`
+	memory := RunProgram(`
 		.ORG $1000
 		; Set up vectors
 		LDA #NMI & $FF

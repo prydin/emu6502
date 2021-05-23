@@ -590,6 +590,11 @@ func (c *CPU) Clock() {
 	}
 }
 
+func (c* CPU) SetPC(pc uint16) {
+	c.pc = pc
+	c.microPc = 0
+}
+
 func (c *CPU) StateAsString() string {
 	code := ""
 	if c.microPc == 0 {
@@ -951,11 +956,13 @@ func (c *CPU) dey() {
 }
 
 func (c *CPU) inc() {
+	c.writeByte(c.operand, c.alu) // 6502 addressing mode quirk
 	c.alu++
 	c.updateNZ(c.alu)
 }
 
 func (c *CPU) dec() {
+	c.writeByte(c.operand, c.alu) // 6502 addressing mode quirk
 	c.alu--
 	c.updateNZ(c.alu)
 }
@@ -1164,6 +1171,7 @@ func (c *CPU) asl_acc() {
 }
 
 func (c *CPU) asl_alu() {
+	c.writeByte(c.operand, c.alu) // 6502 addressing mode quirk
 	c.asl(&c.alu)
 }
 
@@ -1180,6 +1188,7 @@ func (c *CPU) rol_acc() {
 }
 
 func (c *CPU) rol_alu() {
+	c.writeByte(c.operand, c.alu) // 6502 addressing mode quirk
 	c.rol(&c.alu)
 }
 
@@ -1196,6 +1205,7 @@ func (c *CPU) ror_acc() {
 }
 
 func (c *CPU) ror_alu() {
+	c.writeByte(c.operand, c.alu) // 6502 addressing mode quirk
 	c.ror(&c.alu)
 }
 
@@ -1210,6 +1220,7 @@ func (c *CPU) lsr_acc() {
 }
 
 func (c *CPU) lsr_alu() {
+	c.writeByte(c.operand, c.alu) // 6502 addressing mode quirk
 	c.lsr(&c.alu)
 }
 

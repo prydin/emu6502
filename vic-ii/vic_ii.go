@@ -121,7 +121,7 @@ type Sprite struct {
 
 type VicII struct {
 	bus                    *core.Bus
-	clockSink              *core.Bus
+	cpuBus                 *core.Bus
 	colorRam               core.AddressSpace
 	dimensions             ScreenDimensions
 	clockPhase2            bool
@@ -163,8 +163,8 @@ type VicII struct {
 	badLine bool
 
 	// Internal color and character buffers
-	cBuf       [40]uint16
-	gBuf       [40]uint8
+	cBuf [40]uint16
+	gBuf [40]uint8
 
 	// Screen refresh state
 	displayState bool
@@ -172,7 +172,7 @@ type VicII struct {
 	screen       Raster
 }
 
-func (v *VicII) Init(bus *core.Bus, clockSink *core.Bus, colorRam core.AddressSpace, screen Raster, dimensions ScreenDimensions) {
+func (v *VicII) Init(bus *core.Bus, cpuBus *core.Bus, colorRam core.AddressSpace, screen Raster, dimensions ScreenDimensions) {
 	v.screenMemPtr = 0x0400
 	v.scrollY = 3
 	v.scrollX = 0
@@ -187,7 +187,7 @@ func (v *VicII) Init(bus *core.Bus, clockSink *core.Bus, colorRam core.AddressSp
 	v.screen = screen
 	v.dimensions = dimensions
 	v.colorRam = colorRam
-	v.clockSink = clockSink
+	v.cpuBus = cpuBus
 }
 
 func (v *VicII) ReadByte(addr uint16) uint8 {
@@ -397,10 +397,26 @@ func (v *VicII) WriteByte(addr uint16, data uint8) {
 		}
 		v.screenMemPtr = uint16(data&0xf0) << 6
 	case REG_IRQ:
-		v.irqRaster = data&IRQ_RASTER != 0
-		v.irqSpriteBg = data&IRQ_SPRITE_BG_COLL != 0
-		v.irqSpriteSprite = data&IRQ_SPRITE_SPRITE_COLL != 0
-		v.irqLp = data&IRQ_LP != 0
+		newRaster := data&IRQ_RASTER != 0
+		if newRaster && v.irqRaster {
+			v.cpuBus.NotIRQ.Release()
+			v.irqRaster = false
+		}
+		newSpritqBg := v.irqSpriteBg && data&IRQ_SPRITE_BG_COLL != 0
+		if newSpritqBg && v.irqSpriteBg {
+			v.cpuBus.NotIRQ.Release()
+			v.irqSpriteBg = false
+		}
+		newSpriteSprite := data&IRQ_SPRITE_SPRITE_COLL != 0
+		if newSpriteSprite && v.irqSpriteSprite {
+			v.cpuBus.NotIRQ.Release()
+			v.irqSpriteBg = false
+		}
+		newLp := data&IRQ_LP != 0
+		if newLp && v.irqLp {
+			v.cpuBus.NotIRQ.Release()
+			v.irqLp = false
+		}
 	case REG_IRQ_ENABLE:
 		v.irqRasterEnabled = data&IRQ_RASTER != 0
 		v.irqSpriteBgEnabled = data&IRQ_SPRITE_BG_COLL != 0

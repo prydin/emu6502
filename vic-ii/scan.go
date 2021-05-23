@@ -34,7 +34,7 @@ func (v *VicII) Clock() {
 		if v.badLine && localCycle >= 15 && localCycle <= 54 {
 			v.cAccess()
 		}
-		v.clockSink.ClockPh2()
+		v.cpuBus.ClockPh2()
 
 		// Move to next cycle
 		v.cycle++
@@ -98,7 +98,7 @@ func (v *VicII) Clock() {
 			default:
 				if localCycle >= 16 && localCycle <= 56 {
 					v.gAccess()
-					if localCycle == 16 { // TODO: Documentation says display state is only enabled on bad lines, but that just can't be true. Or can it?
+					if localCycle == 16 {
 						v.displayState = true
 					}
 				}
@@ -119,7 +119,7 @@ func (v *VicII) Clock() {
 				}
 			}
 		}
-		v.clockSink.ClockPh1()
+		v.cpuBus.ClockPh1()
 	}
 	v.clockPhase2 = !v.clockPhase2
 }
@@ -155,9 +155,9 @@ func (v *VicII) gAccess() {
 }
 
 func (v *VicII) rasterInterrupt() {
-	if v.irqRasterEnabled && v.rasterLine == v.rasterLineTrigger {
+	if !v.irqRaster && v.irqRasterEnabled && v.rasterLine == v.rasterLineTrigger {
 		v.irqRaster = true
-		v.bus.NotIRQ.PullDown()
+		v.cpuBus.NotIRQ.PullDown()
 	}
 }
 
@@ -216,13 +216,13 @@ func (v *VicII) renderCycle() {
 
 func (v *VicII) drawBorder(x, n uint16) {
 	for i := uint16(0); i < n; i++ {
-		v.screen.setPixel(i+x, v.rasterLine-v.dimensions.FirstVisibleLine, C64Colors[v.borderCol])
+		v.screen.setPixel(i+x, v.rasterLine-v.dimensions.FirstVisibleLine, C64Colors[v.borderCol&0x0f])
 	}
 }
 
 func (v *VicII) drawBackground(x, n uint16) {
 	for i := uint16(0); i < n; i++ {
-		v.screen.setPixel(i+x, v.rasterLine-v.dimensions.FirstVisibleLine, C64Colors[v.backgroundColors[0]]) // TODO: Support multicolor bg?
+		v.screen.setPixel(i+x, v.rasterLine-v.dimensions.FirstVisibleLine, C64Colors[v.backgroundColors[0]&0x0f])
 	}
 }
 
@@ -278,7 +278,6 @@ func (v *VicII) renderBitmap(x uint16) {
 	fgColor := uint8(data >> 4)
 	pattern := v.gBuf[index]
 	if v.multiColor {
-		// TODO: Handle illegal mode
 		for i := uint16(0); i < 4; i++ {
 			var color uint8
 			cIndex := pattern & 0xc0 >> 6
