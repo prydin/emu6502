@@ -54,6 +54,9 @@ const (
 	PalOptimalYScroll24Lines = 7 // Top and bottom lines fully visible
 
 	PalCycles = PalCyclesPerLine * 312
+
+	PalVisibleWidth  = PalContentWidth40Cols + PalRightBorderWidth40Cols + PalLeftBorderWidth40Cols
+	PalVisibleHeight = PalContentBottom25Lines + PalTopBorderHeight40Cols
 )
 
 type ScreenDimensions struct {
@@ -75,6 +78,9 @@ type ScreenDimensions struct {
 	LastContentCycle       uint16
 	OptimalYScroll25Lines  uint16
 	OptimalYScroll24Lines  uint16
+
+	VisibleHeight uint16
+	VisibleWidth  uint16
 
 	FirstVisibleLine uint16
 	LastVisibleLine  uint16
@@ -103,6 +109,9 @@ var PALDimensions = ScreenDimensions{
 	LastContentCycle:      PalLastContentCycle,
 	OptimalYScroll25Lines: PalOptimalYScroll25Lines,
 	OptimalYScroll24Lines: PalOptimalYScroll24Lines,
+
+	VisibleHeight: PalVisibleHeight,
+	VisibleWidth:  PalVisibleWidth,
 
 	FirstVisibleLine:  PalFirstVisibleLine,
 	LastVisibleLine:   PalLastVisibleLine,

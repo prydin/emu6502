@@ -333,6 +333,8 @@ func Test_RasterlineInterrupt(t *testing.T) {
 		STA $FFFE
 		LDA #>IRQ
 		STA $FFFF
+		LDA #$00
+		STA $D021
 		LDA #$30
 		STA $D012	; Trigger IRQ on raster line $30
 		LDA $D011	; Make sure high bit is zero
@@ -343,7 +345,7 @@ func Test_RasterlineInterrupt(t *testing.T) {
 		STA $D01A
 		CLI
 HANG	JMP HANG	; Wait forever
-IRQ		INC $D020	; Change background color
+IRQ		INC $D021	; Change background color
 		DEC $D019	; Acknowledge IRQ
 		LDA $D012	
 		ADC	#$04	; Set new interrupt to be triggered 4 lines from here
@@ -352,6 +354,8 @@ IRQ		INC $D020	; Change background color
 		LDA #$30	; Reset raster line IRQ to top of screen
 		STA $D012	; Trigger IRQ on raster line $30
 		LDA $D011	; Make sure high bit is zero
+		LDA #$01
+		STA $D021	; Start with a black band again
 		AND	#$7f
 		STA $D011
 		LDA $D01A

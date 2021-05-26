@@ -30,6 +30,8 @@ type ImageRaster struct {
 	Img *image.RGBA
 }
 
-func (i *ImageRaster) setPixel(x, y uint16, color color.Color) {
+func (i *ImageRaster) SetPixel(x, y uint16, color color.RGBA) {
 	i.Img.Set(int(x), int(y),color)
 }
+
+func (i *ImageRaster) Flip() {}

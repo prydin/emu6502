@@ -21,5 +21,59 @@
 
 package main
 
+import (
+	"flag"
+	"github.com/faiface/pixel"
+	"github.com/faiface/pixel/pixelgl"
+	"github.com/prydin/emu6502/screen"
+	vic_ii "github.com/prydin/emu6502/vic-ii"
+	"image"
+	"log"
+	"os"
+	"runtime/pprof"
+)
+
+var cpuprofile = flag.String("cpuprofile", "", "write cpu profile to file")
+
 func main() {
+	flag.Parse()
+	if *cpuprofile != "" {
+		f, err := os.Create(*cpuprofile)
+		if err != nil {
+			log.Fatal(err)
+		}
+		pprof.StartCPUProfile(f)
+		defer pprof.StopCPUProfile()
+	}
+
+	pixelgl.Run(func() {
+		c64 := Commodore64{}
+		cfg := pixelgl.WindowConfig{
+			Title:  "Gommodore64",
+			Bounds: pixel.R(0, 0, 1024, 768),
+			VSync:  true,
+		}
+		win, err := pixelgl.NewWindow(cfg)
+		if err != nil {
+			panic(err)
+		}
+		scr := screen.New(win, image.Rectangle{
+			Min: image.Point{},
+			Max: image.Point{vic_ii.PalVisibleWidth, vic_ii.PalVisibleHeight},
+		})
+		c64.Init(scr, vic_ii.PALDimensions)
+		//c64.cpu.Trace = true
+		c64.cpu.Reset()
+
+		n := 0
+		for {
+			c64.Clock()
+			if n % 1000000 == 0 {
+				if win.Closed() {
+					break
+				}
+			}
+			n++
+		}
+	})
 }

@@ -19,25 +19,48 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package vic_ii
+package screen
 
-import "image/color"
+import (
+	"github.com/faiface/pixel"
+	"github.com/faiface/pixel/pixelgl"
+	vic_ii "github.com/prydin/emu6502/vic-ii"
+	"golang.org/x/image/colornames"
+	"image"
+	"testing"
+	"time"
+)
 
-var C64Colors = []color.RGBA{
-	{0, 0, 0, 255},          // Black
-	{0xff, 0xff, 0xff, 255}, // White
-	{0x68, 0x37, 0x2b, 255}, // Red
-	{0x70, 0xa4, 0xb2, 255}, // Cyan
-	{0x6f, 0x3d, 0x86, 255}, // Purple
-	{0x58, 0x8d, 0x43, 255}, // Green
-	{0x35, 0x28, 0x79, 255}, // Blue
-	{0xb8, 0xc7, 0x6f, 255}, // Yellow
-	{0x6f, 0x4f, 0x25, 255}, // Orange
-	{0x43, 0x39, 0x00, 255}, // Brown
-	{0x9a, 0x67, 0x59, 255}, // Light red
-	{0x44, 0x44, 0x44, 255}, // Dark grey
-	{0x6c, 0x6c, 0x6c, 255}, // Grey 2
-	{0x9a, 0xd2, 0x84, 255}, // Light green
-	{0x6c, 0x5e, 0xb5, 255}, // Light blue
-	{0x95, 0x95, 0x95, 255}, // Light grey
+func run() {
+	cfg := pixelgl.WindowConfig{
+		Title:  "Pixel Rocks!",
+		Bounds: pixel.R(0, 0, 1024, 768),
+		VSync:  true,
+	}
+	win, err := pixelgl.NewWindow(cfg)
+	if err != nil {
+		panic(err)
+	}
+
+
+	s := New(win, image.Rectangle{
+		Min: image.Point{},
+		Max: image.Point{vic_ii.PalVisibleWidth, vic_ii.PalVisibleHeight},
+	})
+
+	for !win.Closed() {
+		for i := uint16(0); i < 500; i++ {
+			s.SetPixel(i, i, colornames.White)
+		}
+		s.Flip()
+	}
+}
+
+func TestNothing(t *testing.T) {
+	time.Sleep(10 * time.Second)
+}
+
+func TestMain(m *testing.M) {
+	go m.Run()
+	pixelgl.Run(run)
 }

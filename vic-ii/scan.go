@@ -25,6 +25,9 @@ func (v *VicII) Clock() {
 	localCycle := v.cycle % v.dimensions.CyclesPerLine
 
 	if v.clockPhase2 {
+		if v.cycle == 0 {
+			v.screen.Flip()
+		}
 		// ******** CLOCK PHASE 2 ********
 
 		if localCycle >= PalFirstVisibleCycle && localCycle <= PalLastVisibleCycle &&
@@ -216,13 +219,13 @@ func (v *VicII) renderCycle() {
 
 func (v *VicII) drawBorder(x, n uint16) {
 	for i := uint16(0); i < n; i++ {
-		v.screen.setPixel(i+x, v.rasterLine-v.dimensions.FirstVisibleLine, C64Colors[v.borderCol&0x0f])
+		v.screen.SetPixel(i+x, v.rasterLine-v.dimensions.FirstVisibleLine, C64Colors[v.borderCol&0x0f])
 	}
 }
 
 func (v *VicII) drawBackground(x, n uint16) {
 	for i := uint16(0); i < n; i++ {
-		v.screen.setPixel(i+x, v.rasterLine-v.dimensions.FirstVisibleLine, C64Colors[v.backgroundColors[0]&0x0f])
+		v.screen.SetPixel(i+x, v.rasterLine-v.dimensions.FirstVisibleLine, C64Colors[v.backgroundColors[0]&0x0f])
 	}
 }
 
@@ -250,8 +253,8 @@ func (v *VicII) renderText(x uint16) {
 				color = v.backgroundColors[cIndex]
 			}
 			nativeColor := C64Colors[color&0x0f]
-			v.screen.setPixel(x+i*2+leftBorderOffset, line, nativeColor)
-			v.screen.setPixel(x+i*2+leftBorderOffset+1, line, nativeColor)
+			v.screen.SetPixel(x+i*2+leftBorderOffset, line, nativeColor)
+			v.screen.SetPixel(x+i*2+leftBorderOffset+1, line, nativeColor)
 			pattern <<= 2
 		}
 	} else {
@@ -264,7 +267,7 @@ func (v *VicII) renderText(x uint16) {
 				color = v.backgroundColors[bgIndex]
 			}
 			pattern <<= 1
-			v.screen.setPixel(x+i+leftBorderOffset, line, C64Colors[color&0x0f])
+			v.screen.SetPixel(x+i+leftBorderOffset, line, C64Colors[color&0x0f])
 		}
 	}
 }
@@ -292,8 +295,8 @@ func (v *VicII) renderBitmap(x uint16) {
 				color = uint8(data>>8) & 0x0f
 			}
 			nativeColor := C64Colors[color]
-			v.screen.setPixel(x+i*2+leftBorderOffset, line, nativeColor)
-			v.screen.setPixel(x+i*2+leftBorderOffset+1, line, nativeColor)
+			v.screen.SetPixel(x+i*2+leftBorderOffset, line, nativeColor)
+			v.screen.SetPixel(x+i*2+leftBorderOffset+1, line, nativeColor)
 			pattern <<= 2
 		}
 	} else {
@@ -305,7 +308,7 @@ func (v *VicII) renderBitmap(x uint16) {
 				color = bgColor
 			}
 			pattern <<= 1
-			v.screen.setPixel(x+i+leftBorderOffset, line, C64Colors[color&0x0f])
+			v.screen.SetPixel(x+i+leftBorderOffset, line, C64Colors[color&0x0f])
 		}
 	}
 }
