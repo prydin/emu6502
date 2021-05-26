@@ -35,7 +35,8 @@ import (
 
 type Screen struct {
 	window *pixelgl.Window
-	image *image.RGBA
+	front *image.RGBA
+	back *image.RGBA
 	lastFps time.Time
 	frames int
 	fps int64
@@ -46,9 +47,10 @@ type Screen struct {
 func New(win *pixelgl.Window, bounds image.Rectangle) *Screen {
 	s := &Screen{
 		window: win,
-		image: image.NewRGBA(bounds),
+		front: image.NewRGBA(bounds),
+		back: image.NewRGBA(bounds),
 		lastFps: time.Now(),
-		jobs: make(chan *image.RGBA, 1),
+		jobs: make(chan *image.RGBA, 0),
 		atlas: text.NewAtlas(basicfont.Face7x13, text.ASCII),
 	}
 	go s.runScreenUpdate()
@@ -61,8 +63,7 @@ func (s *Screen) runScreenUpdate() {
 		image := <-s.jobs
 		draw.NearestNeighbor.Scale(screenImage, screenImage.Bounds(), image, image.Bounds(), draw.Src, nil)
 		s.window.Canvas().SetPixels(screenImage.Pix)
-		atlas := text.NewAtlas(basicfont.Face7x13, text.ASCII)
-		txt := text.New(pixel.V(10, 10), atlas)
+		txt := text.New(pixel.V(10, 10), s.atlas)
 		fmt.Fprintf(txt, "FPS: %d", s.fps)
 		txt.Draw(s.window.Canvas(), pixel.IM)
 		s.window.Update()
@@ -77,11 +78,16 @@ func (s *Screen) Flip() {
 		s.lastFps = now
 		s.frames = 0
 	}
-	s.jobs <- s.image
+	tmp := s.front
+
+	// Swap internal buffers so background task can work on rendering while we're building the next frame
+	s.front = s.back
+	s.back = tmp
+	s.jobs <- s.front
 }
 
 func (s *Screen) SetPixel(x, y uint16, color color.RGBA) {
-	s.image.SetRGBA(int(x), s.image.Bounds().Dy()-int(y), color)
+	s.back.SetRGBA(int(x), s.back.Bounds().Dy()-int(y), color)
 }
 
 func toRectangle(rect pixel.Rect) image.Rectangle {
