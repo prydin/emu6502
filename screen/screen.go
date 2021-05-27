@@ -26,7 +26,6 @@ import (
 	"github.com/faiface/pixel"
 	"github.com/faiface/pixel/pixelgl"
 	"github.com/faiface/pixel/text"
-	"golang.org/x/image/draw"
 	"golang.org/x/image/font/basicfont"
 	"image"
 	"image/color"
@@ -34,35 +33,38 @@ import (
 )
 
 type Screen struct {
-	window *pixelgl.Window
-	front *image.RGBA
-	back *image.RGBA
+	window  *pixelgl.Window
+	front   *pixel.PictureData
+	back    *pixel.PictureData
 	lastFps time.Time
-	frames int
-	fps int64
-	jobs chan *image.RGBA
-	atlas *text.Atlas
+	frames  int
+	fps     int64
+	jobs    chan *pixel.PictureData
+	atlas   *text.Atlas
 }
 
 func New(win *pixelgl.Window, bounds image.Rectangle) *Screen {
 	s := &Screen{
-		window: win,
-		front: image.NewRGBA(bounds),
-		back: image.NewRGBA(bounds),
+		window:  win,
+		front:   pixel.MakePictureData(toRect(bounds)),
+		back:    pixel.MakePictureData(toRect(bounds)),
 		lastFps: time.Now(),
-		jobs: make(chan *image.RGBA, 0),
-		atlas: text.NewAtlas(basicfont.Face7x13, text.ASCII),
+		jobs:    make(chan *pixel.PictureData),
+		atlas:   text.NewAtlas(basicfont.Face7x13, text.ASCII),
 	}
 	go s.runScreenUpdate()
 	return s
 }
 
 func (s *Screen) runScreenUpdate() {
-	screenImage := image.NewRGBA(toRectangle(s.window.Bounds()))
 	for {
-		image := <-s.jobs
-		draw.NearestNeighbor.Scale(screenImage, screenImage.Bounds(), image, image.Bounds(), draw.Src, nil)
-		s.window.Canvas().SetPixels(screenImage.Pix)
+		pd := <-s.jobs
+		// draw.NearestNeighbor.Scale(screenImage, screenImage.Bounds(), image, image.Bounds(), draw.Src, nil)
+		s.window.Canvas().Clear(color.Black)
+		sprite := pixel.NewSprite(pd, pd.Bounds())
+		sprite.Draw(s.window.Canvas(), pixel.IM.Moved(s.window.Bounds().Center()).Scaled(s.window.Bounds().Center(), 2))
+
+		//s.window.Canvas().SetPixels(screenImage.Pix)
 		txt := text.New(pixel.V(10, 10), s.atlas)
 		fmt.Fprintf(txt, "FPS: %d", s.fps)
 		txt.Draw(s.window.Canvas(), pixel.IM)
@@ -74,7 +76,7 @@ func (s *Screen) Flip() {
 	s.frames++
 	now := time.Now()
 	if now.Sub(s.lastFps) > 1*time.Second {
-		s.fps = int64(s.frames * 1e9) / now.Sub(s.lastFps).Nanoseconds()
+		s.fps = int64(s.frames*1e9) / now.Sub(s.lastFps).Nanoseconds()
 		s.lastFps = now
 		s.frames = 0
 	}
@@ -83,11 +85,17 @@ func (s *Screen) Flip() {
 	// Swap internal buffers so background task can work on rendering while we're building the next frame
 	s.front = s.back
 	s.back = tmp
-	s.jobs <- s.front
+	select {
+	case s.jobs <- s.front:
+	// All is well
+	default:
+		fmt.Println("Discarded frame")
+	}
 }
 
 func (s *Screen) SetPixel(x, y uint16, color color.RGBA) {
-	s.back.SetRGBA(int(x), s.back.Bounds().Dy()-int(y), color)
+	//s.back.SetRGBA(int(x), int(y), color)
+	s.back.Pix[int(x)+int(y)*s.back.Stride] = color
 }
 
 func toRectangle(rect pixel.Rect) image.Rectangle {
@@ -95,4 +103,8 @@ func toRectangle(rect pixel.Rect) image.Rectangle {
 		Min: image.Point{X: int(rect.Min.X), Y: int(rect.Min.Y)},
 		Max: image.Point{X: int(rect.Max.X), Y: int(rect.Max.Y)},
 	}
+}
+
+func toRect(r image.Rectangle) pixel.Rect {
+	return pixel.R(float64(r.Min.X), float64(r.Min.Y), float64(r.Max.X), float64(r.Max.Y))
 }

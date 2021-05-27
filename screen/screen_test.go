@@ -49,9 +49,10 @@ func run() {
 	})
 
 	for !win.Closed() {
-		for i := uint16(0); i < 500; i++ {
+		for i := uint16(0); i < 287; i++ {
 			s.SetPixel(i, i, colornames.White)
 		}
+		time.Sleep(20 * time.Millisecond)
 		s.Flip()
 	}
 }

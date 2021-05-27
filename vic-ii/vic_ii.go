@@ -446,3 +446,11 @@ func (v *VicII) WriteByte(addr uint16, data uint8) {
 		v.spriteMultiClr1 = data
 	}
 }
+
+func (v *VicII) GetCycle() uint16 {
+	return v.cycle
+}
+
+func (v *VicII) IsVSynch() bool {
+	return v.cycle == 0 && !v.clockPhase2
+}

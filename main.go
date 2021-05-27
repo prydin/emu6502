@@ -31,9 +31,13 @@ import (
 	"log"
 	"os"
 	"runtime/pprof"
+	"time"
 )
 
 var cpuprofile = flag.String("cpuprofile", "", "write cpu profile to file")
+
+var PalFPS = 50.125
+var PalFrameTime = time.Duration((1/PalFPS) * 1e9)
 
 func main() {
 	flag.Parse()
@@ -65,8 +69,22 @@ func main() {
 		//c64.cpu.Trace = true
 		c64.cpu.Reset()
 
+		var lastVSynch time.Time
 		n := 0
 		for {
+			if c64.vic.IsVSynch() {
+				now := time.Now()
+				frameTime := now.Sub(lastVSynch)
+
+				// Sleeping precision is too low, so we spin instead
+				if frameTime < PalFrameTime {
+					target := now.Add(PalFrameTime - frameTime)
+					for time.Now().Before(target) {
+						// Do nothing
+					}
+				}
+				lastVSynch = time.Now()
+			}
 			c64.Clock()
 			if n % 1000000 == 0 {
 				if win.Closed() {
