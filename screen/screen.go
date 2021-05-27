@@ -59,12 +59,11 @@ func New(win *pixelgl.Window, bounds image.Rectangle) *Screen {
 func (s *Screen) runScreenUpdate() {
 	for {
 		pd := <-s.jobs
-		// draw.NearestNeighbor.Scale(screenImage, screenImage.Bounds(), image, image.Bounds(), draw.Src, nil)
 		s.window.Canvas().Clear(color.Black)
 		sprite := pixel.NewSprite(pd, pd.Bounds())
-		sprite.Draw(s.window.Canvas(), pixel.IM.Moved(s.window.Bounds().Center()).Scaled(s.window.Bounds().Center(), 2))
+		scale := s.window.Bounds().W() / pd.Bounds().W()
+		sprite.Draw(s.window.Canvas(), pixel.IM.Moved(s.window.Bounds().Center()).Scaled(s.window.Bounds().Center(), scale))
 
-		//s.window.Canvas().SetPixels(screenImage.Pix)
 		txt := text.New(pixel.V(10, 10), s.atlas)
 		fmt.Fprintf(txt, "FPS: %d", s.fps)
 		txt.Draw(s.window.Canvas(), pixel.IM)
@@ -94,8 +93,7 @@ func (s *Screen) Flip() {
 }
 
 func (s *Screen) SetPixel(x, y uint16, color color.RGBA) {
-	//s.back.SetRGBA(int(x), int(y), color)
-	s.back.Pix[int(x)+int(y)*s.back.Stride] = color
+	s.back.Pix[int(x)+int(uint16(s.back.Rect.Max.Y-1)-y)*s.back.Stride] = color
 }
 
 func toRectangle(rect pixel.Rect) image.Rectangle {
