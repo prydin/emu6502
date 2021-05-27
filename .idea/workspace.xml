@@ -8,7 +8,7 @@
       <change afterPath="$PROJECT_DIR$/../OpenKOM/src/main/main.iml" afterDir="false" />
       <change afterPath="$PROJECT_DIR$/../OpenKOM/src/test/test.iml" afterDir="false" />
       <change afterPath="$PROJECT_DIR$/../code/code.iml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/cia/cia.go" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/cia/cia_test.go" afterDir="false" />
       <change afterPath="$PROJECT_DIR$/../jmandel/jmandel.iml" afterDir="false" />
       <change afterPath="$PROJECT_DIR$/../pptest/pptest.iml" afterDir="false" />
       <change afterPath="$PROJECT_DIR$/../prata/build.gradle" afterDir="false" />
@@ -47,7 +47,9 @@
       <change afterPath="$PROJECT_DIR$/../vrealize-automation-plugin-for-jenkins/vra8-jenkins-plugin.iml" afterDir="false" />
       <change afterPath="$PROJECT_DIR$/../vrealize-automation-plugin-for-jenkins/vrealize-automation-8.iml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/screen/screen.go" beforeDir="false" afterPath="$PROJECT_DIR$/screen/screen.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/c64.go" beforeDir="false" afterPath="$PROJECT_DIR$/c64.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/cia/cia.go" beforeDir="false" afterPath="$PROJECT_DIR$/cia/cia.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/core/bus.go" beforeDir="false" afterPath="$PROJECT_DIR$/core/bus.go" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../fizzbuzz/fizzbuzz.iml" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/../gradle/wrapper/gradle-wrapper.jar" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/../gradle/wrapper/gradle-wrapper.properties" beforeDir="false" />
@@ -225,25 +227,28 @@
       <pattern value="^\QTestNothing\E$" />
       <method v="2" />
     </configuration>
-    <configuration name="TestScreen_SetPixel in github.com/prydin/emu6502/screen" type="GoTestRunConfiguration" factoryName="Go Test" temporary="true" nameIsGenerated="true">
+    <configuration name="TestPort_ReadOutputs in github.com/prydin/emu6502/cia" type="GoTestRunConfiguration" factoryName="Go Test" temporary="true" nameIsGenerated="true">
       <module name="emu6502" />
-      <working_directory value="$PROJECT_DIR$/screen" />
+      <working_directory value="$PROJECT_DIR$/cia" />
       <root_directory value="$PROJECT_DIR$" />
       <kind value="PACKAGE" />
-      <package value="github.com/prydin/emu6502/screen" />
+      <package value="github.com/prydin/emu6502/cia" />
       <directory value="$PROJECT_DIR$" />
       <filePath value="$PROJECT_DIR$" />
       <framework value="gotest" />
-      <pattern value="^\QTestScreen_SetPixel\E$" />
+      <pattern value="^\QTestPort_ReadOutputs\E$" />
       <method v="2" />
     </configuration>
-    <configuration name="c64_test.go" type="GoTestRunConfiguration" factoryName="Go Test" temporary="true" nameIsGenerated="true">
+    <configuration name="TestPort_SetInputs in github.com/prydin/emu6502/cia" type="GoTestRunConfiguration" factoryName="Go Test" temporary="true" nameIsGenerated="true">
       <module name="emu6502" />
-      <working_directory value="$PROJECT_DIR$" />
-      <kind value="FILE" />
+      <working_directory value="$PROJECT_DIR$/cia" />
+      <root_directory value="$PROJECT_DIR$" />
+      <kind value="PACKAGE" />
+      <package value="github.com/prydin/emu6502/cia" />
       <directory value="$PROJECT_DIR$" />
-      <filePath value="$PROJECT_DIR$/c64_test.go" />
+      <filePath value="$PROJECT_DIR$" />
       <framework value="gotest" />
+      <pattern value="^\QTestPort_SetInputs\E$" />
       <method v="2" />
     </configuration>
     <configuration name="go test github.com/prydin/emu6502/screen" type="GoTestRunConfiguration" factoryName="Go Test" temporary="true" nameIsGenerated="true">
@@ -260,10 +265,10 @@
     <recent_temporary>
       <list>
         <item itemvalue="Go Build.go build github.com/prydin/emu6502" />
+        <item itemvalue="Go Test.TestPort_SetInputs in github.com/prydin/emu6502/cia" />
+        <item itemvalue="Go Test.TestPort_ReadOutputs in github.com/prydin/emu6502/cia" />
         <item itemvalue="Go Test.go test github.com/prydin/emu6502/screen" />
         <item itemvalue="Go Test.TestNothing in github.com/prydin/emu6502/screen" />
-        <item itemvalue="Go Test.TestScreen_SetPixel in github.com/prydin/emu6502/screen" />
-        <item itemvalue="Go Test.c64_test.go" />
       </list>
     </recent_temporary>
   </component>
@@ -335,11 +340,6 @@
           <option name="timeStamp" value="166" />
         </line-breakpoint>
         <line-breakpoint enabled="true" type="DlvLineBreakpoint">
-          <url>file://$PROJECT_DIR$/vic-ii/vic_ii.go</url>
-          <line>399</line>
-          <option name="timeStamp" value="183" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" type="DlvLineBreakpoint">
           <url>file://$USER_HOME$/go/pkg/mod/github.com/faiface/pixel@v0.10.0/imdraw/imdraw.go</url>
           <line>124</line>
           <option name="timeStamp" value="192" />
@@ -350,9 +350,14 @@
           <option name="timeStamp" value="196" />
         </line-breakpoint>
         <line-breakpoint enabled="true" type="DlvLineBreakpoint">
-          <url>file://$USER_HOME$/go/pkg/mod/github.com/faiface/pixel@v0.10.0/pixelgl/glpicture.go</url>
-          <line>23</line>
-          <option name="timeStamp" value="199" />
+          <url>file://$PROJECT_DIR$/cia/cia.go</url>
+          <line>224</line>
+          <option name="timeStamp" value="207" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="DlvLineBreakpoint">
+          <url>file://$PROJECT_DIR$/cia/cia.go</url>
+          <line>213</line>
+          <option name="timeStamp" value="208" />
         </line-breakpoint>
       </breakpoints>
     </breakpoint-manager>

@@ -161,6 +161,12 @@ func (r *RAM) WriteByte(addr uint16, data uint8) {
 	}
 }
 
+func (r *RAM) Page(page int) *RAM {
+	return &RAM{
+		Bytes: r.Bytes[page << 8:(page+1)<<8],
+	}
+}
+
 func (t *TriState) PullDown() {
 	if t.pullers == 0 {
 		t.edge = -1

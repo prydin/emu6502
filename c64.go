@@ -23,6 +23,7 @@ package main
 
 import (
 	"github.com/prydin/emu6502/charset"
+	"github.com/prydin/emu6502/cia"
 	"github.com/prydin/emu6502/core"
 	vic_ii "github.com/prydin/emu6502/vic-ii"
 )
@@ -62,20 +63,40 @@ func (c *Commodore64) Init(screen vic_ii.Raster, dimensions vic_ii.ScreenDimensi
 	}
 
 	ram0 := core.MakeRAM(40960) // Main RAM
-	ram1 := core.MakeRAM(8192) // High RAM
-	ram2 := core.MakeRAM(4096) // Banked RAM
-	ram3 := core.MakeRAM(4096) // Banked RAM
-	ram4 := core.MakeRAM(8192) // Banked RAM
+	ram1 := core.MakeRAM(8192)  // High RAM
+	ram2 := core.MakeRAM(4096)  // Banked RAM
+	ram3 := core.MakeRAM(4096)  // Banked RAM
+	ram4 := core.MakeRAM(8192)  // Banked RAM
+
+	cia1 := cia.CIA{}
+	cia1.Init(&c.bus)
+	c.bus.ConnectClockablePh1(&cia1)
+	cia2 := cia.CIA{}
+	cia2.Init(&c.bus)
+	c.bus.ConnectClockablePh1(&cia2)
 
 	io := core.NewPagedSpace([]core.AddressSpace{
-		&c.vic,
+		&c.vic,            		// D000
+		&c.vic,            		// D100
+		&c.vic,            		// D200
+		&c.vic,            		// D300
+		core.MakeRAM(256), // D400 TODO: Placeholder for SID
+		core.MakeRAM(256), // D500 TODO: Placeholder for SID
+		core.MakeRAM(256), // D600 TODO: Placeholder for SID
+		core.MakeRAM(256), // D700 TODO: Placeholder for SID
+		colorRam.Page(0), // D800
+		colorRam.Page(1), // D900
+		colorRam.Page(2), // DA00
+		colorRam.Page(3), // DB00
+		&cia1,             		// DC00
+		&cia2,             		// DD00
 	})
 
 	// Set up the main system bus
-	switcher := core.NewBankSwitcher([][]core.AddressSpace {
-		{ ram2, ram2, ram2, basic, ram2, ram2, ram2, basic },
-		{ ram3, &charset.CharacterROM, &charset.CharacterROM, &charset.CharacterROM, ram3, io, io, io},
-		{ ram4, ram4, kernal, kernal, ram4, ram4, kernal, kernal},
+	switcher := core.NewBankSwitcher([][]core.AddressSpace{
+		{ram2, ram2, ram2, basic, ram2, ram2, ram2, basic},
+		{ram3, &charset.CharacterROM, &charset.CharacterROM, &charset.CharacterROM, ram3, io, io, io},
+		{ram4, ram4, kernal, kernal, ram4, ram4, kernal, kernal},
 	})
 	switcher.Switch(7)
 	c.bus.SetSwitcher(switcher)
