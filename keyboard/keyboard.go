@@ -22,7 +22,6 @@
 package keyboard
 
 import (
-	"fmt"
 	p "github.com/faiface/pixel/pixelgl"
 	"github.com/prydin/emu6502/cia"
 )
@@ -101,13 +100,12 @@ func (k *Keyboard) scanRow(row int) uint8 {
 	result := uint8(0)
 	for col := 0; col < 8; col++ {
 		result <<= 1
-		// TODO: Handle shift
-		if !k.provider.Pressed(keyMatrix[row][col] &^ Shift) {
+		key := keyMatrix[row][col]
+		shiftPressed := k.provider.Pressed(p.KeyLeftShift) || k.provider.Pressed(p.KeyRightShift)
+		shiftWanted := key & Shift != 0
+		if !(k.provider.Pressed(key &^ Shift) && (shiftWanted == shiftPressed))  {
 			result |= 0x01
 		}
-	}
-	if result != 0xff {
-		fmt.Println("Key pressed:", ^result)
 	}
 	return result
 }

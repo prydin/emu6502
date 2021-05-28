@@ -8,8 +8,6 @@
       <change afterPath="$PROJECT_DIR$/../OpenKOM/src/main/main.iml" afterDir="false" />
       <change afterPath="$PROJECT_DIR$/../OpenKOM/src/test/test.iml" afterDir="false" />
       <change afterPath="$PROJECT_DIR$/../code/code.iml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/keyboard/keyboard.go" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/keyboard/keyboard_test.go" afterDir="false" />
       <change afterPath="$PROJECT_DIR$/../jmandel/jmandel.iml" afterDir="false" />
       <change afterPath="$PROJECT_DIR$/../pptest/pptest.iml" afterDir="false" />
       <change afterPath="$PROJECT_DIR$/../prata/build.gradle" afterDir="false" />
@@ -48,9 +46,7 @@
       <change afterPath="$PROJECT_DIR$/../vrealize-automation-plugin-for-jenkins/vra8-jenkins-plugin.iml" afterDir="false" />
       <change afterPath="$PROJECT_DIR$/../vrealize-automation-plugin-for-jenkins/vrealize-automation-8.iml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/c64.go" beforeDir="false" afterPath="$PROJECT_DIR$/c64.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/cia/cia.go" beforeDir="false" afterPath="$PROJECT_DIR$/cia/cia.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/main.go" beforeDir="false" afterPath="$PROJECT_DIR$/main.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/keyboard/keyboard.go" beforeDir="false" afterPath="$PROJECT_DIR$/keyboard/keyboard.go" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../fizzbuzz/fizzbuzz.iml" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/../gradle/wrapper/gradle-wrapper.jar" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/../gradle/wrapper/gradle-wrapper.properties" beforeDir="false" />
@@ -353,8 +349,13 @@
         </line-breakpoint>
         <line-breakpoint enabled="true" type="DlvLineBreakpoint">
           <url>file://$PROJECT_DIR$/keyboard/keyboard.go</url>
-          <line>85</line>
+          <line>84</line>
           <option name="timeStamp" value="238" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="DlvLineBreakpoint">
+          <url>file://$PROJECT_DIR$/keyboard/keyboard.go</url>
+          <line>105</line>
+          <option name="timeStamp" value="239" />
         </line-breakpoint>
       </breakpoints>
     </breakpoint-manager>
