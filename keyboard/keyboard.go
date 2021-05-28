@@ -29,14 +29,14 @@ import (
 const Shift = 1 << 32
 
 var keyMatrix = [][]p.Button{
-	{p.KeyEscape, p.KeyQ, p.KeyLeftSuper, p.KeySpace, p.Key2, p.KeySpace, p.KeyBackspace, p.Key1},
-	{p.KeySlash, p.Key6 | Shift, p.KeyEqual, p.KeyRightShift, p.KeyHome, p.KeySemicolon, p.Key8 | Shift, p.KeyBackslash},
+	{p.KeyEscape, p.KeyQ, p.KeyLeftSuper, p.KeySpace, p.Key2, p.KeySpace, p.KeyTab, p.Key1},
+	{p.KeySlash, p.Key6 | Shift, p.KeyEqual, p.KeyRightShift, p.KeyHome, p.KeySemicolon, p.KeyRightBracket /*|Shift*/, p.KeyBackslash},
 	{p.KeyComma, p.Key2 | Shift, p.KeySemicolon | Shift, p.KeyPeriod, p.KeyMinus, p.KeyL, p.KeyP, p.KeyEqual | Shift},
 	{p.KeyN, p.KeyO, p.KeyK, p.KeyM, p.Key0, p.KeyJ, p.KeyI, p.Key9},
 	{p.KeyV, p.KeyU, p.KeyH, p.KeyB, p.Key8, p.KeyG, p.KeyY, p.Key7},
 	{p.KeyX, p.KeyT, p.KeyF, p.KeyC, p.Key6, p.KeyD, p.KeyR, p.Key5},
 	{p.KeyLeftShift, p.KeyE, p.KeyS, p.KeyZ, p.Key4, p.KeyA, p.KeyW, p.Key3},
-	{p.KeyDown, p.KeyF5, p.KeyF3, p.KeyF1, p.KeyF7, p.KeyRight, p.KeyEnter, p.KeyDelete},
+	{p.KeyDown, p.KeyF5, p.KeyF3, p.KeyF1, p.KeyF7, p.KeyRight, p.KeyEnter, p.KeyBackspace},
 }
 
 type KeyProvider interface {
@@ -103,7 +103,7 @@ func (k *Keyboard) scanRow(row int) uint8 {
 		key := keyMatrix[row][col]
 		shiftPressed := k.provider.Pressed(p.KeyLeftShift) || k.provider.Pressed(p.KeyRightShift)
 		shiftWanted := key & Shift != 0
-		if !(k.provider.Pressed(key &^ Shift) && (shiftWanted == shiftPressed))  {
+		if !k.provider.Pressed(key &^ Shift) || shiftWanted && !shiftPressed  {
 			result |= 0x01
 		}
 	}
