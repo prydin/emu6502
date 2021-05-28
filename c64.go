@@ -25,6 +25,7 @@ import (
 	"github.com/prydin/emu6502/charset"
 	"github.com/prydin/emu6502/cia"
 	"github.com/prydin/emu6502/core"
+	"github.com/prydin/emu6502/keyboard"
 	vic_ii "github.com/prydin/emu6502/vic-ii"
 )
 
@@ -33,6 +34,7 @@ type Commodore64 struct {
 	vic vic_ii.VicII
 	bus core.Bus
 	ram core.RAM
+	Keyboard *keyboard.Keyboard
 }
 
 func (c *Commodore64) Clock() {
@@ -107,6 +109,11 @@ func (c *Commodore64) Init(screen vic_ii.Raster, dimensions vic_ii.ScreenDimensi
 	c.bus.Connect(switcher.GetBank(1), 0xd000, 0xdfff)
 	c.bus.Connect(switcher.GetBank(2), 0xe000, 0xffff)
 	c.bus.Connect(colorRam, 0xd800, 0xdbff) // Color RAM
+
+	// Connect peripherals
+	c.Keyboard = &keyboard.Keyboard{}
+	c.Keyboard.Init(&cia1)
+	c.bus.ConnectClockablePh1(c.Keyboard)
 
 	// Set up the Vic-II bus
 	vbus.Connect(ram0, 0x0000, 0x9fff)

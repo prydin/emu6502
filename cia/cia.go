@@ -46,17 +46,18 @@ const (
 )
 
 const (
-	internalClock = iota
-	externalClock
-	chainedClock
+	internalClock     = 0x00
+	externalClock     = 0x01
+	chainedClock      = 0x02
+	chainedGatedClock = 0x03
 )
 
 type CIA struct {
-	bus    *core.Bus
-	PortA  Port
-	PortB  Port
-	TimerA Timer
-	TimerB Timer
+	bus       *core.Bus
+	PortA     Port
+	PortB     Port
+	TimerA    Timer
+	TimerB    Timer
 	irqActive bool
 }
 
@@ -75,11 +76,14 @@ type Timer struct {
 	continuous   bool
 	irqEnabled   bool
 	irqOccurred  bool
+	secondary    bool
 	linkedTimer  *Timer
 }
 
 func (c *CIA) Init(bus *core.Bus) {
 	c.bus = bus
+	c.TimerA.linkedTimer = &c.TimerB
+	c.TimerB.secondary = true
 }
 
 func (c *CIA) WriteByte(addr uint16, data uint8) {
@@ -94,29 +98,29 @@ func (c *CIA) WriteByte(addr uint16, data uint8) {
 	case DDRB:
 		c.PortB.ddr = data
 	case TALO:
-		c.TimerA.latch = c.TimerA.latch & 0xff00 | uint16(data)
+		c.TimerA.latch = c.TimerA.latch&0xff00 | uint16(data)
 	case TAHI:
-		c.TimerA.latch = c.TimerA.latch & 0x00ff | uint16(data) << 8
+		c.TimerA.latch = c.TimerA.latch&0x00ff | uint16(data)<<8
 	case TBLO:
-		c.TimerB.latch = c.TimerB.latch & 0xff00 | uint16(data)
+		c.TimerB.latch = c.TimerB.latch&0xff00 | uint16(data)
 	case TBHI:
-		c.TimerB.latch = c.TimerB.latch & 0x00ff | uint16(data) << 8
+		c.TimerB.latch = c.TimerB.latch&0x00ff | uint16(data)<<8
 	case ICR:
-		if data & 0x80 != 0 {
+		if data&0x80 != 0 {
 			// Set bits
-			if data & 0x01 != 0 {
+			if data&0x01 != 0 {
 				c.TimerA.irqEnabled = true
 			}
-			if data & 0x02 != 0 {
+			if data&0x02 != 0 {
 				c.TimerB.irqEnabled = true
 			}
 			// TODO: More flags
 		} else {
 			// Clear bits
-			if data & 0x01 != 0 {
+			if data&0x01 != 0 {
 				c.TimerA.irqEnabled = false
 			}
-			if data & 0x02 != 0 {
+			if data&0x02 != 0 {
 				c.TimerB.irqEnabled = false
 			}
 			// TODO: More flags
@@ -169,7 +173,6 @@ func (c *CIA) ReadByte(addr uint16) uint8 {
 	return 0xff // TODO: Is this correct?
 }
 
-
 func (c *CIA) Clock() {
 	irqA := c.TimerA.irqOccurred
 	irqB := c.TimerB.irqOccurred
@@ -202,6 +205,7 @@ func (p *Port) SetInputs(data uint8) {
 }
 
 func (t *Timer) PulseCNT() {
+	// TODO: Implement pin state instead
 	if t.running && t.source == externalClock {
 		atomic.AddInt64(&t.pendingTicks, 1)
 	}
@@ -239,24 +243,25 @@ func (t *Timer) tick() {
 }
 
 func (t *Timer) setControlFlags(flags uint8) {
-	t.running = flags & 0x01 != 0
+	t.running = flags&0x01 != 0
 	// TODO: Handle output modes
-	t.continuous = flags & 0x08 == 0
-	if flags & 0x10 != 0 {
+	t.continuous = flags&0x08 == 0
+	if flags&0x10 != 0 {
 		t.counter = t.latch
 	}
-	if flags & 0x20 == 0 {
-		t.source = internalClock
+	if t.secondary {
+		t.source = int(flags & 0x60 >> 6)
 	} else {
-		t.source = externalClock
+		t.source = int(flags & 0x20 >> 6)
 	}
+
 	// TODO: Handle serial port mode
 	// TODO: Handle TOD frequency
 }
 
 func (t *Timer) getControlFlags() uint8 {
 	flags := uint8(0)
-	if t.running  {
+	if t.running {
 		flags |= 0x01
 	}
 	if t.continuous {

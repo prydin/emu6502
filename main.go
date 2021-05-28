@@ -56,16 +56,19 @@ func main() {
 			Title:  "Gommodore64",
 			Bounds: pixel.R(0, 0, 1024, 768),
 			VSync:  true,
+			Resizable: true,
 		}
 		win, err := pixelgl.NewWindow(cfg)
 		if err != nil {
 			panic(err)
 		}
+		win.SetSmooth(true) // Gives a nice blurry retro look!
 		scr := screen.New(win, image.Rectangle{
 			Min: image.Point{},
 			Max: image.Point{vic_ii.PalVisibleWidth, vic_ii.PalVisibleHeight},
 		})
 		c64.Init(scr, vic_ii.PALDimensions)
+		c64.Keyboard.SetProvider(win)
 		//c64.cpu.Trace = true
 		c64.cpu.Reset()
 
