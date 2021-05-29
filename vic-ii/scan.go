@@ -131,9 +131,9 @@ func (v *VicII) cAccess() {
 	ch := v.bus.ReadByte(v.screenMemPtr | v.vc)
 	col := v.colorRam.ReadByte(v.vc)
 	if v.bitmapMode {
-		v.cBuf[v.vmli] = uint16(ch)&0x0f | (uint16(col)&0x0f)<<4
+		v.cBuf[v.vmli] =  (uint16(col)&0x0f)<<4 | uint16(ch)&0x0f
 	} else {
-		v.cBuf[v.vmli] = uint16(ch) | uint16(col)<<8
+		v.cBuf[v.vmli] =  uint16(col)<<8 | uint16(ch)
 	}
 }
 
@@ -278,7 +278,7 @@ func (v *VicII) renderBitmap(x uint16) {
 	index := v.cycle%v.dimensions.CyclesPerLine - v.dimensions.FirstContentCycle
 	data := v.cBuf[index]
 	bgColor := uint8(data & 0x0f)
-	fgColor := uint8(data >> 4)
+	fgColor := uint8(data >> 4) & 0x0f
 	pattern := v.gBuf[index]
 	if v.multiColor {
 		for i := uint16(0); i < 4; i++ {

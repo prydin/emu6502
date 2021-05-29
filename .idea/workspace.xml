@@ -45,7 +45,9 @@
       <change afterPath="$PROJECT_DIR$/../vrealize-automation-plugin-for-jenkins/vmware-vra8-jenkins-plugin.iml" afterDir="false" />
       <change afterPath="$PROJECT_DIR$/../vrealize-automation-plugin-for-jenkins/vra8-jenkins-plugin.iml" afterDir="false" />
       <change afterPath="$PROJECT_DIR$/../vrealize-automation-plugin-for-jenkins/vrealize-automation-8.iml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/keyboard/keyboard.go" beforeDir="false" afterPath="$PROJECT_DIR$/keyboard/keyboard.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/README.md" beforeDir="false" afterPath="$PROJECT_DIR$/README.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/vic-ii/scan.go" beforeDir="false" afterPath="$PROJECT_DIR$/vic-ii/scan.go" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../fizzbuzz/fizzbuzz.iml" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/../gradle/wrapper/gradle-wrapper.jar" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/../gradle/wrapper/gradle-wrapper.properties" beforeDir="false" />
@@ -211,6 +213,14 @@
       <filePath value="$PROJECT_DIR$/main.go" />
       <method v="2" />
     </configuration>
+    <configuration name="go build main.go" type="GoApplicationRunConfiguration" factoryName="Go Application" temporary="true" nameIsGenerated="true">
+      <module name="emu6502" />
+      <working_directory value="$PROJECT_DIR$" />
+      <kind value="FILE" />
+      <directory value="$PROJECT_DIR$" />
+      <filePath value="$PROJECT_DIR$/main.go" />
+      <method v="2" />
+    </configuration>
     <configuration name="TestKeyboard_ScanAll in github.com/prydin/emu6502/keyboard" type="GoTestRunConfiguration" factoryName="Go Test" temporary="true" nameIsGenerated="true">
       <module name="emu6502" />
       <working_directory value="$PROJECT_DIR$/keyboard" />
@@ -235,37 +245,25 @@
       <pattern value="^\QTestKeyboard_ScanRow\E$" />
       <method v="2" />
     </configuration>
-    <configuration name="TestKeyboard_scan in github.com/prydin/emu6502/keyboard" type="GoTestRunConfiguration" factoryName="Go Test" temporary="true" nameIsGenerated="true">
+    <configuration name="Test_CharacterMode in github.com/prydin/emu6502/vic-ii" type="GoTestRunConfiguration" factoryName="Go Test" temporary="true" nameIsGenerated="true">
       <module name="emu6502" />
-      <working_directory value="$PROJECT_DIR$/keyboard" />
+      <working_directory value="$PROJECT_DIR$/vic-ii" />
       <root_directory value="$PROJECT_DIR$" />
       <kind value="PACKAGE" />
-      <package value="github.com/prydin/emu6502/keyboard" />
+      <package value="github.com/prydin/emu6502/vic-ii" />
       <directory value="$PROJECT_DIR$" />
       <filePath value="$PROJECT_DIR$" />
       <framework value="gotest" />
-      <pattern value="^\QTestKeyboard_scan\E$" />
-      <method v="2" />
-    </configuration>
-    <configuration name="TestPort_SetInputs in github.com/prydin/emu6502/cia" type="GoTestRunConfiguration" factoryName="Go Test" temporary="true" nameIsGenerated="true">
-      <module name="emu6502" />
-      <working_directory value="$PROJECT_DIR$/cia" />
-      <root_directory value="$PROJECT_DIR$" />
-      <kind value="PACKAGE" />
-      <package value="github.com/prydin/emu6502/cia" />
-      <directory value="$PROJECT_DIR$" />
-      <filePath value="$PROJECT_DIR$" />
-      <framework value="gotest" />
-      <pattern value="^\QTestPort_SetInputs\E$" />
+      <pattern value="^\QTest_CharacterMode\E$" />
       <method v="2" />
     </configuration>
     <recent_temporary>
       <list>
         <item itemvalue="Go Build.go build github.com/prydin/emu6502" />
+        <item itemvalue="Go Test.Test_CharacterMode in github.com/prydin/emu6502/vic-ii" />
+        <item itemvalue="Go Build.go build main.go" />
         <item itemvalue="Go Test.TestKeyboard_ScanAll in github.com/prydin/emu6502/keyboard" />
         <item itemvalue="Go Test.TestKeyboard_ScanRow in github.com/prydin/emu6502/keyboard" />
-        <item itemvalue="Go Test.TestKeyboard_scan in github.com/prydin/emu6502/keyboard" />
-        <item itemvalue="Go Test.TestPort_SetInputs in github.com/prydin/emu6502/cia" />
       </list>
     </recent_temporary>
   </component>
@@ -346,19 +344,12 @@
           <line>240</line>
           <option name="timeStamp" value="196" />
         </line-breakpoint>
-        <line-breakpoint enabled="true" type="DlvLineBreakpoint">
-          <url>file://$PROJECT_DIR$/keyboard/keyboard.go</url>
-          <line>84</line>
-          <option name="timeStamp" value="238" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" type="DlvLineBreakpoint">
-          <url>file://$PROJECT_DIR$/keyboard/keyboard.go</url>
-          <line>105</line>
-          <option name="timeStamp" value="239" />
-        </line-breakpoint>
       </breakpoints>
     </breakpoint-manager>
     <watches-manager>
+      <configuration name="GoApplicationRunConfiguration">
+        <watch expression="v.cBuf[int(v.vmli)]" language="go" />
+      </configuration>
       <configuration name="GoTestRunConfiguration">
         <watch expression="^mask" language="go" />
       </configuration>
