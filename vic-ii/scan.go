@@ -131,7 +131,7 @@ func (v *VicII) cAccess() {
 	ch := v.bus.ReadByte(v.screenMemPtr | v.vc)
 	col := v.colorRam.ReadByte(v.vc)
 	if v.bitmapMode {
-		v.cBuf[v.vmli] =  (uint16(col)&0x0f)<<4 | uint16(ch)&0x0f
+		v.cBuf[v.vmli] =  uint16(ch)
 	} else {
 		v.cBuf[v.vmli] =  uint16(col)<<8 | uint16(ch)
 	}

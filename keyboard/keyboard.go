@@ -29,7 +29,7 @@ import (
 const Shift = 1 << 32
 
 var keyMatrix = [][]p.Button{
-	{p.KeyEscape, p.KeyQ, p.KeyLeftSuper, p.KeySpace, p.Key2, p.KeySpace, p.KeyTab, p.Key1},
+	{p.KeyEscape, p.KeyQ, p.KeyLeftSuper, p.KeySpace, p.Key2, p.KeyLeftControl, p.KeyTab, p.Key1},
 	{p.KeySlash, p.Key6 | Shift, p.KeyEqual, p.KeyRightShift, p.KeyHome, p.KeySemicolon, p.KeyRightBracket /*|Shift*/, p.KeyBackslash},
 	{p.KeyComma, p.Key2 | Shift, p.KeySemicolon | Shift, p.KeyPeriod, p.KeyMinus, p.KeyL, p.KeyP, p.KeyEqual | Shift},
 	{p.KeyN, p.KeyO, p.KeyK, p.KeyM, p.Key0, p.KeyJ, p.KeyI, p.Key9},
