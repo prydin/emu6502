@@ -66,6 +66,15 @@ func (v *VicII) Clock() {
 			}
 		}
 
+		// Handle sprite access if we're in the right part of the line. Sprite pointer access
+		// happens on odd cycles right before or right after the visible area.
+		if localCycle & 0x01 == 1 {
+			sprite := getSpriteForCycle(localCycle)
+			if sprite != 0xff {
+				v.pAccess(sprite)
+			}
+		}
+
 		// Handle visible stuff
 		contentBottom := v.dimensions.ContentBottom24Lines
 		if v.line25 {
@@ -155,6 +164,13 @@ func (v *VicII) gAccess() {
 	// Increment counters and make sure they stay within 6 and 10 bits boundary respectively
 	v.vmli = (v.vmli + 1) & 0x003f
 	v.vc = (v.vc + 1) & 0x03ff
+}
+
+func (v* VicII) pAccess(spriteIndex uint16) {
+	if !v.sprites[spriteIndex].enabled {
+		return
+	}
+	v.sprites[spriteIndex].pointer = uint16(v.bus.ReadByte(v.screenMemPtr | 0x03f8 | spriteIndex)) << 8
 }
 
 func (v *VicII) rasterInterrupt() {
@@ -313,6 +329,17 @@ func (v *VicII) renderBitmap(x uint16) {
 	}
 }
 
+func getSpriteForCycle(localCycle uint16) uint16{
+	if localCycle <= 9 && localCycle > 0 {
+		return (localCycle - 1) / 2 + 3
+	}
+	if localCycle >= 59 {
+		return (localCycle - 59) / 2
+	} else {
+		return 0xff
+	}
+}
+
 func min(a uint16, b uint16) uint16 {
 	if a < b {
 		return a
@@ -328,3 +355,4 @@ func max(a uint16, b uint16) uint16 {
 		return b
 	}
 }
+

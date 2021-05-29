@@ -109,6 +109,7 @@ const (
 )
 
 type Sprite struct {
+	pointer uint16
 	enabled     bool
 	x           uint16
 	y           uint8
