@@ -31,7 +31,7 @@ const Shift = 1 << 32
 var keyMatrix = [][]p.Button{
 	{p.KeyEscape, p.KeyQ, p.KeyLeftSuper, p.KeySpace, p.Key2, p.KeyLeftControl, p.KeyTab, p.Key1},
 	{p.KeySlash, p.Key6 | Shift, p.KeyEqual, p.KeyRightShift, p.KeyHome, p.KeySemicolon, p.KeyRightBracket /*|Shift*/, p.KeyBackslash},
-	{p.KeyComma, p.Key2 | Shift, p.KeySemicolon | Shift, p.KeyPeriod, p.KeyMinus, p.KeyL, p.KeyP, p.KeyEqual | Shift},
+	{p.KeyComma, p.Key2 | Shift, p.KeySemicolon | Shift, p.KeyPeriod, p.KeyEqual, p.KeyL, p.KeyP, p.KeyMinus},
 	{p.KeyN, p.KeyO, p.KeyK, p.KeyM, p.Key0, p.KeyJ, p.KeyI, p.Key9},
 	{p.KeyV, p.KeyU, p.KeyH, p.KeyB, p.Key8, p.KeyG, p.KeyY, p.Key7},
 	{p.KeyX, p.KeyT, p.KeyF, p.KeyC, p.Key6, p.KeyD, p.KeyR, p.Key5},
@@ -82,7 +82,7 @@ func (k *Keyboard) scan() uint8 {
 
 	// Fast path: Only one bit cleared
 	if n == 1 {
-		return k.scanRow(7-p)
+		return k.scanRow(7 - p)
 	}
 	// Slow path: Scan entire matrix
 	result := uint8(0xff)
@@ -102,8 +102,8 @@ func (k *Keyboard) scanRow(row int) uint8 {
 		result <<= 1
 		key := keyMatrix[row][col]
 		shiftPressed := k.provider.Pressed(p.KeyLeftShift) || k.provider.Pressed(p.KeyRightShift)
-		shiftWanted := key & Shift != 0
-		if !k.provider.Pressed(key &^ Shift) || shiftWanted && !shiftPressed  {
+		shiftWanted := key&Shift != 0
+		if !k.provider.Pressed(key&^Shift) || shiftWanted && !shiftPressed {
 			result |= 0x01
 		}
 	}

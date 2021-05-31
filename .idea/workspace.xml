@@ -8,7 +8,6 @@
       <change afterPath="$PROJECT_DIR$/../OpenKOM/src/main/main.iml" afterDir="false" />
       <change afterPath="$PROJECT_DIR$/../OpenKOM/src/test/test.iml" afterDir="false" />
       <change afterPath="$PROJECT_DIR$/../code/code.iml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/saveactions_settings.xml" afterDir="false" />
       <change afterPath="$PROJECT_DIR$/../jmandel/jmandel.iml" afterDir="false" />
       <change afterPath="$PROJECT_DIR$/../pptest/pptest.iml" afterDir="false" />
       <change afterPath="$PROJECT_DIR$/../prata/build.gradle" afterDir="false" />
@@ -48,8 +47,6 @@
       <change afterPath="$PROJECT_DIR$/../vrealize-automation-plugin-for-jenkins/vrealize-automation-8.iml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/vic-ii/scan.go" beforeDir="false" afterPath="$PROJECT_DIR$/vic-ii/scan.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/vic-ii/scan_test.go" beforeDir="false" afterPath="$PROJECT_DIR$/vic-ii/scan_test.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/vic-ii/vic_ii.go" beforeDir="false" afterPath="$PROJECT_DIR$/vic-ii/vic_ii.go" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../fizzbuzz/fizzbuzz.iml" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/../gradle/wrapper/gradle-wrapper.jar" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/../gradle/wrapper/gradle-wrapper.properties" beforeDir="false" />
@@ -205,7 +202,7 @@
       <recent name="$PROJECT_DIR$/core" />
     </key>
   </component>
-  <component name="RunManager" selected="Go Test.TestDrawSprite in github.com/prydin/emu6502/vic-ii">
+  <component name="RunManager" selected="Go Build.go build github.com/prydin/emu6502">
     <configuration name="go build github.com/prydin/emu6502" type="GoApplicationRunConfiguration" factoryName="Go Application" temporary="true" nameIsGenerated="true">
       <module name="emu6502" />
       <working_directory value="$PROJECT_DIR$" />
@@ -251,7 +248,7 @@
       <pattern value="^\QTestSAccess\E$" />
       <method v="2" />
     </configuration>
-    <configuration name="Test_getSpriteFromCycle in github.com/prydin/emu6502/vic-ii" type="GoTestRunConfiguration" factoryName="Go Test" temporary="true" nameIsGenerated="true">
+    <configuration name="Test_CharacterMode in github.com/prydin/emu6502/vic-ii" type="GoTestRunConfiguration" factoryName="Go Test" temporary="true" nameIsGenerated="true">
       <module name="emu6502" />
       <working_directory value="$PROJECT_DIR$/vic-ii" />
       <root_directory value="$PROJECT_DIR$" />
@@ -260,16 +257,16 @@
       <directory value="$PROJECT_DIR$" />
       <filePath value="$PROJECT_DIR$" />
       <framework value="gotest" />
-      <pattern value="^\QTest_getSpriteFromCycle\E$" />
+      <pattern value="^\QTest_CharacterMode\E$" />
       <method v="2" />
     </configuration>
     <recent_temporary>
       <list>
+        <item itemvalue="Go Build.go build github.com/prydin/emu6502" />
+        <item itemvalue="Go Test.Test_CharacterMode in github.com/prydin/emu6502/vic-ii" />
         <item itemvalue="Go Test.TestDrawSprite in github.com/prydin/emu6502/vic-ii" />
         <item itemvalue="Go Test.TestSAccess in github.com/prydin/emu6502/vic-ii" />
         <item itemvalue="Go Test.TestPAccess in github.com/prydin/emu6502/vic-ii" />
-        <item itemvalue="Go Test.Test_getSpriteFromCycle in github.com/prydin/emu6502/vic-ii" />
-        <item itemvalue="Go Build.go build github.com/prydin/emu6502" />
       </list>
     </recent_temporary>
   </component>
@@ -288,6 +285,16 @@
   <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
   <component name="TypeScriptGeneratedFilesManager">
     <option name="version" value="3" />
+  </component>
+  <component name="Vcs.Log.History.Properties">
+    <option name="COLUMN_ID_ORDER">
+      <list>
+        <option value="Default.Root" />
+        <option value="Default.Author" />
+        <option value="Default.Date" />
+        <option value="Default.Subject" />
+      </list>
+    </option>
   </component>
   <component name="VgoProject">
     <integration-enabled>true</integration-enabled>
@@ -362,8 +369,8 @@
         </line-breakpoint>
         <line-breakpoint enabled="true" type="DlvLineBreakpoint">
           <url>file://$PROJECT_DIR$/vic-ii/scan.go</url>
-          <line>307</line>
-          <option name="timeStamp" value="227" />
+          <line>197</line>
+          <option name="timeStamp" value="232" />
         </line-breakpoint>
       </breakpoints>
     </breakpoint-manager>

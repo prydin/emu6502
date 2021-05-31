@@ -119,6 +119,8 @@ func (v *VicII) Clock() {
 					}
 				}
 			case 16:
+				v.displayState = true
+
 				// In the first phase of cycle 16, it is checked if the expansion flip flop
 				// is set. If so, MCBASE is incremented by 1. After that, the VIC checks if
 				// MCBASE is equal to 63 and turns of the DMA and the display of the sprite
@@ -165,26 +167,24 @@ func (v *VicII) Clock() {
 				if v.displayState {
 					v.rc = (v.rc + 1) & 0x07
 				}
-			default:
-				if localCycle >= 16 && localCycle <= 56 {
-					v.gAccess()
-					if localCycle == 16 {
-						v.displayState = true
+			}
+
+			// Misc stuff that's better handled outside the switch
+			if localCycle >= 16 && localCycle < 56 {
+				v.gAccess()
+			}
+			if localCycle >= 12 && localCycle <= 54 {
+				if !v.skipFrame && v.rasterLine&0x07 == v.scrollY {
+					if !v.badLine {
+						// Flipping from normal to bad
+						v.badLine = true
+						v.bus.RDY.PullDown()
 					}
-				}
-				if localCycle >= 12 && localCycle <= 54 {
-					if !v.skipFrame && v.rasterLine&0x07 == v.scrollY {
-						if !v.badLine {
-							// Flipping from normal to bad
-							v.badLine = true
-							v.bus.RDY.PullDown()
-						}
-					} else {
-						// Flipping from bad to normal
-						if v.badLine {
-							v.badLine = false
-							v.bus.RDY.Release()
-						}
+				} else {
+					// Flipping from bad to normal
+					if v.badLine {
+						v.badLine = false
+						v.bus.RDY.Release()
 					}
 				}
 			}
@@ -353,7 +353,7 @@ func (v *VicII) renderText(x uint16) {
 			pattern <<= 2
 		}
 	} else {
-		// Standard monocrome text mode (including multi background)
+		// Standard monochrome text mode (including multi background)
 		for i := uint16(0); i < 8; i++ {
 			color := uint8(0)
 			if pattern&0x80 != 0 {
