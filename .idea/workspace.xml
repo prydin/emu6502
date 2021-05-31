@@ -8,6 +8,7 @@
       <change afterPath="$PROJECT_DIR$/../OpenKOM/src/main/main.iml" afterDir="false" />
       <change afterPath="$PROJECT_DIR$/../OpenKOM/src/test/test.iml" afterDir="false" />
       <change afterPath="$PROJECT_DIR$/../code/code.iml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/saveactions_settings.xml" afterDir="false" />
       <change afterPath="$PROJECT_DIR$/../jmandel/jmandel.iml" afterDir="false" />
       <change afterPath="$PROJECT_DIR$/../pptest/pptest.iml" afterDir="false" />
       <change afterPath="$PROJECT_DIR$/../prata/build.gradle" afterDir="false" />
@@ -47,6 +48,7 @@
       <change afterPath="$PROJECT_DIR$/../vrealize-automation-plugin-for-jenkins/vrealize-automation-8.iml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/vic-ii/scan.go" beforeDir="false" afterPath="$PROJECT_DIR$/vic-ii/scan.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/vic-ii/scan_test.go" beforeDir="false" afterPath="$PROJECT_DIR$/vic-ii/scan_test.go" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/vic-ii/vic_ii.go" beforeDir="false" afterPath="$PROJECT_DIR$/vic-ii/vic_ii.go" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../fizzbuzz/fizzbuzz.iml" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/../gradle/wrapper/gradle-wrapper.jar" beforeDir="false" />
@@ -196,14 +198,14 @@
     <property name="last_opened_file_path" value="$USER_HOME$" />
     <property name="nodejs_interpreter_path.stuck_in_default_project" value="undefined stuck path" />
     <property name="nodejs_npm_path_reset_for_default_project" value="true" />
-    <property name="settings.editor.selected.configurable" value="copyright.profiles" />
+    <property name="settings.editor.selected.configurable" value="settings.saveactions" />
   </component>
   <component name="RecentsManager">
     <key name="MoveFile.RECENT_KEYS">
       <recent name="$PROJECT_DIR$/core" />
     </key>
   </component>
-  <component name="RunManager" selected="Go Build.go build github.com/prydin/emu6502">
+  <component name="RunManager" selected="Go Test.TestDrawSprite in github.com/prydin/emu6502/vic-ii">
     <configuration name="go build github.com/prydin/emu6502" type="GoApplicationRunConfiguration" factoryName="Go Application" temporary="true" nameIsGenerated="true">
       <module name="emu6502" />
       <working_directory value="$PROJECT_DIR$" />
@@ -213,39 +215,7 @@
       <filePath value="$PROJECT_DIR$/main.go" />
       <method v="2" />
     </configuration>
-    <configuration name="go build main.go" type="GoApplicationRunConfiguration" factoryName="Go Application" temporary="true" nameIsGenerated="true">
-      <module name="emu6502" />
-      <working_directory value="$PROJECT_DIR$" />
-      <kind value="FILE" />
-      <directory value="$PROJECT_DIR$" />
-      <filePath value="$PROJECT_DIR$/main.go" />
-      <method v="2" />
-    </configuration>
-    <configuration name="TestKeyboard_ScanAll in github.com/prydin/emu6502/keyboard" type="GoTestRunConfiguration" factoryName="Go Test" temporary="true" nameIsGenerated="true">
-      <module name="emu6502" />
-      <working_directory value="$PROJECT_DIR$/keyboard" />
-      <root_directory value="$PROJECT_DIR$" />
-      <kind value="PACKAGE" />
-      <package value="github.com/prydin/emu6502/keyboard" />
-      <directory value="$PROJECT_DIR$" />
-      <filePath value="$PROJECT_DIR$" />
-      <framework value="gotest" />
-      <pattern value="^\QTestKeyboard_ScanAll\E$" />
-      <method v="2" />
-    </configuration>
-    <configuration name="TestKeyboard_ScanRow in github.com/prydin/emu6502/keyboard" type="GoTestRunConfiguration" factoryName="Go Test" temporary="true" nameIsGenerated="true">
-      <module name="emu6502" />
-      <working_directory value="$PROJECT_DIR$/keyboard" />
-      <root_directory value="$PROJECT_DIR$" />
-      <kind value="PACKAGE" />
-      <package value="github.com/prydin/emu6502/keyboard" />
-      <directory value="$PROJECT_DIR$" />
-      <filePath value="$PROJECT_DIR$" />
-      <framework value="gotest" />
-      <pattern value="^\QTestKeyboard_ScanRow\E$" />
-      <method v="2" />
-    </configuration>
-    <configuration name="Test_CharacterMode in github.com/prydin/emu6502/vic-ii" type="GoTestRunConfiguration" factoryName="Go Test" temporary="true" nameIsGenerated="true">
+    <configuration name="TestDrawSprite in github.com/prydin/emu6502/vic-ii" type="GoTestRunConfiguration" factoryName="Go Test" temporary="true" nameIsGenerated="true">
       <module name="emu6502" />
       <working_directory value="$PROJECT_DIR$/vic-ii" />
       <root_directory value="$PROJECT_DIR$" />
@@ -254,16 +224,52 @@
       <directory value="$PROJECT_DIR$" />
       <filePath value="$PROJECT_DIR$" />
       <framework value="gotest" />
-      <pattern value="^\QTest_CharacterMode\E$" />
+      <pattern value="^\QTestDrawSprite\E$" />
+      <method v="2" />
+    </configuration>
+    <configuration name="TestPAccess in github.com/prydin/emu6502/vic-ii" type="GoTestRunConfiguration" factoryName="Go Test" temporary="true" nameIsGenerated="true">
+      <module name="emu6502" />
+      <working_directory value="$PROJECT_DIR$/vic-ii" />
+      <root_directory value="$PROJECT_DIR$" />
+      <kind value="PACKAGE" />
+      <package value="github.com/prydin/emu6502/vic-ii" />
+      <directory value="$PROJECT_DIR$" />
+      <filePath value="$PROJECT_DIR$" />
+      <framework value="gotest" />
+      <pattern value="^\QTestPAccess\E$" />
+      <method v="2" />
+    </configuration>
+    <configuration name="TestSAccess in github.com/prydin/emu6502/vic-ii" type="GoTestRunConfiguration" factoryName="Go Test" temporary="true" nameIsGenerated="true">
+      <module name="emu6502" />
+      <working_directory value="$PROJECT_DIR$/vic-ii" />
+      <root_directory value="$PROJECT_DIR$" />
+      <kind value="PACKAGE" />
+      <package value="github.com/prydin/emu6502/vic-ii" />
+      <directory value="$PROJECT_DIR$" />
+      <filePath value="$PROJECT_DIR$" />
+      <framework value="gotest" />
+      <pattern value="^\QTestSAccess\E$" />
+      <method v="2" />
+    </configuration>
+    <configuration name="Test_getSpriteFromCycle in github.com/prydin/emu6502/vic-ii" type="GoTestRunConfiguration" factoryName="Go Test" temporary="true" nameIsGenerated="true">
+      <module name="emu6502" />
+      <working_directory value="$PROJECT_DIR$/vic-ii" />
+      <root_directory value="$PROJECT_DIR$" />
+      <kind value="PACKAGE" />
+      <package value="github.com/prydin/emu6502/vic-ii" />
+      <directory value="$PROJECT_DIR$" />
+      <filePath value="$PROJECT_DIR$" />
+      <framework value="gotest" />
+      <pattern value="^\QTest_getSpriteFromCycle\E$" />
       <method v="2" />
     </configuration>
     <recent_temporary>
       <list>
+        <item itemvalue="Go Test.TestDrawSprite in github.com/prydin/emu6502/vic-ii" />
+        <item itemvalue="Go Test.TestSAccess in github.com/prydin/emu6502/vic-ii" />
+        <item itemvalue="Go Test.TestPAccess in github.com/prydin/emu6502/vic-ii" />
+        <item itemvalue="Go Test.Test_getSpriteFromCycle in github.com/prydin/emu6502/vic-ii" />
         <item itemvalue="Go Build.go build github.com/prydin/emu6502" />
-        <item itemvalue="Go Test.Test_CharacterMode in github.com/prydin/emu6502/vic-ii" />
-        <item itemvalue="Go Build.go build main.go" />
-        <item itemvalue="Go Test.TestKeyboard_ScanAll in github.com/prydin/emu6502/keyboard" />
-        <item itemvalue="Go Test.TestKeyboard_ScanRow in github.com/prydin/emu6502/keyboard" />
       </list>
     </recent_temporary>
   </component>
@@ -344,6 +350,21 @@
           <line>240</line>
           <option name="timeStamp" value="196" />
         </line-breakpoint>
+        <line-breakpoint enabled="true" type="DlvLineBreakpoint">
+          <url>file://$PROJECT_DIR$/vic-ii/scan.go</url>
+          <line>424</line>
+          <option name="timeStamp" value="224" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="DlvLineBreakpoint">
+          <url>file://$PROJECT_DIR$/vic-ii/scan.go</url>
+          <line>420</line>
+          <option name="timeStamp" value="225" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="DlvLineBreakpoint">
+          <url>file://$PROJECT_DIR$/vic-ii/scan.go</url>
+          <line>307</line>
+          <option name="timeStamp" value="227" />
+        </line-breakpoint>
       </breakpoints>
     </breakpoint-manager>
     <watches-manager>
@@ -352,6 +373,10 @@
       </configuration>
       <configuration name="GoTestRunConfiguration">
         <watch expression="^mask" language="go" />
+        <watch expression="s.x&gt;&gt;3" language="go" />
+        <watch expression="*(*&quot;uint32&quot;)(824634334172)" />
+        <watch expression="v.sprites[i].expand" language="go" />
+        <watch expression="*(*&quot;uint32&quot;)(824634358748)" />
       </configuration>
     </watches-manager>
   </component>

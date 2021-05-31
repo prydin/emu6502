@@ -21,6 +21,8 @@
 
 package vic_ii
 
+import "fmt"
+
 func (v *VicII) Clock() {
 	localCycle := v.cycle % v.dimensions.CyclesPerLine
 
@@ -34,10 +36,18 @@ func (v *VicII) Clock() {
 			v.rasterLine >= PalFirstVisibleLine && v.rasterLine <= PalLastVisibleLine {
 			v.renderCycle()
 		}
+
+		// Perform c-access on bad lines
 		if v.badLine && localCycle >= 15 && localCycle <= 54 {
 			v.cAccess()
 		}
 		v.cpuBus.ClockPh2()
+
+		// Perform s-access if sprites are enabled
+		sprite, _ := getSpriteForCycle(localCycle)
+		if sprite != 0x0ff {
+			v.sAccess(sprite)
+		}
 
 		// Move to next cycle
 		v.cycle++
@@ -66,13 +76,22 @@ func (v *VicII) Clock() {
 			}
 		}
 
-		// Handle sprite access if we're in the right part of the line. Sprite pointer access
-		// happens on odd cycles right before or right after the visible area.
-		if localCycle & 0x01 == 1 {
-			sprite := getSpriteForCycle(localCycle)
-			if sprite != 0xff {
+		// Handle sprite access if we're in the right part of the line.
+		sprite, pCycle := getSpriteForCycle(localCycle)
+		if sprite != 0xff {
+			if pCycle {
 				v.pAccess(sprite)
+			} else {
+				v.sAccess(sprite)
 			}
+		}
+
+		// Are we three cycles away from a sprite with DMA enabled?
+		// Then we need to lower the RDY line to stun the CPU while
+		// we do phase 2 accesses to get the sprite data. The
+		// RDY line will be raised at the end of the last S-access.
+		if v.spriteWillNeedBus(localCycle) {
+			v.bus.RDY.PullDown()
 		}
 
 		// Handle visible stuff
@@ -91,17 +110,56 @@ func (v *VicII) Clock() {
 				if v.badLine {
 					v.rc = 0
 				}
+			case 15:
+				// In the first phase of cycle 15, it is checked if the expansion flip flop
+				// is set. If so, MCBASE is incremented by 2.
+				for i := range v.sprites {
+					if v.sprites[i].expand {
+						v.sprites[i].mcBase += 2
+					}
+				}
+			case 16:
+				// In the first phase of cycle 16, it is checked if the expansion flip flop
+				// is set. If so, MCBASE is incremented by 1. After that, the VIC checks if
+				// MCBASE is equal to 63 and turns of the DMA and the display of the sprite
+				// if it is.
+				for i := range v.sprites {
+					s := &v.sprites[i]
+					if s.expand {
+						s.mcBase = (s.mcBase + 1) & 0x3f
+						if s.mcBase == 0x3f {
+							s.dma = false
+						}
+					}
+				}
 			case 55:
 				// Bad lines always end here regardless of how they started
 				if v.badLine {
 					v.badLine = false
 					v.bus.RDY.Release()
 				}
+				v.checkSpriteAndInit(true)
+			case 56:
+				v.checkSpriteAndInit(false)
 			case 58:
 				if v.rc == 0x07 {
 					v.rc = 0 // vic-ii.txt: 3.7.2.5
 					v.vcBase = v.vc
 					v.displayState = false
+				}
+
+				/* 4. In the first phase of cycle 58, the MC of every sprite is loaded from
+				   its belonging MCBASE (MCBASE->MC) and it is checked if the DMA for the
+				   sprite is turned on and the Y coordinate of the sprite matches the lower
+				   8 bits of RASTER. If this is the case, the display of the sprite is
+				   turned on.
+				*/
+				for i := range v.sprites {
+					s := &v.sprites[i]
+					s.mc = s.mcBase
+					if s.dma {
+						s.displayEnabled = true
+					}
 				}
 			case 59:
 				if v.displayState {
@@ -140,9 +198,9 @@ func (v *VicII) cAccess() {
 	ch := v.bus.ReadByte(v.screenMemPtr | v.vc)
 	col := v.colorRam.ReadByte(v.vc)
 	if v.bitmapMode {
-		v.cBuf[v.vmli] =  uint16(ch)
+		v.cBuf[v.vmli] = uint16(ch)
 	} else {
-		v.cBuf[v.vmli] =  uint16(col)<<8 | uint16(ch)
+		v.cBuf[v.vmli] = uint16(col)<<8 | uint16(ch)
 	}
 }
 
@@ -166,11 +224,25 @@ func (v *VicII) gAccess() {
 	v.vc = (v.vc + 1) & 0x03ff
 }
 
-func (v* VicII) pAccess(spriteIndex uint16) {
-	if !v.sprites[spriteIndex].enabled {
+func (v *VicII) pAccess(spriteIndex uint16) {
+	addr := v.screenMemPtr | 0x03f8 | spriteIndex
+	v.sprites[spriteIndex].pointer = uint16(v.bus.ReadByte(addr)) << 6
+	v.sprites[spriteIndex].shiftReg = 0
+}
+
+func (v *VicII) sAccess(spriteIndex uint16) {
+	s := &v.sprites[spriteIndex]
+	if !s.dma {
 		return
 	}
-	v.sprites[spriteIndex].pointer = uint16(v.bus.ReadByte(v.screenMemPtr | 0x03f8 | spriteIndex)) << 8
+	s.shiftReg = s.shiftReg<<8 | uint32(v.bus.ReadByte(s.pointer+uint16(s.mc)))
+	s.sIndex++
+	s.mc++
+	fmt.Printf("%d %024b\n", s.mc, s.shiftReg)
+	if s.sIndex > 2 {
+		s.sIndex = 0
+		v.bus.RDY.Release()
+	}
 }
 
 func (v *VicII) rasterInterrupt() {
@@ -229,6 +301,13 @@ func (v *VicII) renderCycle() {
 			}
 		} else {
 			v.drawBackground(startPixel, 8)
+		}
+		// TODO: Sprite priority
+		for i := range v.sprites {
+			s := &v.sprites[i]
+			if s.displayEnabled && localCycle >= s.x>>3 && s.shiftReg != 0 { // TODO: Need visible flag as well as DMA?
+				v.renderSprite(s, startPixel, s.x<<3 == localCycle)
+			}
 		}
 	}
 }
@@ -294,7 +373,7 @@ func (v *VicII) renderBitmap(x uint16) {
 	index := v.cycle%v.dimensions.CyclesPerLine - v.dimensions.FirstContentCycle
 	data := v.cBuf[index]
 	bgColor := uint8(data & 0x0f)
-	fgColor := uint8(data >> 4) & 0x0f
+	fgColor := uint8(data>>4) & 0x0f
 	pattern := v.gBuf[index]
 	if v.multiColor {
 		for i := uint16(0); i < 4; i++ {
@@ -329,15 +408,78 @@ func (v *VicII) renderBitmap(x uint16) {
 	}
 }
 
-func getSpriteForCycle(localCycle uint16) uint16{
-	if localCycle <= 9 && localCycle > 0 {
-		return (localCycle - 1) / 2 + 3
+func (v *VicII) renderSprite(s *Sprite, x uint16, leftmostByte bool) {
+	line := v.rasterLine - v.dimensions.FirstVisibleLine
+	xOffset := (s.x - x) % 8
+
+	// Deal with first, possible partial cycle
+	start := uint16(0)
+	if leftmostByte {
+		s.shiftReg = (s.shiftReg << xOffset) & 0x00ffffff
+		start = xOffset
 	}
-	if localCycle >= 59 {
-		return (localCycle - 59) / 2
+	for i := start; i < 8 && s.shiftReg != 0; i++ {
+		if s.shiftReg&(1<<23) != 0 {
+			v.screen.SetPixel(x+i, line, C64Colors[s.color&0x0f])
+		}
+		s.shiftReg = (s.shiftReg << 1) & 0x00ffffff
+	}
+}
+
+// 1. The expansion flip flop is set as long as the bit in MxYE in register
+//    $d017 corresponding to the sprite is cleared.
+// 2. If the MxYE bit is set in the first phase of cycle 55, the expansion
+//    flip flop is inverted.
+// 3. In the first phases of cycle 55 and 56, the VIC checks for every sprite
+//    if the corresponding MxE bit in register $d015 is set and the Y
+//    coordinate of the sprite (odd registers $d001-$d00f) match the lower 8
+//    bits of RASTER. If this is the case and the DMA for the sprite is still
+//    off, the DMA is switched on, MCBASE is cleared, and if the MxYE bit is
+//    set the expansion flip flip is reset.
+func (v *VicII) checkSpriteAndInit(first bool) {
+	// TODO: Handle expansion
+	var start int
+	var end int
+	if first { // TODO: This may be backwards. Needs more research
+		start = 3
+		end = 7
 	} else {
-		return 0xff
+		start = 0
+		end = 2
 	}
+	for i := start; i <= end; i++ {
+		s := &v.sprites[i]
+		if s.expandedY {
+			s.expand = !s.expand
+		}
+		if s.enabled && s.y == uint8(v.rasterLine&0xff) && !s.dma {
+			s.mcBase = 0
+			s.dma = true
+			s.expand = !s.expandedY // If not expanded, flip-flop will remain set forever
+		}
+	}
+}
+
+// Predict whether a sprite will need DMA in three cycles to allow
+// the VIC to pull RDY low.
+func (v *VicII) spriteWillNeedBus(localCycle uint16) bool {
+	sIndex, pCycle := getSpriteForCycle((localCycle - 3) % 63)
+	return sIndex != 0x0ff && pCycle && v.sprites[sIndex].dma
+}
+
+// Returns the sprite for this cycle (or 0xff if no sprite) and 'true' if this is
+// a p-access cycle.
+func getSpriteForCycle(localCycle uint16) (uint16, bool) {
+	if localCycle == 0 {
+		return 2, false // Wrap around from cycle 63 on previous line
+	}
+	if localCycle <= 10 {
+		return (localCycle-1)/2 + 3, localCycle&1 == 1
+	}
+	if localCycle >= 58 {
+		return (localCycle - 58) / 2, localCycle&1 == 0
+	}
+	return 0xff, false
 }
 
 func min(a uint16, b uint16) uint16 {
@@ -355,4 +497,3 @@ func max(a uint16, b uint16) uint16 {
 		return b
 	}
 }
-

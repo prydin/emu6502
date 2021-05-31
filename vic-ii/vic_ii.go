@@ -98,18 +98,7 @@ const (
 	IRQ_ENABLED            = 0x80
 )
 
-// Screen refresh states
-const (
-	STATE_VBLANKT = iota
-	STATE_VBLANKB
-	STATE_HBLANKL
-	STATE_HBLANKR
-	STATE_BORDER
-	STATE_CONTENT
-)
-
 type Sprite struct {
-	pointer uint16
 	enabled     bool
 	x           uint16
 	y           uint8
@@ -118,6 +107,16 @@ type Sprite struct {
 	expandedY   bool
 	hasPriority bool
 	multicolor  bool
+
+	// Internal registers
+	pointer        uint16
+	shiftReg       uint32 // Only using 24 bits
+	mc             uint8
+	sIndex         int
+	mcBase         uint8
+	dma            bool // Will do DMA before/after visible area
+	expand         bool // Internal expand flip-flop
+	displayEnabled bool
 }
 
 type VicII struct {
@@ -189,6 +188,9 @@ func (v *VicII) Init(bus *core.Bus, cpuBus *core.Bus, colorRam core.AddressSpace
 	v.dimensions = dimensions
 	v.colorRam = colorRam
 	v.cpuBus = cpuBus
+	for i := range v.sprites {
+		v.sprites[i].expand = true
+	}
 }
 
 func (v *VicII) ReadByte(addr uint16) uint8 {

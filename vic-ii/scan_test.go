@@ -26,6 +26,7 @@ import (
 	"github.com/beevik/go6502/asm"
 	"github.com/prydin/emu6502/charset"
 	"github.com/prydin/emu6502/core"
+	"github.com/stretchr/testify/require"
 	"image"
 	"image/png"
 	"os"
@@ -43,7 +44,7 @@ func assemble(program string) ([]byte, error) {
 }
 
 func initVicII(mainBus *core.Bus, colorRam core.AddressSpace) (*VicII, *image.RGBA) {
-	img := image.NewRGBA(image.Rectangle{image.Point{0,0}, image.Point{403, 312}})
+	img := image.NewRGBA(image.Rectangle{image.Point{0, 0}, image.Point{403, 312}})
 	vicii := VicII{}
 	bus := &core.Bus{}
 	if mainBus == nil {
@@ -57,7 +58,7 @@ func initVicII(mainBus *core.Bus, colorRam core.AddressSpace) (*VicII, *image.RG
 func Test_BlankScreen(t *testing.T) {
 	vicii, img := initVicII(nil, core.MakeRAM(1024))
 	start := time.Now()
-	for i := 0; i < int(PalScreenWidth) * int(PalScreenHeight) / 4; i++ {
+	for i := 0; i < int(PalScreenWidth)*int(PalScreenHeight)/4; i++ {
 		vicii.Clock()
 	}
 	fmt.Printf("Rendering time: %s", time.Now().Sub(start))
@@ -74,13 +75,13 @@ func Test_CharacterMode(t *testing.T) {
 	for i := range screenMem {
 		if i > 1000 {
 			screenMem[i] = 0xff
-		} else if i % 40 == 0 {
-			screenMem[i] = uint8((i / 40) % 10) + 0x30
+		} else if i%40 == 0 {
+			screenMem[i] = uint8((i/40)%10) + 0x30
 		} else {
 			screenMem[i] = uint8(i%10 + 0x30)
 		}
 	}
-	vicii.bus.Connect(&core.RAM{ Bytes: screenMem[:]}, 0x0400, 0x07ff)
+	vicii.bus.Connect(&core.RAM{Bytes: screenMem[:]}, 0x0400, 0x07ff)
 	for i := uint16(0); i < 1024; i++ {
 		colorRam.WriteByte(i, 14)
 	}
@@ -91,7 +92,7 @@ func Test_CharacterMode(t *testing.T) {
 	vicii.scrollY = 3
 	vicii.scrollX = 3
 	start := time.Now()
-	for i := 0; i < int(PalScreenWidth) * int(PalScreenHeight) / 4; i++ {
+	for i := 0; i < int(PalScreenWidth)*int(PalScreenHeight)/4; i++ {
 		vicii.Clock()
 	}
 	fmt.Printf("Rendering time: %s", time.Now().Sub(start))
@@ -108,7 +109,7 @@ func Test_ExtendedCharacterMode(t *testing.T) {
 	for i := range screenMem {
 		screenMem[i] = uint8(i + 64)
 	}
-	vicii.bus.Connect(&core.RAM{ Bytes: screenMem[:]}, 0x0400, 0x07ff)
+	vicii.bus.Connect(&core.RAM{Bytes: screenMem[:]}, 0x0400, 0x07ff)
 	for i := uint16(0); i < 1024; i++ {
 		colorRam.WriteByte(i, 14)
 	}
@@ -122,7 +123,7 @@ func Test_ExtendedCharacterMode(t *testing.T) {
 	vicii.extendedClr = true
 
 	start := time.Now()
-	for i := 0; i < int(PalScreenWidth) * int(PalScreenHeight) / 4; i++ {
+	for i := 0; i < int(PalScreenWidth)*int(PalScreenHeight)/4; i++ {
 		vicii.Clock()
 	}
 	fmt.Printf("Rendering time: %s", time.Now().Sub(start))
@@ -139,7 +140,7 @@ func Test_MultiColorCharacterMode(t *testing.T) {
 	for i := range screenMem {
 		screenMem[i] = uint8(i % 64)
 	}
-	vicii.bus.Connect(&core.RAM{ Bytes: screenMem[:]}, 0x0400, 0x07ff)
+	vicii.bus.Connect(&core.RAM{Bytes: screenMem[:]}, 0x0400, 0x07ff)
 	for i := uint16(0); i < 1024; i++ {
 		colorRam.WriteByte(i, 14)
 	}
@@ -152,7 +153,7 @@ func Test_MultiColorCharacterMode(t *testing.T) {
 	vicii.multiColor = true
 
 	start := time.Now()
-	for i := 0; i < int(PalScreenWidth) * int(PalScreenHeight) / 4; i++ {
+	for i := 0; i < int(PalScreenWidth)*int(PalScreenHeight)/4; i++ {
 		vicii.Clock()
 	}
 	fmt.Printf("Rendering time: %s", time.Now().Sub(start))
@@ -178,7 +179,7 @@ func Test_BitmapMode(t *testing.T) {
 	for i := range screenMem {
 		screenMem[i] = uint8(i / 40)
 	}
-	vicii.bus.Connect(&core.RAM{ Bytes: screenMem[:]}, 0x0400, 0x07ff)
+	vicii.bus.Connect(&core.RAM{Bytes: screenMem[:]}, 0x0400, 0x07ff)
 	for i := uint16(0); i < 1024; i++ {
 		colorRam.WriteByte(i, 14)
 	}
@@ -190,7 +191,7 @@ func Test_BitmapMode(t *testing.T) {
 	vicii.scrollX = 0
 	vicii.bitmapMode = true
 	start := time.Now()
-	for i := 0; i < int(PalScreenWidth) * int(PalScreenHeight) / 4; i++ {
+	for i := 0; i < int(PalScreenWidth)*int(PalScreenHeight)/4; i++ {
 		vicii.Clock()
 	}
 	fmt.Printf("Rendering time: %s", time.Now().Sub(start))
@@ -211,7 +212,7 @@ func Test_BitmapModeMultiColor(t *testing.T) {
 	for i := range screenMem {
 		screenMem[i] = uint8(i / 40)
 	}
-	vicii.bus.Connect(&core.RAM{ Bytes: screenMem[:]}, 0x0400, 0x07ff)
+	vicii.bus.Connect(&core.RAM{Bytes: screenMem[:]}, 0x0400, 0x07ff)
 	for i := uint16(0); i < 1024; i++ {
 		colorRam.WriteByte(i, 14)
 	}
@@ -224,7 +225,7 @@ func Test_BitmapModeMultiColor(t *testing.T) {
 	vicii.scrollX = 0
 	vicii.bitmapMode = true
 	start := time.Now()
-	for i := 0; i < int(PalScreenWidth) * int(PalScreenHeight) / 4; i++ {
+	for i := 0; i < int(PalScreenWidth)*int(PalScreenHeight)/4; i++ {
 		vicii.Clock()
 	}
 	fmt.Printf("Rendering time: %s", time.Now().Sub(start))
@@ -284,7 +285,7 @@ NOTZERO	CMP #$04
 	if err != nil {
 		panic(err)
 	}
-	mainBus.Connect(&core.RAM{ Bytes: code}, 0x1000, 0x1000+uint16(len(code)))
+	mainBus.Connect(&core.RAM{Bytes: code}, 0x1000, 0x1000+uint16(len(code)))
 	cpu.SetPC(0x1000)
 	for i := 0; i < 100000; i++ {
 		vicii.Clock()
@@ -366,11 +367,123 @@ INCR	STA $D012	; Not at bottom. Keep going
 	if err != nil {
 		panic(err)
 	}
-	mainBus.Connect(&core.RAM{ Bytes: code}, 0x1000, 0x1000+uint16(len(code)))
+	mainBus.Connect(&core.RAM{Bytes: code}, 0x1000, 0x1000+uint16(len(code)))
 	cpu.SetPC(0x1000)
 	for i := 0; i < 10000000; i++ {
 		vicii.Clock()
 	}
 	f, _ := os.Create("raster_irq.png")
+	png.Encode(f, img)
+}
+
+func Test_getSpriteFromCycle(t *testing.T) {
+	sprites := map[uint16]uint16{
+		0:  2,
+		1:  3,
+		2:  3,
+		3:  4,
+		4:  4,
+		5:  5,
+		6:  5,
+		7:  6,
+		8:  6,
+		9:  7,
+		10: 7,
+		58: 0,
+		59: 0,
+		60: 1,
+		61: 1,
+		62: 2,
+	}
+	for i := uint16(0); i < 63; i++ {
+		s, pAccess := getSpriteForCycle(i)
+		index, present := sprites[i]
+		if !present {
+			index = 0xff
+		}
+		require.Equalf(t, index, s, "Sprite index mismatch at %d", i)
+		if present && i < 11 && i&1 == 1 || i > 57 && i&1 == 0 {
+			require.Truef(t, pAccess, "pAccess mismatch at %d", i)
+		} else {
+			require.Falsef(t, pAccess, "pAccess mismatch at %d", i)
+		}
+	}
+}
+
+func TestPAccess(t *testing.T) {
+	cycles := []uint16{58, 60, 62, 1, 3, 5, 7, 9}
+	for i := 0; i < 8; i++ {
+		colorRam := core.MakeRAM(1024)
+		vicii, _ := initVicII(nil, colorRam)
+		vicii.bus.Connect(&charset.CharacterROM, 0x1000, 0x1fff)
+		vicii.bus.Connect(core.MakeRAM(0x2000), 0x2000, 0x3fff)
+		screenRAM := core.MakeRAM(1024)
+		vicii.bus.Connect(screenRAM, 0x0400, 0x07ff)
+		screenRAM.WriteByte(0x03f8+uint16(i), uint8(0x2000>>6))
+		vicii.sprites[i].enabled = true
+		vicii.sprites[i].x = 100
+		vicii.sprites[i].y = 200
+		vicii.cycle = cycles[i]
+		vicii.Clock()
+		require.Equalf(t, uint16(0x2000), vicii.sprites[i].pointer, "Pointer mismatch at sprite %d", i)
+	}
+}
+
+func TestSAccess(t *testing.T) {
+	cycles := []uint16{58, 60, 62, 1, 3, 5, 7, 9}
+	for i := 0; i < 8; i++ {
+		colorRam := core.MakeRAM(1024)
+		vicii, _ := initVicII(nil, colorRam)
+		vicii.bus.Connect(&charset.CharacterROM, 0x1000, 0x1fff)
+		vicii.bus.Connect(core.MakeRAM(0x2000), 0x2000, 0x3fff)
+		screenRAM := core.MakeRAM(1024)
+		vicii.bus.Connect(screenRAM, 0x0400, 0x07ff)
+		screenRAM.WriteByte(0x03f8+uint16(i), uint8(0x2000>>6))
+		for c := uint16(0); c < 3; c++ {
+			vicii.bus.WriteByte(0x2000+uint16(c), uint8(c))
+		}
+		vicii.sprites[i].enabled = true
+		vicii.sprites[i].x = 100
+		vicii.sprites[i].y = 200
+		vicii.sprites[i].dma = true
+		vicii.cycle = cycles[i]
+		for c := 0; c < 4; c++ {
+			vicii.Clock()
+		}
+		require.Equalf(t, uint16(0x2000), vicii.sprites[i].pointer, "Pointer mismatch at sprite %d", i)
+		require.Equalf(t, uint32(0x00000102), vicii.sprites[i].shiftReg, "Data mismatch on sprite %d", i)
+	}
+}
+
+func TestDrawSprite(t *testing.T) {
+	cycles := []uint16{58, 60, 62, 1, 3, 5, 7, 9}
+	colorRam := core.MakeRAM(1024)
+	vicii, img := initVicII(nil, colorRam)
+	vicii.bus.Connect(&charset.CharacterROM, 0x1000, 0x1fff)
+	vicii.bus.Connect(core.MakeRAM(0x2000), 0x2000, 0x3fff)
+	screenRAM := core.MakeRAM(1024)
+	vicii.bus.Connect(screenRAM, 0x0400, 0x07ff)
+	vicii.bus.Connect(colorRam, 0xd800, 0xdbff)
+	vicii.screenMemPtr = 0x0400
+	vicii.charSetPtr = 0xd000
+	vicii.backgroundColors[0] = 6
+	vicii.scrollY = 3
+	vicii.scrollX = 3
+	for i := 0; i < 8; i++ {
+		screenRAM.WriteByte(0x03f8+uint16(i), uint8(0x2000>>6))
+		for c := uint16(0); c < 63; c++ {
+			vicii.bus.WriteByte(0x2000+uint16(c)+uint16(i*63), 1<<((c/3)%8))
+		}
+		vicii.sprites[i].enabled = true
+		vicii.sprites[i].x = uint16(26 + i*48)
+		vicii.sprites[i].y = uint8(50 + i*21)
+		vicii.sprites[i].color = 1
+		//vicii.sprites[i].expandedY = true
+		vicii.cycle = cycles[i]
+	}
+	for c := 0; c < PalScreenWidth*PalScreenHeight/4; c++ {
+		vicii.Clock()
+	}
+	f, _ := os.Create("sprite.png")
 	png.Encode(f, img)
 }
