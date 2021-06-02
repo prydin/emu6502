@@ -1,0 +1,205 @@
+        .ORG    $2000
+
+        ; Physics constants
+GRAVITY .EQ     16      ; 1/16 pixels/frame^2
+BOUNCE  .EQ     240     ; 15/16 of kinetic energy preserved in bounce
+
+VIC     .EQ     $D000
+SPTRS   .EQ     $07f8
+
+        ; Initialize sprites
+        LDA     #((>SPRITE << 8) + <SPRITE) >> 6    ; Load address of sprite 1 data
+        STA     SPTRS
+        LDA     #100
+        STA     VIC
+        STA     VIC+$01
+        LDA     VIC+$15
+        AND     #$01
+        LDA     #$01
+        STA     VIC+$25
+        STA     VIC+$15
+
+        ; Initialize interrupts
+        SEI                 ; Disable IRQ
+        LDA     #$30
+        STA     VIC+$12
+        LDA     VIC+$1A     ; Enable raster IRQ
+        ORA     #$01
+        STA     VIC+$1A
+        LDA     #<FRAME
+        STA     $0314
+        LDA     #>FRAME
+        STA     $0315
+        CLI                 ; Enable IRQ
+        RTS
+
+        ; Raster IRQ - New frame
+FRAME   BIT     VIC+$19     ; Is it for us?
+        BMI     DOIRQ
+        JMP     $EA31       ; Not for us, give control back to kernal
+
+DOIRQ   STA     ASAVE       ; Save registers
+        STX     XSAVE
+        STY     YSAVE
+
+        ; Physics calculations
+        ; Handle vertical bounce
+        LDA     Y0+1
+        CMP     #234
+        BCC     APPLYG
+        LDA     VY0         ; Bounce - negate Y velocity
+        EOR     #$FF        ; Ones complement
+        ADC     #$01        ; ...and twos complement
+        STA     VY0
+        TAX                 ; Save for later
+        LDA     VY0+1
+        EOR     #$FF        ; Ones complement
+        ADC     #$00        ; Handle carry (makes it twos complement)
+        STA     VY0+1
+        JMP APPLYG
+
+        ; Calculate lost momentum in bounce. 1/16 of the momentum is lost in each bounce
+        ; This can be expressed as:
+        ; x * 15/16 = x - (x/16) = x - (x >> 4)
+        CLC
+        ROR                 ; 1
+        TAY
+        TXA
+        ROR
+        TAX
+        CLC
+        TYA                 ; 2
+        ROR
+        TAY
+        TXA
+        ROR
+        TAX
+        CLC
+        TYA                 ; 3
+        ROR
+        TAY
+        TXA
+        ROR
+    ;    TAX
+    ;   CLC
+    ;    TYA                 ; 4
+    ;    ROR
+    ;    TAY
+    ;    TXA
+    ;    ROR
+        ; Y and A now hold Y0/16 high and low byte respectively
+        EOR     #$FF        ; Reverse subtraction on LSB
+        SEC
+        ADC     VY0
+        LDA     #$00        ; First add carry bit to MSB
+        ADC     VY0+1
+        TAY                 ; Do reverse subtraction on MSB
+        EOR     #$FF
+        SEC
+        ADC     VY0
+
+        ; Apply gravity to velocity vector
+APPLYG  CLC
+        LDA     VY0
+        ADC     #GRAVITY
+        STA     VY0
+        LDA     VY0+1
+        ADC     #$00        ; Handle carry
+        STA     VY0+1
+
+        ; Update position
+        LDA     X0          ; X coord
+        CLC
+        ADC     VX0
+        STA     X0
+        LDA     X0+1
+        ADC     VX0+1
+        STA     X0+1
+        ;STA     VIC
+        INC VIC
+        CLC
+        LDA     Y0          ; Y coord
+        ADC     VY0
+        STA     Y0
+        LDA     Y0+1
+        ADC     VY0+1
+        STA     Y0+1
+        STA     VIC+1
+
+        LDA     ASAVE
+        LDX     XSAVE
+        LDY     YSAVE
+        DEC     VIC+$19     ; Acknowledge interrupt
+        JMP     $EA31
+
+; Temporary variables
+ASAVE   .DB                 ; Acc during IRQ
+XSAVE   .DB                 ; X during IRQ
+YSAVE   .DB                 ; Y during IRQ
+TEMP1   .DB                 ; General purpose junk variable
+TEMP2   .DB                 ; General purpose junk variable
+        
+X0      .DW     265 * 320 / 2     ; 16 bit X coordinates
+X1      .DW     265 * 320 / 2
+X2      .DW     265 * 320 / 2
+X3      .DW     265 * 320 / 2
+X4      .DW     265 * 320 / 2
+X5      .DW     265 * 320 / 2
+X6      .DW     265 * 320 / 2
+X7      .DW     265 * 320 / 2
+
+Y0      .DW     265 * 200 / 2     ; 16 bit Y coordinates
+Y1      .DW     265 * 200 / 2
+Y2      .DW     265 * 200 / 2
+Y3      .DW     265 * 200 / 2
+Y4      .DW     265 * 200 / 2
+Y5      .DW     265 * 200 / 2
+Y6      .DW     265 * 200 / 2
+Y7      .DW     265 * 200 / 2
+
+VX0      .DW     $00FF     ; X portion of speed vectors
+VX1      .DW     $0000
+VX2      .DW     $0000
+VX3      .DW     $0000
+VX4      .DW     $0000
+VX5      .DW     $0000
+VX6      .DW     $0000
+VX7      .DW     $0000
+
+VY0      .DW     $0000     ; Y portion of speed vectors
+VY1      .DW     $0000
+VY2      .DW     $0000
+VY3      .DW     $0000
+VY4      .DW     $0000
+VY5      .DW     $0000
+VY6      .DW     $0000
+VY7      .DW     $0000
+
+        .ALIGN  64
+
+SPRITE  .DB     $AA, $AA, $AA
+        .DB     $AA, $AA, $AA
+        .DB     $AA, $AA, $AA
+        .DB     $AA, $AA, $AA
+        .DB     $AA, $AA, $AA
+        .DB     $AA, $AA, $AA
+        .DB     $AA, $AA, $AA
+        .DB     $AA, $AA, $AA
+        .DB     $AA, $AA, $AA
+        .DB     $AA, $AA, $AA
+        .DB     $AA, $AA, $AA
+        .DB     $AA, $AA, $AA
+        .DB     $AA, $AA, $AA
+        .DB     $AA, $AA, $AA
+        .DB     $AA, $AA, $AA
+        .DB     $AA, $AA, $AA
+        .DB     $AA, $AA, $AA
+        .DB     $AA, $AA, $AA
+        .DB     $AA, $AA, $AA
+        .DB     $AA, $AA, $AA
+        .DB     $AA, $AA, $AA
+        .DB     $AA, $AA, $AA
+
+
+
+

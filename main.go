@@ -23,6 +23,7 @@ package main
 
 import (
 	"flag"
+	"github.com/beevik/go6502/asm"
 	"github.com/faiface/pixel"
 	"github.com/faiface/pixel/pixelgl"
 	"github.com/prydin/emu6502/screen"
@@ -35,9 +36,10 @@ import (
 )
 
 var cpuprofile = flag.String("cpuprofile", "", "write cpu profile to file")
+var loadasm = flag.String("loadasm", "", "load assembly language file")
 
 var PalFPS = 50.125
-var PalFrameTime = time.Duration((1/PalFPS) * 1e9)
+var PalFrameTime = time.Duration((1 / PalFPS) * 1e9)
 
 func main() {
 	flag.Parse()
@@ -50,12 +52,28 @@ func main() {
 		defer pprof.StopCPUProfile()
 	}
 
+	var code *asm.Assembly
+	var sourceMap *asm.SourceMap
+	if *loadasm != "" {
+		in, err := os.Open(*loadasm)
+		if err != nil {
+			panic(err)
+		}
+		code, sourceMap, err = asm.Assemble(in, *loadasm, os.Stderr, 0)
+		for _, parseErr := range code.Errors {
+			println(parseErr)
+		}
+		if err != nil {
+			panic(err)
+		}
+	}
+
 	pixelgl.Run(func() {
 		c64 := Commodore64{}
 		cfg := pixelgl.WindowConfig{
-			Title:  "Gommodore64",
-			Bounds: pixel.R(0, 0, 1024, 768),
-			VSync:  true,
+			Title:     "Gommodore64",
+			Bounds:    pixel.R(0, 0, 1024, 768),
+			VSync:     true,
 			Resizable: true,
 		}
 		win, err := pixelgl.NewWindow(cfg)
@@ -89,7 +107,13 @@ func main() {
 				lastVSynch = time.Now()
 			}
 			c64.Clock()
-			if n % 1000000 == 0 {
+			if code != nil && n > 10000000 {
+				for i := uint16(0); i < uint16(sourceMap.Size); i++ {
+					c64.bus.WriteByte(i+sourceMap.Origin, code.Code[i])
+				}
+				code = nil
+			}
+			if n%1000000 == 0 {
 				if win.Closed() {
 					break
 				}

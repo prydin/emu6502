@@ -21,8 +21,6 @@
 
 package vic_ii
 
-import "fmt"
-
 func (v *VicII) Clock() {
 	localCycle := v.cycle % v.dimensions.CyclesPerLine
 
@@ -238,7 +236,6 @@ func (v *VicII) sAccess(spriteIndex uint16) {
 	s.shiftReg = s.shiftReg<<8 | uint32(v.bus.ReadByte(s.pointer+uint16(s.mc)))
 	s.sIndex++
 	s.mc++
-	fmt.Printf("%d %024b\n", s.mc, s.shiftReg)
 	if s.sIndex > 2 {
 		s.sIndex = 0
 		v.bus.RDY.Release()
@@ -279,6 +276,7 @@ func (v *VicII) renderCycle() {
 	startPixel := localCycle << 3
 
 	switch {
+	// TODO: Revisit the borde logic to support VIC-II quirks allowing us to draw sprites on the borders
 	// Vertical border?
 	case v.rasterLine < contentTop || v.rasterLine >= contentBottom:
 		v.drawBorder(startPixel, 8)
@@ -306,7 +304,7 @@ func (v *VicII) renderCycle() {
 		for i := range v.sprites {
 			s := &v.sprites[i]
 			if s.displayEnabled && localCycle >= s.x>>3 && s.shiftReg != 0 { // TODO: Need visible flag as well as DMA?
-				v.renderSprite(s, startPixel, s.x<<3 == localCycle)
+				v.renderSprite(s, startPixel, s.x>>3 == localCycle)
 			}
 		}
 	}
@@ -409,14 +407,13 @@ func (v *VicII) renderBitmap(x uint16) {
 }
 
 func (v *VicII) renderSprite(s *Sprite, x uint16, leftmostByte bool) {
+	// TODO: Horizontal stretch
 	line := v.rasterLine - v.dimensions.FirstVisibleLine
-	xOffset := (s.x - x) % 8
 
 	// Deal with first, possible partial cycle
 	start := uint16(0)
 	if leftmostByte {
-		s.shiftReg = (s.shiftReg << xOffset) & 0x00ffffff
-		start = xOffset
+		start = (s.x - x) & 7
 	}
 	for i := start; i < 8 && s.shiftReg != 0; i++ {
 		if s.shiftReg&(1<<23) != 0 {

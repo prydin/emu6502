@@ -82,13 +82,13 @@ func loadProgram(source string) (*CPU, Bus) {
 		panic(err)
 	}
 	copy(bytes[0x1000:], program)
-	mem := RAM{ Bytes: bytes }
+	mem := RAM{Bytes: bytes}
 	bus := Bus{}
 	cpu := CPU{}
 	bus.Connect(&mem, 0x0000, 0x7fff)
-	bus.Connect(&IRQGenerator{&cpu}, 0x8000,0x80ff)
-	bus.Connect(&NMIGenerator{&cpu}, 0x8100,0x81ff)
-	bus.Connect(&RAM{romBytes}, 0xf000,0xffff)
+	bus.Connect(&IRQGenerator{&cpu}, 0x8000, 0x80ff)
+	bus.Connect(&NMIGenerator{&cpu}, 0x8100, 0x81ff)
+	bus.Connect(&RAM{romBytes}, 0xf000, 0xffff)
 	cpu.Trace = true
 	cpu.HaltOnBRK = true
 	cpu.CrashOnInvalidInst = true
@@ -784,6 +784,23 @@ ADDR	.DW DATA-1
 	require.Equal(t, uint8(0xfe), memory.ReadByte(0x0009), "Indirect Y failed")
 }
 
+func TestNegate(t *testing.T) {
+	memory, err := Assemble(`
+		.ORG	$1000
+		LDA     $00         ; Load LSB
+		EOR     #$FF        ; Ones complement
+		ADC     #$01        ; ...and twos complement
+		TAX                 ; Save for later
+		LDA     VY0+1
+		EOR     #$FF        ; Ones complement
+		ADC     #$00        ; Handle carry (makes it twos complement)
+		STA     VY0+1
+		BRK`)
+	if err != nil {
+		panic(err)
+	}
+
+}
 
 func TestAsl(t *testing.T) {
 	memory := RunProgram(`
@@ -949,11 +966,11 @@ END		LDA LOSUM
 		LDX HISUM
 		RTS
 `)
-	require.Equal(t, uint16(6), uint16(memory.ReadByte(0x0010)) + uint16(memory.ReadByte(0x0011)) << 8, "2*3 failed")
-	require.Equal(t, uint16(110),uint16(memory.ReadByte(0x0012)) + uint16(memory.ReadByte(0x0013)) << 8, "10*11 failed")
-	require.Equal(t, uint16(200),uint16(memory.ReadByte(0x0014)) + uint16(memory.ReadByte(0x0015)) << 8, "100*2 failed")
-	require.Equal(t, uint16(200),uint16(memory.ReadByte(0x0016)) + uint16(memory.ReadByte(0x0017)) << 8, "2*100 failed")
-	require.Equal(t, uint16(40000),uint16(memory.ReadByte(0x0018)) + uint16(memory.ReadByte(0x0019)) << 8, "200*2000 failed")
+	require.Equal(t, uint16(6), uint16(memory.ReadByte(0x0010))+uint16(memory.ReadByte(0x0011))<<8, "2*3 failed")
+	require.Equal(t, uint16(110), uint16(memory.ReadByte(0x0012))+uint16(memory.ReadByte(0x0013))<<8, "10*11 failed")
+	require.Equal(t, uint16(200), uint16(memory.ReadByte(0x0014))+uint16(memory.ReadByte(0x0015))<<8, "100*2 failed")
+	require.Equal(t, uint16(200), uint16(memory.ReadByte(0x0016))+uint16(memory.ReadByte(0x0017))<<8, "2*100 failed")
+	require.Equal(t, uint16(40000), uint16(memory.ReadByte(0x0018))+uint16(memory.ReadByte(0x0019))<<8, "200*2000 failed")
 }
 
 func TestCmp(t *testing.T) {
@@ -1090,7 +1107,7 @@ END		LDA LOSUM
 	}
 	elapsed := time.Now().Sub(start)
 	ratio := float64(cycles*1000) / float64(elapsed)
-	fmt.Printf("Elapsed time: %s, cycles: %d, speed: %f\n", elapsed, cycles, float64(cycles*1000) / float64(elapsed))
+	fmt.Printf("Elapsed time: %s, cycles: %d, speed: %f\n", elapsed, cycles, float64(cycles*1000)/float64(elapsed))
 	require.Lessf(t, 2.0, ratio, "Emulation runs at %f times hardware speed. Should be at least 2", ratio)
 
 	// Run at 1MHz
@@ -1105,7 +1122,7 @@ END		LDA LOSUM
 	}
 	elapsed = time.Now().Sub(start)
 	ratio = float64(cycles*1000) / float64(elapsed)
-	fmt.Printf("Elapsed time: %s, cycles: %d, speed: %f\n", elapsed, cycles, float64(cycles*1000) / float64(elapsed))
+	fmt.Printf("Elapsed time: %s, cycles: %d, speed: %f\n", elapsed, cycles, float64(cycles*1000)/float64(elapsed))
 	require.Lessf(t, 0.9, ratio, "Realtime emulation runs at %f times hardware speed. Should be at least 0.9", ratio)
 }
 
@@ -1225,7 +1242,7 @@ IRQ		PHA
 
 func TestKlaus(t *testing.T) {
 	bytes := make([]byte, 65546)
-	mem := RAM{ Bytes: bytes }
+	mem := RAM{Bytes: bytes}
 	bus := Bus{}
 	cpu := CPU{}
 	bus.Connect(&mem, 0x0000, 0xffff)
@@ -1240,7 +1257,7 @@ func TestKlaus(t *testing.T) {
 	for !cpu.IsHalted() {
 		cpu.Clock()
 		if cpu.microPc == 0 {
-			require.NotEqual(t, lastPC, cpu.pc, "TRAP: " + cpu.StateAsString())
+			require.NotEqual(t, lastPC, cpu.pc, "TRAP: "+cpu.StateAsString())
 			lastPC = cpu.pc
 		}
 		if cpu.pc == 0x3469 {
@@ -1251,7 +1268,7 @@ func TestKlaus(t *testing.T) {
 
 func TestCPUStun(t *testing.T) {
 	bytes := make([]byte, 65546)
-	mem := RAM{ Bytes: bytes }
+	mem := RAM{Bytes: bytes}
 	bus := Bus{}
 	cpu := CPU{}
 	bus.Connect(&mem, 0x0000, 0xffff)
@@ -1274,7 +1291,7 @@ func TestCPUStun(t *testing.T) {
 		}
 		cpu.Clock()
 		if cpu.microPc == 0 && !cpu.stunned {
-			require.NotEqual(t, lastPC, cpu.pc, "TRAP: " + cpu.StateAsString())
+			require.NotEqual(t, lastPC, cpu.pc, "TRAP: "+cpu.StateAsString())
 			lastPC = cpu.pc
 		}
 		if cpu.pc == 0x3469 {
