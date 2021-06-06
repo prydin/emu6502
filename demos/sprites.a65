@@ -1,7 +1,7 @@
         .ORG    $2000
 
         ; Physics constants
-GRAVITY .EQ     16      ; 1/16 pixels/frame^2
+GRAVITY .EQ     32      ; 1/8 pixels/frame^2
 BOUNCE  .EQ     240     ; 15/16 of kinetic energy preserved in bounce
 
 VIC     .EQ     $D000
@@ -44,59 +44,81 @@ DOIRQ   STA     ASAVE       ; Save registers
 
         ; Physics calculations
         ; Handle vertical bounce
-        LDA     Y0+1
-        CMP     #234
-        BCC     APPLYG
-        LDA     VY0         ; Bounce - negate Y velocity
-        EOR     #$FF        ; Ones complement
-        ADC     #$01        ; ...and twos complement
-        STA     VY0
-        TAX                 ; Save for later
-        LDA     VY0+1
-        EOR     #$FF        ; Ones complement
-        ADC     #$00        ; Handle carry (makes it twos complement)
-        STA     VY0+1
-        JMP APPLYG
+        LDA     VY0+1       ; Bounce on downward motion only
+        AND     #$80
+        BNE     HBOUNCE
+        LDA     Y0+1        ; Check if we've passed the lower bound
+        CMP     #230
+        BCC     HBOUNCE
 
-        ; Calculate lost momentum in bounce. 1/16 of the momentum is lost in each bounce
+        ; Calculate lost momentum in bounce. 1/8 of the momentum is lost in each bounce
         ; This can be expressed as:
-        ; x * 15/16 = x - (x/16) = x - (x >> 4)
-        CLC
-        ROR                 ; 1
-        TAY
-        TXA
-        ROR
-        TAX
-        CLC
-        TYA                 ; 2
-        ROR
-        TAY
-        TXA
-        ROR
-        TAX
-        CLC
-        TYA                 ; 3
-        ROR
-        TAY
-        TXA
-        ROR
-    ;    TAX
-    ;   CLC
-    ;    TYA                 ; 4
-    ;    ROR
-    ;    TAY
-    ;    TXA
-    ;    ROR
-        ; Y and A now hold Y0/16 high and low byte respectively
-        EOR     #$FF        ; Reverse subtraction on LSB
+        ; v * 7/8 = x - (v/8) = v - (v >> 3)
+        LDA     VY0
+        STA     TEMP1
+        LDA     VY0+1
+        STA     TEMP2
+        CMP     #$80        ; Sign extend (Original MSB negative -> carry set)
+        ROR     TEMP2       ; 1
+        ROR     TEMP1
+        CMP     #$80
+        ROR     TEMP2       ; 2
+        ROR     TEMP1
+        CMP     #$80
+        ROR     TEMP2       ; 3
+        ROR     TEMP1
+
+        ; TEMP2 and TEMP1 now hold Y0/8 high and low byte respectively. Apply damping and flip speed vector.
+        ; Take advantage of the fact that -(x*7/8) = (v >>> 3) - v
         SEC
-        ADC     VY0
-        LDA     #$00        ; First add carry bit to MSB
-        ADC     VY0+1
-        TAY                 ; Do reverse subtraction on MSB
-        EOR     #$FF
+        LDA     TEMP1
+        SBC     VY0
+        STA     VY0
+        LDA     TEMP2
+        SBC     VY0+1
+        STA     VY0+1
+
+        ; Handle horizontal bounce
+HBOUNCE LDA     X0+2
+        CMP     #$01        ; Right edge bounce
+        BCC     LBOUNCE
+        LDA     X0+1
+        CMP     #82
+        BCS     DOHBNC      ; Yes we are bouncing!
+LBOUNCE LDA     X0+2        ; Handle left edge
+        BNE     APPLYG
+        LDA     X0+1
+        CMP     #30
+        BCS     APPLYG
+
+        ; Calculate lost momentum in bounce. 1/8 of the momentum is lost in each bounce
+        ; This can be expressed as:
+        ; v * 7/8 = x - (v/8) = v - (v >> 3)
+        .DB $FE
+DOHBNC  LDA     VX0
+        STA     TEMP1
+        LDA     VX0+1
+        STA     TEMP2
+        CMP     #$80        ; Sign extend (Original MSB negative -> carry set)
+        ROR     TEMP2       ; 1
+        ROR     TEMP1
+        CMP     #$80
+        ROR     TEMP2       ; 2
+        ROR     TEMP1
+        CMP     #$80
+        ROR     TEMP2       ; 3
+        ROR     TEMP1
+
+        ; TEMP2 and TEMP1 now hold Y0/8 high and low byte respectively. Apply damping and flip speed vector.
+        ; Take advantage of the fact that -(x*7/8) = (v >>> 3) - v
         SEC
-        ADC     VY0
+        LDA     TEMP1
+        SBC     VX0
+        STA     VX0
+        LDA     TEMP2
+        SBC     VX0+1
+        STA     VX0+1
+        .DB $FF
 
         ; Apply gravity to velocity vector
 APPLYG  CLC
@@ -115,8 +137,16 @@ APPLYG  CLC
         LDA     X0+1
         ADC     VX0+1
         STA     X0+1
-        ;STA     VIC
-        INC VIC
+        STA     VIC
+        LDA     X0+2
+        BIT     VX0+1
+        BPL     POS
+        ADC     #$FF
+        CLC
+POS     ADC     #$00        ; Handle carry into third byte
+        STA     X0+2
+        STA     VIC+$10     ; TODO: Refactor for multiple sprites
+
         CLC
         LDA     Y0          ; Y coord
         ADC     VY0
@@ -133,20 +163,21 @@ APPLYG  CLC
         JMP     $EA31
 
 ; Temporary variables
-ASAVE   .DB                 ; Acc during IRQ
-XSAVE   .DB                 ; X during IRQ
-YSAVE   .DB                 ; Y during IRQ
-TEMP1   .DB                 ; General purpose junk variable
-TEMP2   .DB                 ; General purpose junk variable
+ASAVE   .DB     0           ; Acc during IRQ
+XSAVE   .DB     0           ; X during IRQ
+YSAVE   .DB     0           ; Y during IRQ
+
+TEMP1   .DB     0           ; General purpose junk variable
+TEMP2   .DB     0           ; General purpose junk variable
         
-X0      .DW     265 * 320 / 2     ; 16 bit X coordinates
-X1      .DW     265 * 320 / 2
-X2      .DW     265 * 320 / 2
-X3      .DW     265 * 320 / 2
-X4      .DW     265 * 320 / 2
-X5      .DW     265 * 320 / 2
-X6      .DW     265 * 320 / 2
-X7      .DW     265 * 320 / 2
+X0      .DB     0, 160, 0
+X1      .DB     0, 160, 0
+X2      .DB     0, 160, 0
+X3      .DB     0, 160, 0
+X4      .DB     0, 160, 0
+X5      .DB     0, 160, 0
+X6      .DB     0, 160, 0
+X7      .DB     0, 160, 0
 
 Y0      .DW     265 * 200 / 2     ; 16 bit Y coordinates
 Y1      .DW     265 * 200 / 2
@@ -157,7 +188,7 @@ Y5      .DW     265 * 200 / 2
 Y6      .DW     265 * 200 / 2
 Y7      .DW     265 * 200 / 2
 
-VX0      .DW     $00FF     ; X portion of speed vectors
+VX0      .DW     $fc01     ; X portion of speed vectors
 VX1      .DW     $0000
 VX2      .DW     $0000
 VX3      .DW     $0000

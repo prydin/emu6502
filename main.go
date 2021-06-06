@@ -85,6 +85,8 @@ func main() {
 			Min: image.Point{},
 			Max: image.Point{vic_ii.PalVisibleWidth, vic_ii.PalVisibleHeight},
 		})
+
+		c64.cpu.CrashOnInvalidInst = true // TODO: Make configurable
 		c64.Init(scr, vic_ii.PALDimensions)
 		c64.Keyboard.SetProvider(win)
 		//c64.cpu.Trace = true

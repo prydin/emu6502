@@ -190,20 +190,22 @@ const (
 	BIT_A    = 0x2c
 
 	// Comparisons
-	CMP_I    = 0xc9
-	CMP_Z    = 0xc5
-	CMP_ZX   = 0xd5
-	CMP_A    = 0xcd
-	CMP_AX   = 0xdd
-	CMP_AY   = 0xd9
-	CMP_INDX = 0xc1
-	CMP_INDY = 0xd1
-	CPX_I    = 0xe0
-	CPX_Z    = 0xe4
-	CPX_A    = 0xec
-	CPY_I    = 0xc0
-	CPY_Z    = 0xc4
-	CPY_A    = 0xcc
+	CMP_I     = 0xc9
+	CMP_Z     = 0xc5
+	CMP_ZX    = 0xd5
+	CMP_A     = 0xcd
+	CMP_AX    = 0xdd
+	CMP_AY    = 0xd9
+	CMP_INDX  = 0xc1
+	CMP_INDY  = 0xd1
+	CPX_I     = 0xe0
+	CPX_Z     = 0xe4
+	CPX_A     = 0xec
+	CPY_I     = 0xc0
+	CPY_Z     = 0xc4
+	CPY_A     = 0xcc
+	TRACE_ON  = 0xfe // Debug pseudo instructions
+	TRACE_OFF = 0xff
 )
 
 // CPU Status flags
@@ -489,6 +491,8 @@ func (c *CPU) Init(bus *Bus) {
 	c.instructionSet[CPY_I] = MkInstr("CPY_I", []func(){c.cpy_i})
 	c.instructionSet[CPY_Z] = MkInstr("CPY_Z", append(fetch8Bits, c.cpy))
 	c.instructionSet[CPY_A] = MkInstr("CPY_A", append(fetch16Bits, c.cpy))
+	c.instructionSet[TRACE_ON] = MkInstr("TRACE_ON", []func(){func() { c.Trace = true }})
+	c.instructionSet[TRACE_OFF] = MkInstr("TRACE_OFF", []func(){func() { c.Trace = false }})
 
 	interruptTail := []func(){
 		c.pushInterruptReturnAddressHigh,
@@ -590,7 +594,7 @@ func (c *CPU) Clock() {
 	}
 }
 
-func (c* CPU) SetPC(pc uint16) {
+func (c *CPU) SetPC(pc uint16) {
 	c.pc = pc
 	c.microPc = 0
 }
@@ -693,13 +697,13 @@ func (c *CPU) loadPCLow() {
 func (c *CPU) loadPCHigh() {
 	// Implements 6502 indirect jump bug. MSB is not incremented when crossing page boundaries
 	if c.operand&0x00ff == 0x00ff {
-		t := uint16(c.readByte(c.operand&0xff00))
+		t := uint16(c.readByte(c.operand & 0xff00))
 		if c.stunned {
 			return
 		}
 		c.pc |= t << 8
 	} else {
-		t := uint16(c.readByte(c.operand+1))
+		t := uint16(c.readByte(c.operand + 1))
 		if c.stunned {
 			return
 		}

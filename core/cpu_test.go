@@ -597,6 +597,19 @@ func TestSubtract(t *testing.T) {
 		SEC 
 		SBC	($20),Y
 		STA $09
+		; Signed operations
+		SEC
+		LDA #$00
+		SBC #$01
+		STA $0A
+		; 16 bit signed 
+		SEC
+		LDA	#$01
+		SBC #$02
+		STA $0B
+		LDA #$00
+		SBC #$00
+		STA $0C
 DONE	BRK
 DATA	.DB $01,$02
 ADDR	.DW DATA-1
@@ -611,6 +624,9 @@ ADDR	.DW DATA-1
 	require.Equal(t, uint8(0x0d), memory.ReadByte(0x0007), "Indexed X failed")
 	require.Equal(t, uint8(0x02), memory.ReadByte(0x0008), "Indirect X failed")
 	require.Equal(t, uint8(0x0f), memory.ReadByte(0x0009), "Indirect Y failed")
+	require.Equal(t, uint8(0xff), memory.ReadByte(0x000a), "Signed 8-bit failed")
+	require.Equal(t, uint8(0xff), memory.ReadByte(0x000b), "Signed 16-bit LSB failed")
+	require.Equal(t, uint8(0xff), memory.ReadByte(0x000c), "Signed 16-bit MSB failed")
 }
 
 func TestOr(t *testing.T) {
@@ -782,24 +798,6 @@ ADDR	.DW DATA-1
 	require.Equal(t, uint8(0xfd), memory.ReadByte(0x0007), "Indexed X failed")
 	require.Equal(t, uint8(0xfe), memory.ReadByte(0x0008), "Indirect X failed")
 	require.Equal(t, uint8(0xfe), memory.ReadByte(0x0009), "Indirect Y failed")
-}
-
-func TestNegate(t *testing.T) {
-	memory, err := Assemble(`
-		.ORG	$1000
-		LDA     $00         ; Load LSB
-		EOR     #$FF        ; Ones complement
-		ADC     #$01        ; ...and twos complement
-		TAX                 ; Save for later
-		LDA     VY0+1
-		EOR     #$FF        ; Ones complement
-		ADC     #$00        ; Handle carry (makes it twos complement)
-		STA     VY0+1
-		BRK`)
-	if err != nil {
-		panic(err)
-	}
-
 }
 
 func TestAsl(t *testing.T) {
