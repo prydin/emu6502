@@ -4,23 +4,61 @@
 GRAVITY .EQ     32      ; 1/8 pixels/frame^2
 BOUNCE  .EQ     240     ; 15/16 of kinetic energy preserved in bounce
 
+        ; Initial coordinates
+XINITL  .EQ     0
+XINITM  .EQ     160
+XINITH  .EQ     0
+YINITL  .EQ     0
+YINITH  .EQ     265 * 200 / 2
+
+        ; Zero page variables
+VX      .EQ     $B2
+VY      .EQ     $B4
+XPOS    .EQ     $B6
+YPOS    .EQ     $B9
+
 VIC     .EQ     $D000
 SPTRS   .EQ     $07f8
 
+        ; Randomize velocities
+        LDY     #$00
+        LDX     #$00
+RANDV   JSR     NEWVELO
+        LDA     VX
+        STA     VX0,Y
+        LDA     VX+1
+        STA     VX0+1,Y
+        LDA     VY
+        STA     VY0,Y
+        LDA     VY+1
+        STA     VY0+1,Y
+        INX
+        INX
+        INX
+        INY
+        INY
+        CPY     #$10
+        BNE     RANDV
+
         ; Initialize sprites
         LDA     #((>SPRITE << 8) + <SPRITE) >> 6    ; Load address of sprite 1 data
-        STA     SPTRS
+        LDX     #$00
+LOADSP  STA     SPTRS,X
+        INX
+        CPX     #$08
+        BNE     LOADSP
         LDA     #100
         STA     VIC
         STA     VIC+$01
-        LDA     VIC+$15
-        AND     #$01
-        LDA     #$01
-        STA     VIC+$25
-        STA     VIC+$15
+
+        LDA     #$FF
+        STA     VIC+$15     ; Enable all sprites
 
         ; Initialize interrupts
         SEI                 ; Disable IRQ
+        LDA     VIC+$25     ; Enable raster interrupts
+        ORA     #$01
+        STA     VIC+$25
         LDA     #$30
         STA     VIC+$12
         LDA     VIC+$1A     ; Enable raster IRQ
@@ -42,21 +80,43 @@ DOIRQ   STA     ASAVE       ; Save registers
         STX     XSAVE
         STY     YSAVE
 
+        LDY     #$00        ; Pointer for everything except X position (because it's 3 bytes)
+        LDX     #$00        ; X-position pointer
+
+NXTSPRT LDA     X0,X        ; Load temporary X position variable
+        STA     XPOS
+        LDA     X0+1,X
+        STA     XPOS+1
+        LDA     X0+2,X
+        STA     XPOS+2
+        LDA     Y0,Y        ; Load temporary Y position variable
+        STA     YPOS
+        LDA     Y0+1,Y
+        STA     YPOS+1
+        LDA     VX0,Y       ; Load temporary X velocity variable
+        STA     VX
+        LDA     VX0+1,Y
+        STA     VX+1
+        LDA     VY0,Y       ; Load temporary Y velocity variable
+        STA     VY
+        LDA     VY0+1,Y
+        STA     VY+1
+
         ; Physics calculations
         ; Handle vertical bounce
-        LDA     VY0+1       ; Bounce on downward motion only
+        LDA     VY+1     ; Bounce on downward motion only
         AND     #$80
         BNE     HBOUNCE
-        LDA     Y0+1        ; Check if we've passed the lower bound
+        LDA     YPOS+1       ; Check if we've passed the lower bound
         CMP     #230
         BCC     HBOUNCE
 
         ; Calculate lost momentum in bounce. 1/8 of the momentum is lost in each bounce
         ; This can be expressed as:
         ; v * 7/8 = x - (v/8) = v - (v >> 3)
-        LDA     VY0
+        LDA     VY
         STA     TEMP1
-        LDA     VY0+1
+        LDA     VY+1
         STA     TEMP2
         CMP     #$80        ; Sign extend (Original MSB negative -> carry set)
         ROR     TEMP2       ; 1
@@ -72,32 +132,48 @@ DOIRQ   STA     ASAVE       ; Save registers
         ; Take advantage of the fact that -(x*7/8) = (v >>> 3) - v
         SEC
         LDA     TEMP1
-        SBC     VY0
-        STA     VY0
+        SBC     VY
+        STA     VY
         LDA     TEMP2
-        SBC     VY0+1
-        STA     VY0+1
+        SBC     VY+1
+        STA     VY+1
+
+        ; Avoid strange effects by setting the LSB to zero if the MSB is zero after the bounce.
+        ; This will make the object come to rest.
+        BEQ     DONEWV
+        CMP     #$FF
+        BNE     HBOUNCE
+DONEWV  JSR     NEWVELO
+        LDA     #XINITL
+        STA     XPOS
+        LDA     #XINITM
+        STA     XPOS+1
+        LDA     #XINITH
+        STA     XPOS+2
+        LDA     #YINITL
+        STA     YPOS
+        LDA     #YINITH
+        STA     YPOS+1
 
         ; Handle horizontal bounce
-HBOUNCE LDA     X0+2
+HBOUNCE LDA     XPOS+2
         CMP     #$01        ; Right edge bounce
         BCC     LBOUNCE
-        LDA     X0+1
+        LDA     XPOS+1
         CMP     #82
         BCS     DOHBNC      ; Yes we are bouncing!
-LBOUNCE LDA     X0+2        ; Handle left edge
+LBOUNCE LDA     XPOS+2      ; Handle left edge
         BNE     APPLYG
-        LDA     X0+1
+        LDA     XPOS+1
         CMP     #30
         BCS     APPLYG
 
         ; Calculate lost momentum in bounce. 1/8 of the momentum is lost in each bounce
         ; This can be expressed as:
         ; v * 7/8 = x - (v/8) = v - (v >> 3)
-        .DB $FE
-DOHBNC  LDA     VX0
+DOHBNC  LDA     VX
         STA     TEMP1
-        LDA     VX0+1
+        LDA     VX+1
         STA     TEMP2
         CMP     #$80        ; Sign extend (Original MSB negative -> carry set)
         ROR     TEMP2       ; 1
@@ -113,54 +189,120 @@ DOHBNC  LDA     VX0
         ; Take advantage of the fact that -(x*7/8) = (v >>> 3) - v
         SEC
         LDA     TEMP1
-        SBC     VX0
-        STA     VX0
+        SBC     VX
+        STA     VX
         LDA     TEMP2
-        SBC     VX0+1
-        STA     VX0+1
-        .DB $FF
+        SBC     VX+1
+        STA     VX+1
 
         ; Apply gravity to velocity vector
 APPLYG  CLC
-        LDA     VY0
+        LDA     VY
         ADC     #GRAVITY
-        STA     VY0
-        LDA     VY0+1
+        STA     VY
+        LDA     VY+1
         ADC     #$00        ; Handle carry
-        STA     VY0+1
+        STA     VY+1
 
         ; Update position
-        LDA     X0          ; X coord
+        LDA     XPOS          ; Add X-portion of speed vector to position
         CLC
-        ADC     VX0
-        STA     X0
-        LDA     X0+1
-        ADC     VX0+1
-        STA     X0+1
-        STA     VIC
-        LDA     X0+2
-        BIT     VX0+1
+        ADC     VX
+        STA     XPOS
+        LDA     XPOS+1
+        ADC     VX+1
+        STA     XPOS+1
+        STA     VIC,Y
+        LDA     XPOS+2
+        BIT     VX+1        ; Sign extend into third byte
         BPL     POS
         ADC     #$FF
         CLC
 POS     ADC     #$00        ; Handle carry into third byte
-        STA     X0+2
-        STA     VIC+$10     ; TODO: Refactor for multiple sprites
+        STA     XPOS+2
+        BEQ     CLEARHI     ; Setting or clearing high bit?
+        LDA     HIMASK,Y    ; Setting it. Just OR it in
+        ORA     VIC+$10
+        STA     VIC+$10
+        BNE     SETYPOS
+CLEARHI LDA     HIMASK,Y    ; Clearing it. And with inverse
+        EOR     #$FF
+        AND     VIC+$10
+        STA     VIC+$10
 
-        CLC
-        LDA     Y0          ; Y coord
-        ADC     VY0
-        STA     Y0
-        LDA     Y0+1
-        ADC     VY0+1
-        STA     Y0+1
-        STA     VIC+1
+SETYPOS CLC
+        LDA     YPOS         ; Y coord
+        ADC     VY
+        STA     YPOS
+        LDA     YPOS+1
+        ADC     VY+1
+        STA     YPOS+1
+        STA     VIC+1,Y
 
-        LDA     ASAVE
+        ; Write back to non-temporary variables
+
+        STA     Y0+1,Y        ; A should already hold [YPOS+1]
+        LDA     XPOS
+        STA     X0,X
+        LDA     XPOS+1
+        STA     X0+1,X
+        LDA     XPOS+2
+        STA     X0+2,X
+        LDA     YPOS
+        STA     Y0,Y
+        LDA     VX
+        STA     VX0,Y
+        LDA     VX+1
+        STA     VX0+1,Y
+        LDA     VY
+        STA     VY0,Y
+        LDA     VY+1
+        STA     VY0+1,Y
+
+        INY                 ; Move to next sprite
+        INY
+        CPY     #$10        ; Handled all sprites?
+        BEQ     END
+        INX
+        INX
+        INX
+        JMP     NXTSPRT
+
+END     LDA     ASAVE
         LDX     XSAVE
         LDY     YSAVE
         DEC     VIC+$19     ; Acknowledge interrupt
         JMP     $EA31
+
+        ; Subroutine to get an 8-bit random number
+RND8    JSR     RAND
+        LDA     SEED0
+        EOR     SEED1
+        EOR     SEED2
+        EOR     SEED3
+        RTS
+
+        ; Get random number for high byte of velocities. We limit it to 3 and sign negate randomly
+RNDHI   JSR     RND8
+        LSR                 ; Put lowest bit into carry
+        AND     #$03        ; Use only 2 lowest bits
+        BCC     RNDPOS      ; Negate?
+        EOR     #$FF        ; Ones complement
+RNDPOS  ADC     #$00        ; Twos complement if carry is set. Does nothing otherwise.
+        RTS
+
+        ; Subroutine to calculate random velocity vectors
+NEWVELO JSR     RND8
+        STA     VX
+        JSR     RNDHI
+        STA     VX+1
+        JSR     RND8
+        STA     VY
+        JSR     RNDHI
+        STA     VY+1
+        RTS
+
+        .INCLUDE    demos/random.a65
 
 ; Temporary variables
 ASAVE   .DB     0           ; Acc during IRQ
@@ -188,23 +330,25 @@ Y5      .DW     265 * 200 / 2
 Y6      .DW     265 * 200 / 2
 Y7      .DW     265 * 200 / 2
 
-VX0      .DW     $fc01     ; X portion of speed vectors
-VX1      .DW     $0000
-VX2      .DW     $0000
-VX3      .DW     $0000
-VX4      .DW     $0000
-VX5      .DW     $0000
-VX6      .DW     $0000
-VX7      .DW     $0000
+VX0     .DW     $fc01     ; X portion of speed vectors
+VX1     .DW     $0100
+VX2     .DW     $0000
+VX3     .DW     $0000
+VX4     .DW     $0000
+VX5     .DW     $0000
+VX6     .DW     $0000
+VX7     .DW     $0000
 
-VY0      .DW     $0000     ; Y portion of speed vectors
-VY1      .DW     $0000
-VY2      .DW     $0000
-VY3      .DW     $0000
-VY4      .DW     $0000
-VY5      .DW     $0000
-VY6      .DW     $0000
-VY7      .DW     $0000
+VY0     .DW     $0000     ; Y portion of speed vectors
+VY1     .DW     $0000
+VY2     .DW     $0000
+VY3     .DW     $0000
+VY4     .DW     $0000
+VY5     .DW     $0000
+VY6     .DW     $0000
+VY7     .DW     $0000
+
+HIMASK  .DB      $01, $01, $02, $02, $04, $04, $08, $08, $10, $10, $20, $20, $40, $40, $80, $80
 
         .ALIGN  64
 

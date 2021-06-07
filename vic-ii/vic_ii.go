@@ -21,7 +21,9 @@
 
 package vic_ii
 
-import "github.com/prydin/emu6502/core"
+import (
+	"github.com/prydin/emu6502/core"
+)
 
 const (
 	REG_M0X             = 0x00
@@ -356,7 +358,7 @@ func (v *VicII) WriteByte(addr uint16, data uint8) {
 		v.sprites[addr>>1].y = data
 	case addr == REG_MX_HIGH:
 		for i := range v.sprites {
-			v.sprites[i].x = (v.sprites[i].x & 0x00ff) | uint16(data)<<8
+			v.sprites[i].x = (v.sprites[i].x & 0x00ff) | uint16(data&0x01)<<8
 			data >>= 1
 		}
 	case addr >= REG_BG0 && addr <= REG_BG3:

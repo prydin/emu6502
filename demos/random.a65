@@ -1,0 +1,147 @@
+; Linear congruential pseudo-random number generator
+;
+; Calculate SEED = SEED * 69069 + 1
+;
+; Enter with:
+;
+;   SEED0 = byte 0 of seed
+;   SEED1 = byte 1 of seed
+;   SEED2 = byte 2 of seed
+;   SEED3 = byte 3 of seed
+;
+; Returns:
+;
+;   SEED0 = byte 0 of seed
+;   SEED1 = byte 1 of seed
+;   SEED2 = byte 2 of seed
+;   SEED3 = byte 3 of seed
+;
+; TMP, TMP+1, TMP+2 and TMP+3 are overwritten
+;
+; Assuming that SEED0 to SEED3 and TMP+0 to TMP+3 are all located on page
+; zero:
+;
+;   Space: 173 bytes
+;   Speed: JSR RAND takes 326 cycles
+;
+RAND     STX RANDX
+         STY RANDY
+         LDA SEED0 ; TMP = SEED * 2
+         ASL
+         STA TMP
+         LDA SEED1
+         ROL
+         STA TMP+1
+         LDA SEED2
+         ROL
+         STA TMP+2
+         LDA SEED3
+         ROL
+         STA TMP+3
+         CLC       ; TMP = TMP + SEED (= SEED * 3)
+         LDA SEED0
+         ADC TMP
+         STA TMP
+         LDA SEED1
+         ADC TMP+1
+         STA TMP+1
+         LDA SEED2
+         ADC TMP+2
+         STA TMP+2
+         LDA SEED3
+         ADC TMP+3
+         STA TMP+3
+         CLC       ; SEED = SEED + $10000 * SEED
+         LDA SEED2
+         ADC SEED0
+         TAX       ; keep byte 2 in X for now (for speed)
+         LDA SEED3
+         ADC SEED1
+         TAY       ; keep byte 3 in Y for now
+         CLC       ; SEED = SEED + $100 * SEED
+         LDA SEED1
+         ADC SEED0
+         PHA       ; push byte 1 onto stack
+         TXA
+         ADC SEED1
+         TAX
+         TYA
+         ADC SEED2
+         TAY
+         LDA TMP   ; TMP = TMP * 4 (= old seed * $0C)
+         ASL
+         ROL TMP+1
+         ROL TMP+2
+         ROL TMP+3
+         ASL
+         ROL TMP+1
+         ROL TMP+2
+         ROL TMP+3
+         STA TMP
+         CLC       ; SEED = SEED + TMP
+         ADC SEED0
+         STA SEED0
+         PLA       ; pull byte 1 from stack
+         ADC TMP+1
+         STA SEED1
+         TXA
+         ADC TMP+2
+         TAX
+         TYA
+         ADC TMP+3
+         TAY
+         CLC
+         LDA TMP   ; SEED = SEED + TMP * $100
+         ADC SEED1
+         STA SEED1
+         TXA
+         ADC TMP+1
+         TAX
+         TYA
+         ADC TMP+2
+         TAY
+         LDA TMP   ; TMP = TMP * $10 (= old seed * $C0)
+         ASL       ; put byte 0 of TMP in the accumulator
+         ROL TMP+1
+         ROL TMP+2
+         ROL TMP+3
+         ASL
+         ROL TMP+1
+         ROL TMP+2
+         ROL TMP+3
+         ASL
+         ROL TMP+1
+         ROL TMP+2
+         ROL TMP+3
+         ASL
+         ROL TMP+1
+         ROL TMP+2
+         ROL TMP+3
+         SEC       ; SEED = SEED + TMP + 1
+         ADC SEED0
+         STA SEED0
+         LDA TMP+1
+         ADC SEED1
+         STA SEED1
+         TXA
+         ADC TMP+2
+         STA SEED2
+         TYA
+         ADC TMP+3
+         STA SEED3
+         LDX RANDX
+         LDY RANDY
+         RTS
+
+RANDX   .DB     0           ; X during random number generation
+RANDY   .DB     0           ; Y during random number generation
+REML    .DB     0
+REMH    .DB     0
+SEED0   .DB     $68         ; Random number seed
+SEED1   .DB     $01
+SEED2   .DB     $18
+SEED3   .DB     $53
+TMP     .DB     $00, $00, $00, $00
+RND     .DB     $00, $00
+MOD     .DB     $00, $00
+TEMP    .DB     $00

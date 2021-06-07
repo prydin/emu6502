@@ -213,7 +213,7 @@ func (v *VicII) gAccess() {
 		if v.extendedClr {
 			mask = 0x3f
 		}
-		addr = basePtr + ((v.cBuf[v.vmli]&mask)<<3 | v.rc)
+		addr = basePtr + ((v.cBuf[v.vmli]&mask)<<3 | v.rc) // TODO: Wild poking to the VIC can make vmli out of range
 	}
 	v.gBuf[v.vmli] = v.bus.ReadByte(addr)
 
@@ -387,7 +387,7 @@ func (v *VicII) renderBitmap(x uint16) {
 			case 3:
 				color = uint8(data>>8) & 0x0f
 			}
-			nativeColor := C64Colors[color]
+			nativeColor := C64Colors[color&0x0f]
 			v.screen.SetPixel(x+i*2+leftBorderOffset, line, nativeColor)
 			v.screen.SetPixel(x+i*2+leftBorderOffset+1, line, nativeColor)
 			pattern <<= 2
