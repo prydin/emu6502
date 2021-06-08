@@ -33,7 +33,6 @@ garbage collection occurs.
 * Most of VIC-II seems to work (except for sprites)
 
 ## Left to do
-* Implement sprites
 * Emulate the SID chip
 * More flexible (and usable) keyboard mapping
 * Serial ports
