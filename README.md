@@ -30,7 +30,7 @@ garbage collection occurs.
 * CPU emulation passes Klaus' test suite
 * Boots BASIC without problems and seems to run BASIC programs just fine
 * Correct(?) timing of bad lines etc.
-* Most of VIC-II seems to work (except for sprites)
+* Most of VIC-II seems to work (including sprites)
 
 ## Left to do
 * Emulate the SID chip
