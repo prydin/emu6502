@@ -11,6 +11,10 @@ XINITH  .EQ     0
 YINITL  .EQ     0
 YINITH  .EQ     265 * 200 / 2
 
+        ; Sprite tables
+SPRSTART .EQ    ((>SPRITE << 8) + <SPRITE) >> 6
+SPREND   .EQ    SPRSTART + 30 ; 30 rotations
+
         ; Zero page variables
 VX      .EQ     $B2
 VY      .EQ     $B4
@@ -41,9 +45,10 @@ RANDV   JSR     NEWVELO
         BNE     RANDV
 
         ; Initialize sprites
-        LDA     #((>SPRITE << 8) + <SPRITE) >> 6    ; Load address of sprite 1 data
+        LDA     #SPRSTART   ; Load address of sprite 1 data
         LDX     #$00
 LOADSP  STA     SPTRS,X
+        ADC     #$01
         INX
         CPX     #$08
         BNE     LOADSP
@@ -79,6 +84,18 @@ FRAME   BIT     VIC+$19     ; Is it for us?
 DOIRQ   STA     ASAVE       ; Save registers
         STX     XSAVE
         STY     YSAVE
+
+        ; Rotate sprites
+        LDX     #$00
+LOOP1   INC     SPTRS,X
+        LDA     SPTRS,X
+        CMP     #SPREND
+        BNE     CONT
+        LDA     #SPRSTART
+        STA     SPTRS,X
+CONT    INX
+        CPX     #$08
+        BNE     LOOP1
 
         LDY     #$00        ; Pointer for everything except X position (because it's 3 bytes)
         LDX     #$00        ; X-position pointer
@@ -351,30 +368,694 @@ VY7     .DW     $0000
 HIMASK  .DB      $01, $01, $02, $02, $04, $04, $08, $08, $10, $10, $20, $20, $40, $40, $80, $80
 
         .ALIGN  64
-
-SPRITE  .DB     $AA, $AA, $AA
-        .DB     $AA, $AA, $AA
-        .DB     $AA, $AA, $AA
-        .DB     $AA, $AA, $AA
-        .DB     $AA, $AA, $AA
-        .DB     $AA, $AA, $AA
-        .DB     $AA, $AA, $AA
-        .DB     $AA, $AA, $AA
-        .DB     $AA, $AA, $AA
-        .DB     $AA, $AA, $AA
-        .DB     $AA, $AA, $AA
-        .DB     $AA, $AA, $AA
-        .DB     $AA, $AA, $AA
-        .DB     $AA, $AA, $AA
-        .DB     $AA, $AA, $AA
-        .DB     $AA, $AA, $AA
-        .DB     $AA, $AA, $AA
-        .DB     $AA, $AA, $AA
-        .DB     $AA, $AA, $AA
-        .DB     $AA, $AA, $AA
-        .DB     $AA, $AA, $AA
-        .DB     $AA, $AA, $AA
-
-
-
-
+SPRITE
+ ; 0 degrees rotation
+        .DB     $00, $00, $00
+        .DB     $00, $00, $00
+        .DB     $00, $00, $00
+        .DB     $00, $3f, $00
+        .DB     $00, $ff, $c0
+        .DB     $03, $f9, $f0
+        .DB     $07, $f9, $f8
+        .DB     $07, $ff, $e0
+        .DB     $0f, $ff, $c0
+        .DB     $0f, $ff, $80
+        .DB     $0f, $fe, $00
+        .DB     $0f, $fc, $00
+        .DB     $1f, $fe, $00
+        .DB     $0f, $ff, $80
+        .DB     $07, $ff, $e0
+        .DB     $07, $ff, $f8
+        .DB     $03, $ff, $f0
+        .DB     $00, $ff, $c0
+        .DB     $00, $3f, $00
+        .DB     $00, $00, $00
+        .DB     $00, $00, $00
+        .DB     $00 ; 64 bit boundary padding
+        ; 12 degrees rotation
+        .DB     $00, $00, $00
+        .DB     $00, $00, $00
+        .DB     $00, $00, $00
+        .DB     $00, $7d, $80
+        .DB     $00, $71, $e0
+        .DB     $00, $f1, $c0
+        .DB     $03, $f3, $80
+        .DB     $07, $ff, $00
+        .DB     $07, $fe, $00
+        .DB     $07, $fe, $00
+        .DB     $07, $fc, $00
+        .DB     $07, $fc, $00
+        .DB     $07, $ff, $c0
+        .DB     $07, $ff, $f8
+        .DB     $01, $ff, $f0
+        .DB     $01, $ff, $e0
+        .DB     $00, $ff, $80
+        .DB     $00, $2f, $00
+        .DB     $00, $00, $00
+        .DB     $00, $00, $00
+        .DB     $00, $00, $00
+        .DB     $00 ; 64 bit boundary padding
+        ; 24 degrees rotation
+        .DB     $00, $00, $00
+        .DB     $00, $00, $00
+        .DB     $00, $0a, $00
+        .DB     $00, $37, $80
+        .DB     $00, $c3, $80
+        .DB     $00, $e3, $00
+        .DB     $01, $e7, $00
+        .DB     $03, $ff, $00
+        .DB     $03, $fc, $00
+        .DB     $07, $fc, $00
+        .DB     $07, $fc, $00
+        .DB     $07, $ff, $d0
+        .DB     $07, $ff, $fc
+        .DB     $03, $ff, $f0
+        .DB     $03, $ff, $f0
+        .DB     $00, $ff, $e0
+        .DB     $00, $ff, $80
+        .DB     $00, $0a, $00
+        .DB     $00, $00, $00
+        .DB     $00, $00, $00
+        .DB     $00, $00, $00
+        .DB     $00 ; 64 bit boundary padding
+        ; 36 degrees rotation
+        .DB     $00, $00, $00
+        .DB     $00, $00, $00
+        .DB     $00, $0b, $00
+        .DB     $00, $6e, $00
+        .DB     $00, $ce, $00
+        .DB     $01, $86, $00
+        .DB     $01, $ce, $00
+        .DB     $03, $fc, $00
+        .DB     $03, $fc, $00
+        .DB     $07, $fc, $00
+        .DB     $07, $fd, $7c
+        .DB     $07, $ff, $f0
+        .DB     $07, $ff, $f8
+        .DB     $07, $ff, $e0
+        .DB     $03, $ff, $f0
+        .DB     $01, $ff, $c0
+        .DB     $00, $ff, $80
+        .DB     $00, $34, $00
+        .DB     $00, $00, $00
+        .DB     $00, $00, $00
+        .DB     $00, $00, $00
+        .DB     $00 ; 64 bit boundary padding
+        ; 48 degrees rotation
+        .DB     $00, $00, $00
+        .DB     $00, $00, $00
+        .DB     $00, $0c, $00
+        .DB     $00, $38, $00
+        .DB     $00, $b8, $00
+        .DB     $01, $1c, $00
+        .DB     $03, $1c, $00
+        .DB     $03, $b8, $00
+        .DB     $03, $f8, $00
+        .DB     $07, $f8, $38
+        .DB     $07, $fe, $f0
+        .DB     $0f, $ff, $f0
+        .DB     $07, $ff, $e0
+        .DB     $07, $ff, $f0
+        .DB     $07, $ff, $e0
+        .DB     $03, $ff, $c0
+        .DB     $01, $ff, $80
+        .DB     $00, $fe, $00
+        .DB     $00, $08, $00
+        .DB     $00, $00, $00
+        .DB     $00, $00, $00
+        .DB     $00 ; 64 bit boundary padding
+        ; 60 degrees rotation
+        .DB     $00, $00, $00
+        .DB     $00, $00, $00
+        .DB     $00, $10, $00
+        .DB     $00, $70, $00
+        .DB     $01, $f0, $00
+        .DB     $01, $70, $00
+        .DB     $02, $18, $00
+        .DB     $06, $30, $30
+        .DB     $07, $f8, $f0
+        .DB     $07, $f0, $f0
+        .DB     $07, $ff, $f0
+        .DB     $07, $ff, $f0
+        .DB     $07, $ff, $f0
+        .DB     $07, $ff, $e0
+        .DB     $07, $ff, $e0
+        .DB     $03, $ff, $c0
+        .DB     $01, $ff, $00
+        .DB     $00, $fe, $00
+        .DB     $00, $28, $00
+        .DB     $00, $00, $00
+        .DB     $00, $00, $00
+        .DB     $00 ; 64 bit boundary padding
+        ; 72 degrees rotation
+        .DB     $00, $00, $00
+        .DB     $00, $00, $00
+        .DB     $00, $40, $00
+        .DB     $00, $e0, $00
+        .DB     $00, $f0, $00
+        .DB     $02, $f0, $10
+        .DB     $02, $30, $70
+        .DB     $02, $30, $f0
+        .DB     $07, $78, $f0
+        .DB     $07, $ff, $f8
+        .DB     $03, $ff, $f0
+        .DB     $07, $ff, $f0
+        .DB     $03, $ff, $f0
+        .DB     $03, $ff, $e0
+        .DB     $03, $ff, $c0
+        .DB     $01, $ff, $c0
+        .DB     $00, $ff, $00
+        .DB     $00, $3e, $00
+        .DB     $00, $00, $00
+        .DB     $00, $00, $00
+        .DB     $00, $00, $00
+        .DB     $00 ; 64 bit boundary padding
+        ; 84 degrees rotation
+        .DB     $00, $00, $00
+        .DB     $00, $00, $00
+        .DB     $00, $00, $00
+        .DB     $00, $80, $00
+        .DB     $01, $c0, $60
+        .DB     $03, $e0, $60
+        .DB     $04, $e1, $e0
+        .DB     $04, $61, $e0
+        .DB     $04, $73, $f0
+        .DB     $07, $7f, $f0
+        .DB     $07, $ff, $f0
+        .DB     $03, $ff, $f0
+        .DB     $03, $ff, $f0
+        .DB     $01, $ff, $e0
+        .DB     $01, $ff, $e0
+        .DB     $01, $ff, $c0
+        .DB     $01, $ff, $00
+        .DB     $00, $7c, $00
+        .DB     $00, $00, $00
+        .DB     $00, $00, $00
+        .DB     $00, $00, $00
+        .DB     $00 ; 64 bit boundary padding
+        ; 96 degrees rotation
+        .DB     $00, $00, $00
+        .DB     $00, $00, $00
+        .DB     $00, $00, $00
+        .DB     $00, $00, $80
+        .DB     $03, $01, $c0
+        .DB     $03, $81, $e0
+        .DB     $03, $e1, $f0
+        .DB     $03, $61, $f0
+        .DB     $04, $73, $f0
+        .DB     $04, $7f, $f0
+        .DB     $04, $ff, $f0
+        .DB     $07, $ff, $e0
+        .DB     $07, $ff, $e0
+        .DB     $03, $ff, $c0
+        .DB     $03, $ff, $c0
+        .DB     $01, $ff, $c0
+        .DB     $00, $7f, $c0
+        .DB     $00, $1f, $00
+        .DB     $00, $00, $00
+        .DB     $00, $00, $00
+        .DB     $00, $00, $00
+        .DB     $00 ; 64 bit boundary padding
+        ; 108 degrees rotation
+        .DB     $00, $00, $00
+        .DB     $00, $00, $00
+        .DB     $00, $01, $00
+        .DB     $00, $03, $80
+        .DB     $00, $03, $80
+        .DB     $04, $03, $e0
+        .DB     $07, $83, $e0
+        .DB     $07, $c3, $e0
+        .DB     $06, $c7, $f0
+        .DB     $08, $ff, $f0
+        .DB     $04, $7f, $e0
+        .DB     $04, $ff, $f0
+        .DB     $07, $ff, $e0
+        .DB     $03, $ff, $e0
+        .DB     $01, $ff, $e0
+        .DB     $01, $ff, $c0
+        .DB     $00, $7f, $80
+        .DB     $00, $3e, $00
+        .DB     $00, $00, $00
+        .DB     $00, $00, $00
+        .DB     $00, $00, $00
+        .DB     $00 ; 64 bit boundary padding
+        ; 120 degrees rotation
+        .DB     $00, $00, $00
+        .DB     $00, $00, $00
+        .DB     $00, $08, $00
+        .DB     $00, $0e, $00
+        .DB     $00, $0f, $80
+        .DB     $00, $07, $80
+        .DB     $00, $0f, $c0
+        .DB     $0c, $07, $e0
+        .DB     $0f, $8f, $e0
+        .DB     $0f, $af, $e0
+        .DB     $0c, $ff, $e0
+        .DB     $08, $ff, $e0
+        .DB     $08, $ff, $e0
+        .DB     $05, $ff, $e0
+        .DB     $07, $ff, $e0
+        .DB     $03, $ff, $c0
+        .DB     $00, $ff, $80
+        .DB     $00, $7f, $00
+        .DB     $00, $14, $00
+        .DB     $00, $00, $00
+        .DB     $00, $00, $00
+        .DB     $00 ; 64 bit boundary padding
+        ; 132 degrees rotation
+        .DB     $00, $00, $00
+        .DB     $00, $00, $00
+        .DB     $00, $30, $00
+        .DB     $00, $1c, $00
+        .DB     $00, $1f, $00
+        .DB     $00, $1f, $80
+        .DB     $00, $1f, $c0
+        .DB     $00, $0f, $c0
+        .DB     $00, $0f, $c0
+        .DB     $1f, $9f, $e0
+        .DB     $0f, $ff, $e0
+        .DB     $0c, $ff, $f0
+        .DB     $00, $7f, $e0
+        .DB     $0c, $ff, $e0
+        .DB     $05, $ff, $e0
+        .DB     $03, $ff, $c0
+        .DB     $01, $ff, $80
+        .DB     $00, $7f, $00
+        .DB     $00, $10, $00
+        .DB     $00, $00, $00
+        .DB     $00, $00, $00
+        .DB     $00 ; 64 bit boundary padding
+        ; 144 degrees rotation
+        .DB     $00, $00, $00
+        .DB     $00, $00, $00
+        .DB     $00, $68, $00
+        .DB     $00, $3f, $00
+        .DB     $00, $3f, $80
+        .DB     $00, $1f, $c0
+        .DB     $00, $1f, $c0
+        .DB     $00, $0f, $e0
+        .DB     $00, $0f, $e0
+        .DB     $02, $9f, $f0
+        .DB     $1f, $ff, $f0
+        .DB     $06, $ff, $f0
+        .DB     $0e, $7f, $f0
+        .DB     $00, $3f, $f0
+        .DB     $06, $7f, $e0
+        .DB     $01, $ff, $c0
+        .DB     $00, $ff, $80
+        .DB     $00, $16, $00
+        .DB     $00, $00, $00
+        .DB     $00, $00, $00
+        .DB     $00, $00, $00
+        .DB     $00 ; 64 bit boundary padding
+        ; 156 degrees rotation
+        .DB     $00, $00, $00
+        .DB     $00, $00, $00
+        .DB     $00, $28, $00
+        .DB     $00, $fe, $00
+        .DB     $00, $ff, $80
+        .DB     $00, $3f, $80
+        .DB     $00, $3f, $c0
+        .DB     $00, $1f, $e0
+        .DB     $00, $0f, $e0
+        .DB     $00, $1f, $f0
+        .DB     $00, $bf, $f0
+        .DB     $07, $ff, $f0
+        .DB     $1f, $ff, $f0
+        .DB     $06, $1f, $e0
+        .DB     $06, $3f, $e0
+        .DB     $03, $3f, $80
+        .DB     $00, $ff, $80
+        .DB     $00, $28, $00
+        .DB     $00, $00, $00
+        .DB     $00, $00, $00
+        .DB     $00, $00, $00
+        .DB     $00 ; 64 bit boundary padding
+        ; 168 degrees rotation
+        .DB     $00, $00, $00
+        .DB     $00, $00, $00
+        .DB     $00, $00, $00
+        .DB     $00, $ff, $00
+        .DB     $03, $ff, $00
+        .DB     $01, $ff, $80
+        .DB     $00, $7f, $e0
+        .DB     $00, $3f, $f0
+        .DB     $00, $3f, $f0
+        .DB     $00, $1f, $f0
+        .DB     $00, $1f, $f0
+        .DB     $00, $ff, $f0
+        .DB     $03, $ff, $f0
+        .DB     $0f, $3f, $f0
+        .DB     $07, $1f, $c0
+        .DB     $03, $1f, $c0
+        .DB     $00, $9f, $80
+        .DB     $00, $7a, $00
+        .DB     $00, $00, $00
+        .DB     $00, $00, $00
+        .DB     $00, $00, $00
+        .DB     $00 ; 64 bit boundary padding
+        ; 180 degrees rotation
+        .DB     $00, $00, $00
+        .DB     $00, $00, $00
+        .DB     $00, $00, $00
+        .DB     $00, $fc, $00
+        .DB     $03, $ff, $00
+        .DB     $0f, $ff, $c0
+        .DB     $1f, $ff, $e0
+        .DB     $07, $ff, $e0
+        .DB     $01, $ff, $f0
+        .DB     $00, $7f, $f8
+        .DB     $00, $3f, $f0
+        .DB     $00, $7f, $f0
+        .DB     $01, $ff, $f0
+        .DB     $03, $ff, $f0
+        .DB     $07, $ff, $e0
+        .DB     $1f, $9f, $e0
+        .DB     $0f, $9f, $c0
+        .DB     $03, $ff, $00
+        .DB     $00, $fc, $00
+        .DB     $00, $00, $00
+        .DB     $00, $00, $00
+        .DB     $00 ; 64 bit boundary padding
+        ; 192 degrees rotation
+        .DB     $00, $00, $00
+        .DB     $00, $00, $00
+        .DB     $00, $00, $00
+        .DB     $00, $7a, $00
+        .DB     $00, $ff, $80
+        .DB     $03, $ff, $c0
+        .DB     $07, $ff, $c0
+        .DB     $0f, $ff, $f0
+        .DB     $01, $ff, $f0
+        .DB     $00, $1f, $f0
+        .DB     $00, $1f, $f0
+        .DB     $00, $3f, $f0
+        .DB     $00, $3f, $f0
+        .DB     $00, $7f, $f0
+        .DB     $00, $e7, $e0
+        .DB     $01, $c7, $80
+        .DB     $03, $c7, $00
+        .DB     $00, $df, $00
+        .DB     $00, $00, $00
+        .DB     $00, $00, $00
+        .DB     $00, $00, $00
+        .DB     $00 ; 64 bit boundary padding
+        ; 204 degrees rotation
+        .DB     $00, $00, $00
+        .DB     $00, $00, $00
+        .DB     $00, $00, $00
+        .DB     $00, $28, $00
+        .DB     $00, $ff, $80
+        .DB     $03, $ff, $80
+        .DB     $07, $ff, $e0
+        .DB     $07, $ff, $e0
+        .DB     $1f, $ff, $f0
+        .DB     $05, $ff, $f0
+        .DB     $00, $1f, $f0
+        .DB     $00, $1f, $f0
+        .DB     $00, $1f, $e0
+        .DB     $00, $7f, $e0
+        .DB     $00, $73, $c0
+        .DB     $00, $63, $80
+        .DB     $00, $e1, $80
+        .DB     $00, $f6, $00
+        .DB     $00, $28, $00
+        .DB     $00, $00, $00
+        .DB     $00, $00, $00
+        .DB     $00 ; 64 bit boundary padding
+        ; 216 degrees rotation
+        .DB     $00, $00, $00
+        .DB     $00, $00, $00
+        .DB     $00, $00, $00
+        .DB     $00, $16, $00
+        .DB     $00, $ff, $80
+        .DB     $01, $ff, $c0
+        .DB     $07, $ff, $e0
+        .DB     $03, $ff, $f0
+        .DB     $0f, $ff, $f0
+        .DB     $07, $ff, $f0
+        .DB     $1f, $5f, $f0
+        .DB     $00, $1f, $f0
+        .DB     $00, $1f, $e0
+        .DB     $00, $1f, $e0
+        .DB     $00, $39, $c0
+        .DB     $00, $30, $c0
+        .DB     $00, $39, $80
+        .DB     $00, $3b, $00
+        .DB     $00, $68, $00
+        .DB     $00, $00, $00
+        .DB     $00, $00, $00
+        .DB     $00 ; 64 bit boundary padding
+        ; 228 degrees rotation
+        .DB     $00, $00, $00
+        .DB     $00, $00, $00
+        .DB     $00, $00, $00
+        .DB     $00, $10, $00
+        .DB     $00, $7f, $00
+        .DB     $01, $ff, $80
+        .DB     $03, $ff, $c0
+        .DB     $07, $ff, $e0
+        .DB     $0f, $ff, $e0
+        .DB     $07, $ff, $e0
+        .DB     $0f, $ff, $f0
+        .DB     $0f, $7f, $e0
+        .DB     $1c, $1f, $e0
+        .DB     $00, $1f, $c0
+        .DB     $00, $1d, $c0
+        .DB     $00, $38, $c0
+        .DB     $00, $38, $80
+        .DB     $00, $1d, $00
+        .DB     $00, $1c, $00
+        .DB     $00, $30, $00
+        .DB     $00, $00, $00
+        .DB     $00 ; 64 bit boundary padding
+        ; 240 degrees rotation
+        .DB     $00, $00, $00
+        .DB     $00, $00, $00
+        .DB     $00, $00, $00
+        .DB     $00, $14, $00
+        .DB     $00, $7f, $00
+        .DB     $00, $ff, $80
+        .DB     $03, $ff, $c0
+        .DB     $07, $ff, $e0
+        .DB     $07, $ff, $e0
+        .DB     $0f, $ff, $e0
+        .DB     $0f, $ff, $e0
+        .DB     $0f, $ff, $e0
+        .DB     $0f, $0f, $e0
+        .DB     $0f, $1f, $e0
+        .DB     $0c, $0c, $60
+        .DB     $00, $18, $40
+        .DB     $00, $0e, $80
+        .DB     $00, $0f, $80
+        .DB     $00, $0e, $00
+        .DB     $00, $08, $00
+        .DB     $00, $00, $00
+        .DB     $00 ; 64 bit boundary padding
+        ; 252 degrees rotation
+        .DB     $00, $00, $00
+        .DB     $00, $00, $00
+        .DB     $00, $00, $00
+        .DB     $00, $3e, $00
+        .DB     $00, $7f, $80
+        .DB     $01, $ff, $c0
+        .DB     $01, $ff, $e0
+        .DB     $03, $ff, $e0
+        .DB     $07, $ff, $e0
+        .DB     $07, $ff, $f0
+        .DB     $07, $ff, $e0
+        .DB     $0f, $ff, $f0
+        .DB     $07, $8f, $70
+        .DB     $07, $86, $20
+        .DB     $07, $06, $20
+        .DB     $04, $07, $a0
+        .DB     $00, $07, $80
+        .DB     $00, $03, $80
+        .DB     $00, $01, $00
+        .DB     $00, $00, $00
+        .DB     $00, $00, $00
+        .DB     $00 ; 64 bit boundary padding
+        ; 264 degrees rotation
+        .DB     $00, $00, $00
+        .DB     $00, $00, $00
+        .DB     $00, $00, $00
+        .DB     $00, $1f, $00
+        .DB     $00, $7f, $c0
+        .DB     $01, $ff, $c0
+        .DB     $03, $ff, $c0
+        .DB     $03, $ff, $c0
+        .DB     $07, $ff, $e0
+        .DB     $07, $ff, $e0
+        .DB     $07, $ff, $f0
+        .DB     $07, $ff, $70
+        .DB     $07, $e7, $10
+        .DB     $03, $c3, $10
+        .DB     $03, $c3, $90
+        .DB     $03, $03, $e0
+        .DB     $03, $01, $c0
+        .DB     $00, $00, $80
+        .DB     $00, $00, $00
+        .DB     $00, $00, $00
+        .DB     $00, $00, $00
+        .DB     $00 ; 64 bit boundary padding
+        ; 276 degrees rotation
+        .DB     $00, $00, $00
+        .DB     $00, $00, $00
+        .DB     $00, $00, $00
+        .DB     $00, $7c, $00
+        .DB     $01, $ff, $00
+        .DB     $01, $ff, $c0
+        .DB     $01, $ff, $e0
+        .DB     $01, $ff, $e0
+        .DB     $03, $ff, $f0
+        .DB     $03, $ff, $f0
+        .DB     $07, $ff, $90
+        .DB     $07, $ff, $10
+        .DB     $07, $e7, $10
+        .DB     $07, $c3, $60
+        .DB     $07, $c3, $e0
+        .DB     $03, $c0, $e0
+        .DB     $01, $c0, $60
+        .DB     $00, $80, $00
+        .DB     $00, $00, $00
+        .DB     $00, $00, $00
+        .DB     $00, $00, $00
+        .DB     $00 ; 64 bit boundary padding
+        ; 288 degrees rotation
+        .DB     $00, $00, $00
+        .DB     $00, $00, $00
+        .DB     $00, $00, $00
+        .DB     $00, $3e, $00
+        .DB     $00, $ff, $00
+        .DB     $01, $ff, $c0
+        .DB     $03, $ff, $c0
+        .DB     $03, $ff, $e0
+        .DB     $03, $ff, $f0
+        .DB     $07, $ff, $90
+        .DB     $03, $ff, $10
+        .DB     $07, $ff, $88
+        .DB     $07, $f1, $b0
+        .DB     $03, $e1, $f0
+        .DB     $03, $e0, $f0
+        .DB     $03, $e0, $10
+        .DB     $00, $e0, $00
+        .DB     $00, $e0, $00
+        .DB     $00, $40, $00
+        .DB     $00, $00, $00
+        .DB     $00, $00, $00
+        .DB     $00 ; 64 bit boundary padding
+        ; 300 degrees rotation
+        .DB     $00, $00, $00
+        .DB     $00, $00, $00
+        .DB     $00, $00, $00
+        .DB     $00, $28, $00
+        .DB     $00, $fe, $00
+        .DB     $01, $ff, $00
+        .DB     $03, $ff, $c0
+        .DB     $07, $ff, $e0
+        .DB     $07, $ff, $a0
+        .DB     $07, $ff, $10
+        .DB     $07, $ff, $10
+        .DB     $07, $ff, $30
+        .DB     $07, $f5, $f0
+        .DB     $07, $f1, $f0
+        .DB     $07, $e0, $30
+        .DB     $03, $f0, $00
+        .DB     $01, $e0, $00
+        .DB     $01, $f0, $00
+        .DB     $00, $70, $00
+        .DB     $00, $10, $00
+        .DB     $00, $00, $00
+        .DB     $00 ; 64 bit boundary padding
+        ; 312 degrees rotation
+        .DB     $00, $00, $00
+        .DB     $00, $00, $00
+        .DB     $00, $00, $00
+        .DB     $00, $08, $00
+        .DB     $00, $fe, $00
+        .DB     $01, $ff, $80
+        .DB     $03, $ff, $c0
+        .DB     $07, $ff, $a0
+        .DB     $07, $ff, $30
+        .DB     $07, $fe, $00
+        .DB     $0f, $ff, $30
+        .DB     $07, $ff, $f0
+        .DB     $07, $f9, $f8
+        .DB     $03, $f0, $00
+        .DB     $03, $f0, $00
+        .DB     $03, $f8, $00
+        .DB     $01, $f8, $00
+        .DB     $00, $f8, $00
+        .DB     $00, $38, $00
+        .DB     $00, $0c, $00
+        .DB     $00, $00, $00
+        .DB     $00 ; 64 bit boundary padding
+        ; 324 degrees rotation
+        .DB     $00, $00, $00
+        .DB     $00, $00, $00
+        .DB     $00, $00, $00
+        .DB     $00, $34, $00
+        .DB     $00, $ff, $80
+        .DB     $01, $ff, $c0
+        .DB     $03, $ff, $30
+        .DB     $07, $fe, $00
+        .DB     $07, $ff, $38
+        .DB     $07, $ff, $b0
+        .DB     $07, $ff, $fc
+        .DB     $07, $fc, $a0
+        .DB     $03, $f8, $00
+        .DB     $03, $f8, $00
+        .DB     $01, $fc, $00
+        .DB     $01, $fc, $00
+        .DB     $00, $fe, $00
+        .DB     $00, $7e, $00
+        .DB     $00, $0b, $00
+        .DB     $00, $00, $00
+        .DB     $00, $00, $00
+        .DB     $00 ; 64 bit boundary padding
+        ; 336 degrees rotation
+        .DB     $00, $00, $00
+        .DB     $00, $00, $00
+        .DB     $00, $00, $00
+        .DB     $00, $0a, $00
+        .DB     $00, $ff, $80
+        .DB     $00, $fe, $60
+        .DB     $03, $fe, $30
+        .DB     $03, $fc, $30
+        .DB     $07, $ff, $fc
+        .DB     $07, $ff, $f0
+        .DB     $07, $fe, $80
+        .DB     $07, $fc, $00
+        .DB     $03, $f8, $00
+        .DB     $03, $fc, $00
+        .DB     $01, $fe, $00
+        .DB     $00, $fe, $00
+        .DB     $00, $ff, $80
+        .DB     $00, $3f, $80
+        .DB     $00, $0a, $00
+        .DB     $00, $00, $00
+        .DB     $00, $00, $00
+        .DB     $00 ; 64 bit boundary padding
+        ; 348 degrees rotation
+        .DB     $00, $00, $00
+        .DB     $00, $00, $00
+        .DB     $00, $00, $00
+        .DB     $00, $2f, $00
+        .DB     $00, $fc, $80
+        .DB     $01, $fc, $60
+        .DB     $01, $fc, $70
+        .DB     $07, $fe, $78
+        .DB     $07, $ff, $e0
+        .DB     $07, $ff, $80
+        .DB     $07, $fc, $00
+        .DB     $07, $fc, $00
+        .DB     $07, $fe, $00
+        .DB     $07, $fe, $00
+        .DB     $03, $ff, $00
+        .DB     $00, $ff, $c0
+        .DB     $00, $7f, $e0
+        .DB     $00, $7f, $80
+        .DB     $00, $00, $00
+        .DB     $00, $00, $00
+        .DB     $00, $00, $00
+        .DB     $00 ; 64 bit boundary padding

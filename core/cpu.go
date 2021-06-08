@@ -204,7 +204,7 @@ const (
 	CPY_I     = 0xc0
 	CPY_Z     = 0xc4
 	CPY_A     = 0xcc
-	TRACE_ON  = 0xfe // Debug pseudo instructions
+	TRACE_ON  = 0xef // Debug pseudo instructions
 	TRACE_OFF = 0xff
 )
 
@@ -491,8 +491,8 @@ func (c *CPU) Init(bus *Bus) {
 	c.instructionSet[CPY_I] = MkInstr("CPY_I", []func(){c.cpy_i})
 	c.instructionSet[CPY_Z] = MkInstr("CPY_Z", append(fetch8Bits, c.cpy))
 	c.instructionSet[CPY_A] = MkInstr("CPY_A", append(fetch16Bits, c.cpy))
-	c.instructionSet[TRACE_ON] = MkInstr("TRACE_ON", []func(){func() { c.Trace = true }})
-	c.instructionSet[TRACE_OFF] = MkInstr("TRACE_OFF", []func(){func() { c.Trace = false }})
+	c.instructionSet[TRACE_ON] = MkInstr("TRACEON", []func(){func() { c.Trace = true }})
+	c.instructionSet[TRACE_OFF] = MkInstr("TRACEOFF", []func(){func() { c.Trace = false }})
 
 	interruptTail := []func(){
 		c.pushInterruptReturnAddressHigh,
