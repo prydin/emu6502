@@ -1,5 +1,7 @@
 # Gommodore 64
 
+ ![Splash Screen](/doc/pacman.gif)
+
 This is an attempt at emulating the iconic Commodore 64 in Go. It is 
 currently very much a work in progress and contributions are appreciated.
 
