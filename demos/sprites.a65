@@ -45,6 +45,8 @@ RANDV   JSR     NEWVELO
         BNE     RANDV
 
         ; Initialize sprites
+        LDA     #$FF
+        STA     VIC+$1B
         LDA     #SPRSTART   ; Load address of sprite 1 data
         LDX     #$00
 LOADSP  STA     SPTRS,X

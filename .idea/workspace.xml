@@ -47,6 +47,9 @@
       <change afterPath="$PROJECT_DIR$/../vrealize-automation-plugin-for-jenkins/vra8-jenkins-plugin.iml" afterDir="false" />
       <change afterPath="$PROJECT_DIR$/../vrealize-automation-plugin-for-jenkins/vrealize-automation-8.iml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/demos/sprites.a65" beforeDir="false" afterPath="$PROJECT_DIR$/demos/sprites.a65" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/vic-ii/scan.go" beforeDir="false" afterPath="$PROJECT_DIR$/vic-ii/scan.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/vic-ii/vic_ii.go" beforeDir="false" afterPath="$PROJECT_DIR$/vic-ii/vic_ii.go" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../fizzbuzz/fizzbuzz.iml" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/../gradle/wrapper/gradle-wrapper.jar" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/../gradle/wrapper/gradle-wrapper.properties" beforeDir="false" />
@@ -367,24 +370,25 @@
           <option name="timeStamp" value="196" />
         </line-breakpoint>
         <line-breakpoint enabled="true" type="DlvLineBreakpoint">
-          <url>file://$PROJECT_DIR$/core/cpu.go</url>
-          <line>994</line>
-          <option name="timeStamp" value="199" />
+          <url>file://$PROJECT_DIR$/vic-ii/scan.go</url>
+          <line>403</line>
+          <option name="timeStamp" value="202" />
         </line-breakpoint>
         <line-breakpoint enabled="true" type="DlvLineBreakpoint">
-          <url>file://$PROJECT_DIR$/core/cpu.go</url>
-          <line>982</line>
-          <option name="timeStamp" value="200" />
+          <url>file://$PROJECT_DIR$/vic-ii/scan.go</url>
+          <line>316</line>
+          <option name="timeStamp" value="206" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="DlvLineBreakpoint">
+          <url>file://$PROJECT_DIR$/vic-ii/scan.go</url>
+          <line>365</line>
+          <option name="timeStamp" value="208" />
         </line-breakpoint>
       </breakpoints>
     </breakpoint-manager>
     <watches-manager>
       <configuration name="GoApplicationRunConfiguration">
-        <watch expression="v.cBuf[int(v.vmli)]" language="go" />
-        <watch expression="c.bus.ReadByte(8472)" language="go" />
-        <watch expression="c.bus.ReadByte(8471)" language="go" />
-        <watch expression="c.bus.ReadByte(8473)" language="go" />
-        <watch expression="c.bus.ReadByte(8474)" language="go" />
+        <watch expression="v.cycle%v.dimensions.CyclesPerLine" language="go" />
       </configuration>
       <configuration name="GoTestRunConfiguration">
         <watch expression="^mask" language="go" />

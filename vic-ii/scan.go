@@ -254,7 +254,7 @@ func (v *VicII) renderCycle() {
 	var contentRight uint16
 	var contentTop uint16
 	var contentBottom uint16
-	var scrollOffset uint16
+	//var scrollOffset uint16
 	if v.col40 {
 		contentLeft = v.dimensions.LeftBorderWidth40Cols
 		contentRight = contentLeft + v.dimensions.ContentWidth40Cols
@@ -265,150 +265,149 @@ func (v *VicII) renderCycle() {
 	if v.line25 {
 		contentTop = v.dimensions.ContentTop25Lines
 		contentBottom = v.dimensions.ContentBottom25Lines
-		scrollOffset = 3
+		//scrollOffset = 3
 	} else {
 		contentTop = v.dimensions.ContentTop24Lines
 		contentBottom = v.dimensions.ContentBottom24Lines
-		scrollOffset = 7
+		//scrollOffset = 7
 	}
 
 	localCycle := (v.cycle % v.dimensions.CyclesPerLine) - v.dimensions.FirstVisibleCycle
 	startPixel := localCycle << 3
 
-	switch {
-	// TODO: Revisit the borde logic to support VIC-II quirks allowing us to draw sprites on the borders
-	// Vertical border?
-	case v.rasterLine < contentTop || v.rasterLine >= contentBottom:
-		v.drawBorder(startPixel, 8)
-	// Left border?
-	case startPixel < contentLeft:
-		v.drawBorder(startPixel, min(8, contentLeft-1))
-	// Right border?
-	case startPixel > contentRight-8:
-		v.drawBorder(max(startPixel, contentRight), 8)
-	default:
-		// Check that we didn't run out of things to draw due to YSCROLL
-		if v.rasterLine-v.scrollY+scrollOffset < contentBottom {
-			if startPixel == contentLeft && v.scrollX > 0 {
-				v.drawBackground(startPixel, v.scrollX)
-			}
-			if v.bitmapMode {
-				v.renderBitmap(startPixel + v.scrollX)
+	lastFgColor := uint8(0)
+
+	for pixel := startPixel; pixel < startPixel+8; pixel++ {
+		color := v.borderCol
+
+		// 1. If the X coordinate reaches the right comparison value, the main border
+		//    flip flop is set.
+		// 2. If the Y coordinate reaches the bottom comparison value in cycle 63, the
+		//    vertical border flip flop is set.
+		// 3. If the Y coordinate reaches the top comparison value in cycle 63 and the
+		//    DEN bit in register $d011 is set, the vertical border flip flop is
+		//    reset.
+		// 4. If the X coordinate reaches the left comparison value and the Y
+		//    coordinate reaches the bottom one, the vertical border flip flop is set.
+		// 5. If the X coordinate reaches the left comparison value and the Y
+		//    coordinate reaches the top one and the DEN bit in register $d011 is set,
+		//	  the vertical border flip flop is reset.
+		// 6. If the X coordinate reaches the left comparison value and the vertical
+		//    border flip flop is not set, the main flip flop is reset.
+		if pixel == contentRight {
+			v.hBorderFF = true
+		}
+		if v.rasterLine == contentBottom {
+			v.vBorderFF = true
+		}
+		if v.rasterLine == contentTop {
+			v.vBorderFF = false
+		}
+		if pixel == contentLeft && !v.vBorderFF && v.enable {
+			v.hBorderFF = false
+		}
+		if !v.hBorderFF {
+			// We're in the content area!
+			dataIdx := v.cycle%v.dimensions.CyclesPerLine - v.dimensions.FirstContentCycle
+			cData := v.cBuf[dataIdx]
+			gData := v.gBuf[dataIdx]
+
+			// If we're at an odd pixel and multicolor mode is on, we just need to repeat the last pixel color
+			if v.multiColor && pixel&1 == 1 {
+				color = lastFgColor
 			} else {
-				v.renderText(startPixel + v.scrollX)
-			}
-		} else {
-			v.drawBackground(startPixel, 8)
-		}
-		// TODO: Sprite priority
-		for i := range v.sprites {
-			s := &v.sprites[i]
-			if s.displayEnabled && localCycle >= s.x>>3 && s.shiftReg != 0 { // TODO: Need visible flag as well as DMA?
-				v.renderSprite(s, startPixel, s.x>>3 == localCycle)
+				if v.bitmapMode {
+					color = v.generateBitmapColor(pixel-startPixel, cData, gData)
+				} else {
+					color = v.generateTextColor(pixel-startPixel, cData, gData)
+				}
+				lastFgColor = color
 			}
 		}
+		v.screen.SetPixel(pixel, v.rasterLine-v.dimensions.FirstVisibleLine, C64Colors[color])
 	}
 }
 
-func (v *VicII) drawBorder(x, n uint16) {
+func (v *VicII) drawBorder(n uint16, segment []uint8) {
 	for i := uint16(0); i < n; i++ {
-		v.screen.SetPixel(i+x, v.rasterLine-v.dimensions.FirstVisibleLine, C64Colors[v.borderCol&0x0f])
+		segment[i] = v.borderCol
+		// v.screen.SetPixel(i+x, v.rasterLine-v.dimensions.FirstVisibleLine, C64Colors[v.borderCol&0x0f])
 	}
 }
 
-func (v *VicII) drawBackground(x, n uint16) {
+func (v *VicII) drawBackground(n uint16, segment []uint8) {
 	for i := uint16(0); i < n; i++ {
-		v.screen.SetPixel(i+x, v.rasterLine-v.dimensions.FirstVisibleLine, C64Colors[v.backgroundColors[0]&0x0f])
+		segment[i] = v.backgroundColors[0] & 0x0f
+		// v.screen.SetPixel(i+x, v.rasterLine-v.dimensions.FirstVisibleLine, C64Colors[v.backgroundColors[0]&0x0f])
 	}
 }
 
-func (v *VicII) renderText(x uint16) {
-	line := v.rasterLine - v.dimensions.FirstVisibleLine
-	leftBorderOffset := uint16(0)
-	index := v.cycle%v.dimensions.CyclesPerLine - v.dimensions.FirstContentCycle
-	data := v.cBuf[index]
-	fgColor := uint8(data >> 8)
+func (v *VicII) generateTextColor(x, cData uint16, gData uint8) uint8 {
+	fgColor := uint8(cData>>8) & 0x0f
 	bgIndex := 0
 	if v.extendedClr {
-		bgIndex = int(data>>6) & 0x03
+		bgIndex = int(cData>>6) & 0x03
 	}
-	pattern := v.gBuf[index]
+	pattern := gData << x
 
 	// Multicolor mode
 	if v.multiColor {
+		// N.B. This part must only be execute when x is even. Caller is responsible for that.
 		// TODO: Handle illegal modes
-		for i := uint16(0); i < 4; i++ {
-			var color uint8
-			cIndex := pattern & 0xc0 >> 6
-			if cIndex == 0x03 {
-				color = fgColor
-			} else {
-				color = v.backgroundColors[cIndex]
-			}
-			nativeColor := C64Colors[color&0x0f]
-			v.screen.SetPixel(x+i*2+leftBorderOffset, line, nativeColor)
-			v.screen.SetPixel(x+i*2+leftBorderOffset+1, line, nativeColor)
-			pattern <<= 2
+
+		cIndex := pattern & 0xc0 >> 6
+		if cIndex == 0x03 {
+			return fgColor & 0x0f
+		} else {
+			return v.backgroundColors[cIndex] & 0x0f
 		}
 	} else {
-		// Standard monochrome text mode (including multi background)
-		for i := uint16(0); i < 8; i++ {
-			color := uint8(0)
-			if pattern&0x80 != 0 {
-				color = fgColor
-			} else {
-				color = v.backgroundColors[bgIndex]
-			}
-			pattern <<= 1
-			v.screen.SetPixel(x+i+leftBorderOffset, line, C64Colors[color&0x0f])
+		if pattern&0x80 != 0 {
+			return fgColor
+		} else {
+			return v.backgroundColors[bgIndex]
 		}
 	}
 }
 
-func (v *VicII) renderBitmap(x uint16) {
-	line := v.rasterLine - v.dimensions.FirstVisibleLine
-	leftBorderOffset := uint16(0)
-	index := v.cycle%v.dimensions.CyclesPerLine - v.dimensions.FirstContentCycle
-	data := v.cBuf[index]
-	bgColor := uint8(data & 0x0f)
-	fgColor := uint8(data>>4) & 0x0f
-	pattern := v.gBuf[index]
+func (v *VicII) generateBitmapColor(x, cData uint16, gData uint8) uint8 {
+	bgColor := uint8(cData & 0x0f)
+	fgColor := uint8(cData>>4) & 0x0f
+	pattern := gData << x
 	if v.multiColor {
-		for i := uint16(0); i < 4; i++ {
-			var color uint8
-			cIndex := pattern & 0xc0 >> 6
-			switch cIndex {
-			case 0:
-				color = v.backgroundColors[0]
-			case 1:
-				color = uint8(data>>4) & 0x0f
-			case 2:
-				color = uint8(data) & 0x0f
-			case 3:
-				color = uint8(data>>8) & 0x0f
-			}
-			nativeColor := C64Colors[color&0x0f]
-			v.screen.SetPixel(x+i*2+leftBorderOffset, line, nativeColor)
-			v.screen.SetPixel(x+i*2+leftBorderOffset+1, line, nativeColor)
-			pattern <<= 2
+		// N.B. This part must only be execute when x is even. Caller is responsible for that.
+		cIndex := pattern & 0xc0 >> 6
+		switch cIndex {
+		case 0:
+			return v.backgroundColors[0]
+		case 1:
+			return uint8(cData>>4) & 0x0f
+		case 2:
+			return uint8(cData) & 0x0f
+		case 3:
+			return uint8(cData>>8) & 0x0f
 		}
 	} else {
-		for i := uint16(0); i < 8; i++ {
-			color := uint8(0)
-			if pattern&0x80 != 0 {
-				color = fgColor
-			} else {
-				color = bgColor
-			}
-			pattern <<= 1
-			v.screen.SetPixel(x+i+leftBorderOffset, line, C64Colors[color&0x0f])
+		if pattern&0x80 != 0 {
+			return fgColor
+		} else {
+			return bgColor
+		}
+	}
+	return 0 // This should never happen
+}
+
+func (v *VicII) renderSprites(localCycle, startPixel uint16, segment []uint8) {
+	for i := range v.sprites {
+		s := &v.sprites[7-i] // Draw from lowest to highest to respect sprite priority
+		if s.displayEnabled && localCycle >= s.x>>3 && s.shiftReg != 0 {
+			v.renderSprite(s, startPixel, s.x>>3 == localCycle, segment)
 		}
 	}
 }
 
-func (v *VicII) renderSprite(s *Sprite, x uint16, leftmostByte bool) {
+func (v *VicII) renderSprite(s *Sprite, x uint16, leftmostByte bool, segment []uint8) {
 	// TODO: Horizontal stretch
-	line := v.rasterLine - v.dimensions.FirstVisibleLine
 
 	// Deal with first, possible partial cycle
 	start := uint16(0)
@@ -417,7 +416,7 @@ func (v *VicII) renderSprite(s *Sprite, x uint16, leftmostByte bool) {
 	}
 	for i := start; i < 8 && s.shiftReg != 0; i++ {
 		if s.shiftReg&(1<<23) != 0 {
-			v.screen.SetPixel(x+i, line, C64Colors[s.color&0x0f])
+			// v.screen.SetPixel(x+i, line, C64Colors[s.color&0x0f])
 		}
 		s.shiftReg = (s.shiftReg << 1) & 0x00ffffff
 	}

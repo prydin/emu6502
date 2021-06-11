@@ -172,6 +172,10 @@ type VicII struct {
 	displayState bool
 	cycle        uint16
 	screen       Raster
+
+	// Border flip flops
+	vBorderFF bool
+	hBorderFF bool
 }
 
 func (v *VicII) Init(bus *core.Bus, cpuBus *core.Bus, colorRam core.AddressSpace, screen Raster, dimensions ScreenDimensions) {
@@ -190,6 +194,8 @@ func (v *VicII) Init(bus *core.Bus, cpuBus *core.Bus, colorRam core.AddressSpace
 	v.dimensions = dimensions
 	v.colorRam = colorRam
 	v.cpuBus = cpuBus
+	v.hBorderFF = true
+	v.vBorderFF = true
 	for i := range v.sprites {
 		v.sprites[i].expand = true
 	}
@@ -432,7 +438,7 @@ func (v *VicII) WriteByte(addr uint16, data uint8) {
 		v.borderCol = data
 	case REG_SPRITE_PRIO:
 		for i := range v.sprites {
-			v.sprites[i].hasPriority = data&0x01 != 0
+			v.sprites[i].hasPriority = data&0x01 == 0
 			data >>= 1
 		}
 	case REG_SPRITE_MULTICLR:
