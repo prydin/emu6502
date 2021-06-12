@@ -225,15 +225,17 @@ func (v *VicII) gAccess() {
 func (v *VicII) pAccess(spriteIndex uint16) {
 	addr := v.screenMemPtr | 0x03f8 | spriteIndex
 	v.sprites[spriteIndex].pointer = uint16(v.bus.ReadByte(addr)) << 6
-	v.sprites[spriteIndex].shiftReg = 0
 }
 
 func (v *VicII) sAccess(spriteIndex uint16) {
 	s := &v.sprites[spriteIndex]
 	if !s.dma {
+		s.gData[0] = 0
+		s.gData[1] = 0
+		s.gData[2] = 0
 		return
 	}
-	s.shiftReg = s.shiftReg<<8 | uint32(v.bus.ReadByte(s.pointer+uint16(s.mc)))
+	s.gData[s.sIndex] = v.bus.ReadByte(s.pointer + uint16(s.mc))
 	s.sIndex++
 	s.mc++
 	if s.sIndex > 2 {
@@ -308,23 +310,38 @@ func (v *VicII) renderCycle() {
 		}
 		if !v.hBorderFF {
 			// We're in the content area!
-			dataIdx := v.cycle%v.dimensions.CyclesPerLine - v.dimensions.FirstContentCycle
-			cData := v.cBuf[dataIdx]
-			gData := v.gBuf[dataIdx]
 
 			// If we're at an odd pixel and multicolor mode is on, we just need to repeat the last pixel color
 			if v.multiColor && pixel&1 == 1 {
 				color = lastFgColor
 			} else {
-				if v.bitmapMode {
-					color = v.generateBitmapColor(pixel-startPixel, cData, gData)
+				localPixel := pixel - startPixel
+				if localPixel&0x07 == v.scrollX {
+					dataIdx := v.cycle%v.dimensions.CyclesPerLine - v.dimensions.FirstContentCycle
+					v.cData = v.cBuf[dataIdx]
+					v.sequencer = v.gBuf[dataIdx]
+				}
+				c, valid := v.generateSpriteColor(pixel, false) // Low priority sprites
+				if valid {
+					color = c
 				} else {
-					color = v.generateTextColor(pixel-startPixel, cData, gData)
+					// TODO: Handle collisions
+					if v.bitmapMode {
+						color = v.generateBitmapColor()
+					} else {
+						color = v.generateTextColor()
+					}
+				}
+				c, valid = v.generateSpriteColor(pixel, true) // High priority sprites
+				if valid {
+					// TODO: Handle collisions
+					color = c
 				}
 				lastFgColor = color
 			}
 		}
 		v.screen.SetPixel(pixel, v.rasterLine-v.dimensions.FirstVisibleLine, C64Colors[color])
+		v.sequencer <<= 1
 	}
 }
 
@@ -342,27 +359,26 @@ func (v *VicII) drawBackground(n uint16, segment []uint8) {
 	}
 }
 
-func (v *VicII) generateTextColor(x, cData uint16, gData uint8) uint8 {
-	fgColor := uint8(cData>>8) & 0x0f
+func (v *VicII) generateTextColor() uint8 {
+	fgColor := uint8(v.cData>>8) & 0x0f
 	bgIndex := 0
 	if v.extendedClr {
-		bgIndex = int(cData>>6) & 0x03
+		bgIndex = int(v.cData>>6) & 0x03
 	}
-	pattern := gData << x
 
 	// Multicolor mode
 	if v.multiColor {
-		// N.B. This part must only be execute when x is even. Caller is responsible for that.
+		// N.Bus. This part must only be execute when x is even. Caller is responsible for that.
 		// TODO: Handle illegal modes
 
-		cIndex := pattern & 0xc0 >> 6
+		cIndex := v.sequencer & 0xc0 >> 6
 		if cIndex == 0x03 {
 			return fgColor & 0x0f
 		} else {
 			return v.backgroundColors[cIndex] & 0x0f
 		}
 	} else {
-		if pattern&0x80 != 0 {
+		if v.sequencer&0x80 != 0 {
 			return fgColor
 		} else {
 			return v.backgroundColors[bgIndex]
@@ -370,25 +386,24 @@ func (v *VicII) generateTextColor(x, cData uint16, gData uint8) uint8 {
 	}
 }
 
-func (v *VicII) generateBitmapColor(x, cData uint16, gData uint8) uint8 {
-	bgColor := uint8(cData & 0x0f)
-	fgColor := uint8(cData>>4) & 0x0f
-	pattern := gData << x
+func (v *VicII) generateBitmapColor() uint8 {
+	bgColor := uint8(v.cData & 0x0f)
+	fgColor := uint8(v.cData>>4) & 0x0f
 	if v.multiColor {
-		// N.B. This part must only be execute when x is even. Caller is responsible for that.
-		cIndex := pattern & 0xc0 >> 6
+		// N.Bus. This part must only be execute when x is even. Caller is responsible for that.
+		cIndex := v.sequencer & 0xc0 >> 6
 		switch cIndex {
 		case 0:
 			return v.backgroundColors[0]
 		case 1:
-			return uint8(cData>>4) & 0x0f
+			return uint8(v.cData>>4) & 0x0f
 		case 2:
-			return uint8(cData) & 0x0f
+			return uint8(v.cData) & 0x0f
 		case 3:
-			return uint8(cData>>8) & 0x0f
+			return uint8(v.cData>>8) & 0x0f
 		}
 	} else {
-		if pattern&0x80 != 0 {
+		if v.sequencer&0x80 != 0 {
 			return fgColor
 		} else {
 			return bgColor
@@ -397,29 +412,25 @@ func (v *VicII) generateBitmapColor(x, cData uint16, gData uint8) uint8 {
 	return 0 // This should never happen
 }
 
-func (v *VicII) renderSprites(localCycle, startPixel uint16, segment []uint8) {
+func (v *VicII) generateSpriteColor(x uint16, highPriority bool) (uint8, bool) {
+	color := uint8(0)
+	valid := false
 	for i := range v.sprites {
 		s := &v.sprites[7-i] // Draw from lowest to highest to respect sprite priority
-		if s.displayEnabled && localCycle >= s.x>>3 && s.shiftReg != 0 {
-			v.renderSprite(s, startPixel, s.x>>3 == localCycle, segment)
+		if s.hasPriority != highPriority {
+			continue
 		}
-	}
-}
-
-func (v *VicII) renderSprite(s *Sprite, x uint16, leftmostByte bool, segment []uint8) {
-	// TODO: Horizontal stretch
-
-	// Deal with first, possible partial cycle
-	start := uint16(0)
-	if leftmostByte {
-		start = (s.x - x) & 7
-	}
-	for i := start; i < 8 && s.shiftReg != 0; i++ {
-		if s.shiftReg&(1<<23) != 0 {
-			// v.screen.SetPixel(x+i, line, C64Colors[s.color&0x0f])
+		idx := x - s.x
+		if idx <= 16 && idx&0x07 == 0 {
+			s.sequencer = s.gData[idx>>3]
 		}
-		s.shiftReg = (s.shiftReg << 1) & 0x00ffffff
+		if s.enabled && s.sequencer&0x80 != 0 {
+			color = s.color & 0x0f
+			valid = true
+		}
+		s.sequencer <<= 1
 	}
+	return color, valid
 }
 
 // 1. The expansion flip flop is set as long as the bit in MxYE in register

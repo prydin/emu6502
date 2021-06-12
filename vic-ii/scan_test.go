@@ -90,7 +90,7 @@ func Test_CharacterMode(t *testing.T) {
 	vicii.charSetPtr = 0xd000
 	vicii.backgroundColors[0] = 6
 	vicii.scrollY = 3
-	vicii.scrollX = 3
+	vicii.scrollX = 0
 	start := time.Now()
 	for i := 0; i < int(PalScreenWidth)*int(PalScreenHeight)/4; i++ {
 		vicii.Clock()
@@ -451,7 +451,7 @@ func TestSAccess(t *testing.T) {
 			vicii.Clock()
 		}
 		require.Equalf(t, uint16(0x2000), vicii.sprites[i].pointer, "Pointer mismatch at sprite %d", i)
-		require.Equalf(t, uint32(0x00000102), vicii.sprites[i].shiftReg, "Data mismatch on sprite %d", i)
+		require.Equalf(t, uint32(0x00000102), vicii.sprites[i].sequencer, "Data mismatch on sprite %d", i)
 	}
 }
 
@@ -472,13 +472,17 @@ func TestDrawSprite(t *testing.T) {
 	for i := 0; i < 8; i++ {
 		screenRAM.WriteByte(0x03f8+uint16(i), uint8(0x2000>>6))
 		for c := uint16(0); c < 63; c++ {
-			vicii.bus.WriteByte(0x2000+uint16(c)+uint16(i*63), 1<<((c/3)%8))
+			data := uint8(1 << ((c / 3) % 8))
+			if c%3 == 1 {
+				data = ^data
+			}
+			vicii.bus.WriteByte(0x2000+uint16(c)+uint16(i*63), data)
 		}
 		vicii.sprites[i].enabled = true
 		vicii.sprites[i].x = uint16(26 + i*48)
 		vicii.sprites[i].y = uint8(50 + i*21)
 		vicii.sprites[i].color = 1
-		//vicii.sprites[i].expandedY = true
+		vicii.sprites[i].expandedY = false
 		vicii.cycle = cycles[i]
 	}
 	for c := 0; c < PalScreenWidth*PalScreenHeight/4; c++ {

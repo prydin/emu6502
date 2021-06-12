@@ -28,13 +28,13 @@ import (
 
 const (
 	PRA     = 0x00 // Port A
-	PRB     = 0x01 // Port B
+	PRB     = 0x01 // Port Bus
 	DDRA    = 0x02 // Data direction A
-	DDRB    = 0x03 // Data direction B
+	DDRB    = 0x03 // Data direction Bus
 	TALO    = 0x04 // Timer A Low
 	TAHI    = 0x05 // Timer A High
-	TBLO    = 0x06 // Timer B Low
-	TBHI    = 0x07 // Timer B High
+	TBLO    = 0x06 // Timer Bus Low
+	TBHI    = 0x07 // Timer Bus High
 	TOD10TH = 0x08 // Time of day 10th seconds
 	TODSEC  = 0x09 // Time of day seconds
 	TODMIN  = 0x0a // Time of day minutes
@@ -42,7 +42,7 @@ const (
 	SDR     = 0x0c // Serial shift register
 	ICR     = 0x0d // Interrupt control
 	CRA     = 0x0e // Timer A control
-	CRB     = 0x0f // Timer B control
+	CRB     = 0x0f // Timer Bus control
 )
 
 const (
@@ -176,7 +176,7 @@ func (c *CIA) ReadByte(addr uint16) uint8 {
 func (c *CIA) Clock() {
 	irqA := c.TimerA.irqOccurred
 	irqB := c.TimerB.irqOccurred
-	c.TimerA.Clock() // Preserve the order A -> B since B can tick A if it reaches zero
+	c.TimerA.Clock() // Preserve the order A -> Bus since Bus can tick A if it reaches zero
 	c.TimerB.Clock()
 	doIrq := (c.TimerA.irqOccurred && !irqA) || (c.TimerB.irqOccurred && !irqB) // Trigger on positive edge
 

@@ -19,7 +19,7 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package main
+package computer
 
 import (
 	"github.com/prydin/emu6502/charset"
@@ -30,27 +30,27 @@ import (
 )
 
 type Commodore64 struct {
-	cpu core.CPU
-	vic vic_ii.VicII
-	bus core.Bus
-	ram core.RAM
+	Cpu      core.CPU
+	Vic      vic_ii.VicII
+	Bus      core.Bus
+	ram      core.RAM
 	Keyboard *keyboard.Keyboard
 }
 
 func (c *Commodore64) Clock() {
-	c.vic.Clock()
+	c.Vic.Clock()
 }
 
 func (c *Commodore64) Init(screen vic_ii.Raster, dimensions vic_ii.ScreenDimensions) error {
 	// Create components
-	c.cpu = core.CPU{}
-	c.vic = vic_ii.VicII{}
-	c.bus = core.Bus{}
+	c.Cpu = core.CPU{}
+	c.Vic = vic_ii.VicII{}
+	c.Bus = core.Bus{}
 	vbus := core.Bus{}
-	c.bus.ConnectClockablePh1(&c.cpu)
+	c.Bus.ConnectClockablePh1(&c.Cpu)
 	colorRam := core.MakeRAM(1024)
-	c.cpu.Init(&c.bus)
-	c.vic.Init(&vbus, &c.bus, colorRam, screen, dimensions)
+	c.Cpu.Init(&c.Bus)
+	c.Vic.Init(&vbus, &c.Bus, colorRam, screen, dimensions)
 	c.ram = core.RAM{Bytes: make([]uint8, 10000)} // TODO: Size
 
 	// Load ROMs
@@ -71,51 +71,51 @@ func (c *Commodore64) Init(screen vic_ii.Raster, dimensions vic_ii.ScreenDimensi
 	ram4 := core.MakeRAM(8192)  // Banked RAM
 
 	cia1 := cia.CIA{}
-	cia1.Init(&c.bus)
-	c.bus.ConnectClockablePh1(&cia1)
+	cia1.Init(&c.Bus)
+	c.Bus.ConnectClockablePh1(&cia1)
 	cia2 := cia.CIA{}
-	cia2.Init(&c.bus)
-	c.bus.ConnectClockablePh1(&cia2)
+	cia2.Init(&c.Bus)
+	c.Bus.ConnectClockablePh1(&cia2)
 
 	io := core.NewPagedSpace([]core.AddressSpace{
-		&c.vic,            		// D000
-		&c.vic,            		// D100
-		&c.vic,            		// D200
-		&c.vic,            		// D300
+		&c.Vic,            // D000
+		&c.Vic,            // D100
+		&c.Vic,            // D200
+		&c.Vic,            // D300
 		core.MakeRAM(256), // D400 TODO: Placeholder for SID
 		core.MakeRAM(256), // D500 TODO: Placeholder for SID
 		core.MakeRAM(256), // D600 TODO: Placeholder for SID
 		core.MakeRAM(256), // D700 TODO: Placeholder for SID
-		colorRam.Page(0), // D800
-		colorRam.Page(1), // D900
-		colorRam.Page(2), // DA00
-		colorRam.Page(3), // DB00
-		&cia1,             		// DC00
-		&cia2,             		// DD00
+		colorRam.Page(0),  // D800
+		colorRam.Page(1),  // D900
+		colorRam.Page(2),  // DA00
+		colorRam.Page(3),  // DB00
+		&cia1,             // DC00
+		&cia2,             // DD00
 	})
 
-	// Set up the main system bus
+	// Set up the main system Bus
 	switcher := core.NewBankSwitcher([][]core.AddressSpace{
 		{ram2, ram2, ram2, basic, ram2, ram2, ram2, basic},
 		{ram3, &charset.CharacterROM, &charset.CharacterROM, &charset.CharacterROM, ram3, io, io, io},
 		{ram4, ram4, kernal, kernal, ram4, ram4, kernal, kernal},
 	})
 	switcher.Switch(7)
-	c.bus.SetSwitcher(switcher)
+	c.Bus.SetSwitcher(switcher)
 
-	c.bus.Connect(ram0, 0x0000, 0x9fff) // Main RAM
-	c.bus.Connect(ram1, 0xc000, 0xcfff) // High RAM
-	c.bus.Connect(switcher.GetBank(0), 0xa000, 0xbfff)
-	c.bus.Connect(switcher.GetBank(1), 0xd000, 0xdfff)
-	c.bus.Connect(switcher.GetBank(2), 0xe000, 0xffff)
-	c.bus.Connect(colorRam, 0xd800, 0xdbff) // Color RAM
+	c.Bus.Connect(ram0, 0x0000, 0x9fff) // Main RAM
+	c.Bus.Connect(ram1, 0xc000, 0xcfff) // High RAM
+	c.Bus.Connect(switcher.GetBank(0), 0xa000, 0xbfff)
+	c.Bus.Connect(switcher.GetBank(1), 0xd000, 0xdfff)
+	c.Bus.Connect(switcher.GetBank(2), 0xe000, 0xffff)
+	c.Bus.Connect(colorRam, 0xd800, 0xdbff) // Color RAM
 
 	// Connect peripherals
 	c.Keyboard = &keyboard.Keyboard{}
 	c.Keyboard.Init(&cia1)
-	c.bus.ConnectClockablePh1(c.Keyboard)
+	c.Bus.ConnectClockablePh1(c.Keyboard)
 
-	// Set up the Vic-II bus
+	// Set up the Vic-II Bus
 	vbus.Connect(ram0, 0x0000, 0x9fff)
 	vbus.Connect(ram1, 0xc000, 0xcfff)
 	vbus.Connect(ram2, 0xa000, 0xbfff)

@@ -1037,7 +1037,7 @@ func (c *CPU) php() {
 	c.push(c.flags | FLAG_B | FLAG_U)
 }
 
-// Hardware interrupts must clear the B flag
+// Hardware interrupts must clear the Bus flag
 func (c *CPU) php_hw() {
 	c.push((c.flags & ^(FLAG_B)) | FLAG_U)
 	c.flags |= FLAG_I

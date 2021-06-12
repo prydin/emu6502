@@ -26,6 +26,7 @@ import (
 	"github.com/beevik/go6502/asm"
 	"github.com/faiface/pixel"
 	"github.com/faiface/pixel/pixelgl"
+	"github.com/prydin/emu6502/computer"
 	"github.com/prydin/emu6502/screen"
 	vic_ii "github.com/prydin/emu6502/vic-ii"
 	"image"
@@ -69,7 +70,7 @@ func main() {
 	}
 
 	pixelgl.Run(func() {
-		c64 := Commodore64{}
+		c64 := computer.Commodore64{}
 		cfg := pixelgl.WindowConfig{
 			Title:     "Gommodore64",
 			Bounds:    pixel.R(0, 0, 1024, 768),
@@ -86,16 +87,16 @@ func main() {
 			Max: image.Point{vic_ii.PalVisibleWidth, vic_ii.PalVisibleHeight},
 		})
 
-		c64.cpu.CrashOnInvalidInst = true // TODO: Make configurable
+		c64.Cpu.CrashOnInvalidInst = true // TODO: Make configurable
 		c64.Init(scr, vic_ii.PALDimensions)
 		c64.Keyboard.SetProvider(win)
 		//c64.cpu.Trace = true
-		c64.cpu.Reset()
+		c64.Cpu.Reset()
 
 		var lastVSynch time.Time
 		n := 0
 		for {
-			if c64.vic.IsVSynch() {
+			if c64.Vic.IsVSynch() {
 				now := time.Now()
 				frameTime := now.Sub(lastVSynch)
 
@@ -111,7 +112,7 @@ func main() {
 			c64.Clock()
 			if code != nil && n > 10000000 {
 				for i := uint16(0); i < uint16(sourceMap.Size); i++ {
-					c64.bus.WriteByte(i+sourceMap.Origin, code.Code[i])
+					c64.Bus.WriteByte(i+sourceMap.Origin, code.Code[i])
 				}
 				code = nil
 			}

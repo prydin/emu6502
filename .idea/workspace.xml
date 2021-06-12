@@ -47,8 +47,13 @@
       <change afterPath="$PROJECT_DIR$/../vrealize-automation-plugin-for-jenkins/vra8-jenkins-plugin.iml" afterDir="false" />
       <change afterPath="$PROJECT_DIR$/../vrealize-automation-plugin-for-jenkins/vrealize-automation-8.iml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/demos/sprites.a65" beforeDir="false" afterPath="$PROJECT_DIR$/demos/sprites.a65" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/c64.go" beforeDir="false" afterPath="$PROJECT_DIR$/computer/c64.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/c64_test.go" beforeDir="false" afterPath="$PROJECT_DIR$/computer/c64_test.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/cia/cia.go" beforeDir="false" afterPath="$PROJECT_DIR$/cia/cia.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/core/cpu.go" beforeDir="false" afterPath="$PROJECT_DIR$/core/cpu.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/main.go" beforeDir="false" afterPath="$PROJECT_DIR$/main.go" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/vic-ii/scan.go" beforeDir="false" afterPath="$PROJECT_DIR$/vic-ii/scan.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/vic-ii/scan_test.go" beforeDir="false" afterPath="$PROJECT_DIR$/vic-ii/scan_test.go" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/vic-ii/vic_ii.go" beforeDir="false" afterPath="$PROJECT_DIR$/vic-ii/vic_ii.go" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../fizzbuzz/fizzbuzz.iml" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/../gradle/wrapper/gradle-wrapper.jar" beforeDir="false" />
@@ -203,15 +208,16 @@
   </component>
   <component name="RecentsManager">
     <key name="MoveFile.RECENT_KEYS">
+      <recent name="$PROJECT_DIR$/computer" />
       <recent name="$PROJECT_DIR$/core" />
     </key>
   </component>
-  <component name="RunManager" selected="Go Build.go build github.com/prydin/emu6502">
-    <configuration name="go build github.com/prydin/emu6502" type="GoApplicationRunConfiguration" factoryName="Go Application" temporary="true" nameIsGenerated="true">
+  <component name="RunManager" selected="Go Build.Run Demo">
+    <configuration name="Run Demo" type="GoApplicationRunConfiguration" factoryName="Go Application">
       <module name="emu6502" />
       <working_directory value="$PROJECT_DIR$" />
-      <parameters value="-loadasm demos/sprites.a65" />
-      <kind value="PACKAGE" />
+      <parameters value="--loadasm demos/sprites.a65" />
+      <kind value="FILE" />
       <package value="github.com/prydin/emu6502" />
       <directory value="$PROJECT_DIR$" />
       <filePath value="$PROJECT_DIR$/main.go" />
@@ -229,7 +235,7 @@
       <pattern value="^\QTestDrawSprite\E$" />
       <method v="2" />
     </configuration>
-    <configuration name="TestSAccess in github.com/prydin/emu6502/vic-ii" type="GoTestRunConfiguration" factoryName="Go Test" temporary="true" nameIsGenerated="true">
+    <configuration name="Test_BitmapMode in github.com/prydin/emu6502/vic-ii" type="GoTestRunConfiguration" factoryName="Go Test" temporary="true" nameIsGenerated="true">
       <module name="emu6502" />
       <working_directory value="$PROJECT_DIR$/vic-ii" />
       <root_directory value="$PROJECT_DIR$" />
@@ -238,19 +244,19 @@
       <directory value="$PROJECT_DIR$" />
       <filePath value="$PROJECT_DIR$" />
       <framework value="gotest" />
-      <pattern value="^\QTestSAccess\E$" />
+      <pattern value="^\QTest_BitmapMode\E$" />
       <method v="2" />
     </configuration>
-    <configuration name="TestSubtract in github.com/prydin/emu6502/core" type="GoTestRunConfiguration" factoryName="Go Test" temporary="true" nameIsGenerated="true">
+    <configuration name="Test_BitmapModeMultiColor in github.com/prydin/emu6502/vic-ii" type="GoTestRunConfiguration" factoryName="Go Test" temporary="true" nameIsGenerated="true">
       <module name="emu6502" />
-      <working_directory value="$PROJECT_DIR$/core" />
+      <working_directory value="$PROJECT_DIR$/vic-ii" />
       <root_directory value="$PROJECT_DIR$" />
       <kind value="PACKAGE" />
-      <package value="github.com/prydin/emu6502/core" />
+      <package value="github.com/prydin/emu6502/vic-ii" />
       <directory value="$PROJECT_DIR$" />
       <filePath value="$PROJECT_DIR$" />
       <framework value="gotest" />
-      <pattern value="^\QTestSubtract\E$" />
+      <pattern value="^\QTest_BitmapModeMultiColor\E$" />
       <method v="2" />
     </configuration>
     <configuration name="Test_CharacterMode in github.com/prydin/emu6502/vic-ii" type="GoTestRunConfiguration" factoryName="Go Test" temporary="true" nameIsGenerated="true">
@@ -266,19 +272,18 @@
       <method v="2" />
     </configuration>
     <list>
-      <item itemvalue="Go Build.go build github.com/prydin/emu6502" />
+      <item itemvalue="Go Build.Run Demo" />
       <item itemvalue="Go Test.Test_CharacterMode in github.com/prydin/emu6502/vic-ii" />
+      <item itemvalue="Go Test.Test_BitmapMode in github.com/prydin/emu6502/vic-ii" />
+      <item itemvalue="Go Test.Test_BitmapModeMultiColor in github.com/prydin/emu6502/vic-ii" />
       <item itemvalue="Go Test.TestDrawSprite in github.com/prydin/emu6502/vic-ii" />
-      <item itemvalue="Go Test.TestSAccess in github.com/prydin/emu6502/vic-ii" />
-      <item itemvalue="Go Test.TestSubtract in github.com/prydin/emu6502/core" />
     </list>
     <recent_temporary>
       <list>
-        <item itemvalue="Go Build.go build github.com/prydin/emu6502" />
-        <item itemvalue="Go Test.TestSubtract in github.com/prydin/emu6502/core" />
-        <item itemvalue="Go Test.Test_CharacterMode in github.com/prydin/emu6502/vic-ii" />
         <item itemvalue="Go Test.TestDrawSprite in github.com/prydin/emu6502/vic-ii" />
-        <item itemvalue="Go Test.TestSAccess in github.com/prydin/emu6502/vic-ii" />
+        <item itemvalue="Go Test.Test_CharacterMode in github.com/prydin/emu6502/vic-ii" />
+        <item itemvalue="Go Test.Test_BitmapModeMultiColor in github.com/prydin/emu6502/vic-ii" />
+        <item itemvalue="Go Test.Test_BitmapMode in github.com/prydin/emu6502/vic-ii" />
       </list>
     </recent_temporary>
   </component>
@@ -371,18 +376,14 @@
         </line-breakpoint>
         <line-breakpoint enabled="true" type="DlvLineBreakpoint">
           <url>file://$PROJECT_DIR$/vic-ii/scan.go</url>
-          <line>403</line>
-          <option name="timeStamp" value="202" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" type="DlvLineBreakpoint">
-          <url>file://$PROJECT_DIR$/vic-ii/scan.go</url>
-          <line>316</line>
+          <line>315</line>
           <option name="timeStamp" value="206" />
         </line-breakpoint>
         <line-breakpoint enabled="true" type="DlvLineBreakpoint">
+          <condition expression="spriteIndex == 0" language="go" />
           <url>file://$PROJECT_DIR$/vic-ii/scan.go</url>
-          <line>365</line>
-          <option name="timeStamp" value="208" />
+          <line>237</line>
+          <option name="timeStamp" value="224" />
         </line-breakpoint>
       </breakpoints>
     </breakpoint-manager>
@@ -396,6 +397,7 @@
         <watch expression="*(*&quot;uint32&quot;)(824634334172)" />
         <watch expression="v.sprites[i].expand" language="go" />
         <watch expression="*(*&quot;uint32&quot;)(824634358748)" />
+        <watch expression="s.sequencer" language="go" />
       </configuration>
     </watches-manager>
   </component>

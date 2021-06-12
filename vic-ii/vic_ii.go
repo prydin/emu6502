@@ -112,7 +112,8 @@ type Sprite struct {
 
 	// Internal registers
 	pointer        uint16
-	shiftReg       uint32 // Only using 24 bits
+	gData          [3]uint8 // Current graphics data
+	sequencer      uint8    // Shifted graphics data
 	mc             uint8
 	sIndex         int
 	mcBase         uint8
@@ -176,6 +177,10 @@ type VicII struct {
 	// Border flip flops
 	vBorderFF bool
 	hBorderFF bool
+
+	// Sequencer internal registers
+	sequencer uint8  // Sequencer shift register
+	cData     uint16 // Current c-data
 }
 
 func (v *VicII) Init(bus *core.Bus, cpuBus *core.Bus, colorRam core.AddressSpace, screen Raster, dimensions ScreenDimensions) {
