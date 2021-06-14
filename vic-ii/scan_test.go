@@ -383,7 +383,6 @@ func TestPAccess(t *testing.T) {
 	for i := 0; i < 8; i++ {
 		colorRam := core.MakeRAM(1024)
 		vicii, _ := initVicII(nil, colorRam)
-		vicii.bus.Connect(&charset.CharacterROM, 0x1000, 0x1fff)
 		vicii.bus.Connect(core.MakeRAM(0x2000), 0x2000, 0x3fff)
 		screenRAM := core.MakeRAM(1024)
 		vicii.bus.Connect(screenRAM, 0x0400, 0x07ff)
@@ -504,4 +503,54 @@ func TestDrawSpriteExpandedXY(t *testing.T) {
 	f, _ := os.Create("sprite_expxy.png")
 	defer f.Close()
 	png.Encode(f, img)
+}
+
+func TestSpriteSpriteCollision(t *testing.T) {
+	colorRam := core.MakeRAM(1024)
+	vicii, _ := initVicII(nil, colorRam)
+	vicii.bus.Connect(core.MakeRAM(1024), 0x2000, 0x23ff)
+	vicii.bus.WriteByte(0x07f8+uint16(0), uint8(0x2000>>6))
+	vicii.bus.WriteByte(0x07f8+uint16(1), uint8(0x2000>>6))
+	for i := 0; i < 63; i++ {
+		vicii.bus.WriteByte(uint16(0x2000+i), 0xaa)
+	}
+	vicii.sprites[0].enabled = true
+	vicii.sprites[0].x = 100
+	vicii.sprites[0].y = 100
+	vicii.sprites[0].color = 1
+	vicii.sprites[0].pointer = 0x2000
+	vicii.sprites[1].enabled = true
+	vicii.sprites[1].x = 102
+	vicii.sprites[1].y = 100
+	vicii.sprites[1].color = 1
+	vicii.sprites[1].pointer = 0x2000
+	for c := 0; c < PalScreenWidth*PalScreenHeight/4; c++ {
+		vicii.Clock()
+	}
+	require.Equal(t, uint8(0x03), vicii.spriteSpriteColl, "Collision should have occurred")
+}
+
+func TestNoSpriteSpriteCollision(t *testing.T) {
+	colorRam := core.MakeRAM(1024)
+	vicii, _ := initVicII(nil, colorRam)
+	vicii.bus.Connect(core.MakeRAM(1024), 0x2000, 0x23ff)
+	vicii.bus.WriteByte(0x07f8+uint16(0), uint8(0x2000>>6))
+	vicii.bus.WriteByte(0x07f8+uint16(1), uint8(0x2000>>6))
+	for i := 0; i < 63; i++ {
+		vicii.bus.WriteByte(uint16(0x2000+i), 0xaa)
+	}
+	vicii.sprites[0].enabled = true
+	vicii.sprites[0].x = 100
+	vicii.sprites[0].y = 100
+	vicii.sprites[0].color = 1
+	vicii.sprites[0].pointer = 0x2000
+	vicii.sprites[1].enabled = true
+	vicii.sprites[1].x = 101
+	vicii.sprites[1].y = 100
+	vicii.sprites[1].color = 1
+	vicii.sprites[1].pointer = 0x2000
+	for c := 0; c < PalScreenWidth*PalScreenHeight/4; c++ {
+		vicii.Clock()
+	}
+	require.Equal(t, uint8(0x00), vicii.spriteSpriteColl, "Collision should not have occurred")
 }

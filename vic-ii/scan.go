@@ -374,6 +374,8 @@ func (v *VicII) renderCycle() {
 			}
 		}
 	}
+	v.spriteSpriteColl |= cycleSpriteColl
+	v.spriteDataColl |= cycleBgColl
 }
 
 func (v *VicII) drawBorder(n uint16, segment []uint8) {
@@ -448,6 +450,7 @@ func (v *VicII) generateSpriteColor(x uint16, highPriority bool) (uint8, uint8) 
 	color := uint8(0)
 	spritesDrawn := uint8(0)
 	for i := range v.sprites {
+		spritesDrawn <<= 1
 		s := &v.sprites[7-i] // Draw from lowest to highest to respect sprite priority
 		if s.hasPriority != highPriority {
 			continue
@@ -467,7 +470,6 @@ func (v *VicII) generateSpriteColor(x uint16, highPriority bool) (uint8, uint8) 
 		if (x-s.x)&0x01 != 0 || !s.expandedX {
 			s.sequencer <<= 1
 		}
-		spritesDrawn <<= 1
 	}
 	return color, spritesDrawn
 }
