@@ -360,20 +360,19 @@ func (v *VicII) renderCycle() {
 		v.sequencer <<= 1
 	}
 	// New collisions during this cycle? Fire interrupt if enabled!
-	if v.spriteSpriteColl == 0 && cycleSpriteColl != 0 || v.spriteDataColl == 0 && cycleBgColl != 0 {
-		if cycleSpriteColl != 0 {
-			v.irqSpriteSprite = true
-			if v.irqSpriteSpriteEnabled {
-				v.bus.NotIRQ.PullDown()
-			}
-		}
-		if cycleBgColl != 0 {
-			v.irqSpriteBg = true
-			if v.irqSpriteBgEnabled {
-				v.bus.NotIRQ.PullDown()
-			}
+	if v.spriteSpriteColl == 0 && cycleSpriteColl != 0 {
+		v.irqSpriteSprite = true
+		if v.irqSpriteSpriteEnabled {
+			v.bus.NotIRQ.PullDown()
 		}
 	}
+	if v.spriteDataColl == 0 && cycleBgColl != 0 {
+		v.irqSpriteBg = true
+		if v.irqSpriteBgEnabled {
+			v.bus.NotIRQ.PullDown()
+		}
+	}
+	
 	v.spriteSpriteColl |= cycleSpriteColl
 	v.spriteDataColl |= cycleBgColl
 }
