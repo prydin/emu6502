@@ -154,6 +154,8 @@ type VicII struct {
 	charSetPtr             uint16
 	screenMemPtr           uint16
 	rasterLine             uint16
+	spriteSpriteColl       uint8
+	spriteDataColl         uint8
 
 	// Internal registers
 	vc        uint16
@@ -345,7 +347,14 @@ func (v *VicII) ReadByte(addr uint16) uint8 {
 			}
 		}
 		return r
-		// TODO: Collisions
+	case REG_SPRITE_COLL:
+		tmp := v.spriteSpriteColl
+		v.spriteSpriteColl = 0
+		return tmp
+	case REG_DATA_COLL:
+		tmp := v.spriteDataColl
+		v.spriteDataColl = 0
+		return tmp
 	case REG_BORDER:
 		return v.borderCol
 	case REG_SPRITE_MC0:
@@ -461,6 +470,8 @@ func (v *VicII) WriteByte(addr uint16, data uint8) {
 	case REG_SPRITE_MC1:
 		v.spriteMultiClr1 = data
 	}
+	// We don't handle writes to the collision register since it's assumed that they're read-only.
+	// TODO: Check this!
 }
 
 func (v *VicII) GetCycle() uint16 {

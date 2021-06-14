@@ -278,6 +278,8 @@ func (v *VicII) renderCycle() {
 	startPixel := localCycle << 3
 
 	lastFgColor := uint8(0)
+	cycleSpriteColl := uint8(0) // Sprite collisions during this cycle
+	cycleBgColl := uint8(0)     // Sprite-bg collisions this cycle
 
 	for pixel := startPixel; pixel < startPixel+8; pixel++ {
 		color := v.borderCol
@@ -321,27 +323,56 @@ func (v *VicII) renderCycle() {
 					v.cData = v.cBuf[dataIdx]
 					v.sequencer = v.gBuf[dataIdx]
 				}
-				c, valid := v.generateSpriteColor(pixel, false) // Low priority sprites
-				if valid {
+				c, lpSprites := v.generateSpriteColor(pixel, false) // Low priority sprites
+				if lpSprites != 0 {
 					color = c
-				} else {
-					// TODO: Handle collisions
-					if v.bitmapMode {
-						color = v.generateBitmapColor()
-					} else {
-						color = v.generateTextColor()
-					}
 				}
-				c, valid = v.generateSpriteColor(pixel, true) // High priority sprites
-				if valid {
-					// TODO: Handle collisions
+				graphics := false
+				if v.bitmapMode {
+					c, graphics = v.generateBitmapColor()
+				} else {
+					c, graphics = v.generateTextColor()
+				}
+				// Draw graphics background if an only if no low priority sprite was drawn.
+				// In other words, screen background will have the lowest priority.
+				if graphics || !(lpSprites != 0) {
+					color = c
+				}
+				c, hpSprites := v.generateSpriteColor(pixel, true) // High priority sprites
+				if hpSprites != 0 {
 					color = c
 				}
 				lastFgColor = color
+
+				// Update collision accumulators
+				allSprites := lpSprites | hpSprites
+				if graphics {
+					cycleBgColl |= allSprites
+				}
+				// If zero or one bits are set, there were no collisions. Otherwise, all sprites that were
+				// drawn collided. Use a single round of Kernighan's algorithm to check.
+				if allSprites != 0 && allSprites&(allSprites-1) != 0 {
+					cycleSpriteColl |= allSprites
+				}
 			}
 		}
-		v.screen.SetPixel(pixel, v.rasterLine-v.dimensions.FirstVisibleLine, C64Colors[color])
+		v.screen.SetPixel(pixel, v.rasterLine-v.dimensions.FirstVisibleLine, C64Colors[color&0x0f])
 		v.sequencer <<= 1
+	}
+	// New collisions during this cycle? Fire interrupt if enabled!
+	if v.spriteSpriteColl == 0 && cycleSpriteColl != 0 || v.spriteDataColl == 0 && cycleBgColl != 0 {
+		if cycleSpriteColl != 0 {
+			v.irqSpriteSprite = true
+			if v.irqSpriteSpriteEnabled {
+				v.bus.NotIRQ.PullDown()
+			}
+		}
+		if cycleBgColl != 0 {
+			v.irqSpriteBg = true
+			if v.irqSpriteBgEnabled {
+				v.bus.NotIRQ.PullDown()
+			}
+		}
 	}
 }
 
@@ -359,7 +390,7 @@ func (v *VicII) drawBackground(n uint16, segment []uint8) {
 	}
 }
 
-func (v *VicII) generateTextColor() uint8 {
+func (v *VicII) generateTextColor() (uint8, bool) {
 	fgColor := uint8(v.cData>>8) & 0x0f
 	bgIndex := 0
 	if v.extendedClr {
@@ -373,64 +404,72 @@ func (v *VicII) generateTextColor() uint8 {
 
 		cIndex := v.sequencer & 0xc0 >> 6
 		if cIndex == 0x03 {
-			return fgColor & 0x0f
+			return fgColor & 0x0f, true
 		} else {
-			return v.backgroundColors[cIndex] & 0x0f
+			// Color 1 is treated as background too. Go figure!
+			return v.backgroundColors[cIndex] & 0x0f, cIndex != 1
 		}
 	} else {
 		if v.sequencer&0x80 != 0 {
-			return fgColor
+			return fgColor, true
 		} else {
-			return v.backgroundColors[bgIndex]
+			return v.backgroundColors[bgIndex], false
 		}
 	}
 }
 
-func (v *VicII) generateBitmapColor() uint8 {
+func (v *VicII) generateBitmapColor() (uint8, bool) {
 	bgColor := uint8(v.cData & 0x0f)
 	fgColor := uint8(v.cData>>4) & 0x0f
 	if v.multiColor {
-		// N.Bus. This part must only be execute when x is even. Caller is responsible for that.
+		// N.B. This part must only be execute when x is even. Caller is responsible for that.
 		cIndex := v.sequencer & 0xc0 >> 6
 		switch cIndex {
 		case 0:
-			return v.backgroundColors[0]
+			return v.backgroundColors[0], false
 		case 1:
-			return uint8(v.cData>>4) & 0x0f
+			return uint8(v.cData>>4) & 0x0f, false // 01 is treated as background
 		case 2:
-			return uint8(v.cData) & 0x0f
+			return uint8(v.cData) & 0x0f, true
 		case 3:
-			return uint8(v.cData>>8) & 0x0f
+			return uint8(v.cData>>8) & 0x0f, true
 		}
 	} else {
 		if v.sequencer&0x80 != 0 {
-			return fgColor
+			return fgColor, true
 		} else {
-			return bgColor
+			return bgColor, false
 		}
 	}
-	return 0 // This should never happen
+	return 0, false // This should never happen
 }
 
-func (v *VicII) generateSpriteColor(x uint16, highPriority bool) (uint8, bool) {
+func (v *VicII) generateSpriteColor(x uint16, highPriority bool) (uint8, uint8) {
 	color := uint8(0)
-	valid := false
+	spritesDrawn := uint8(0)
 	for i := range v.sprites {
 		s := &v.sprites[7-i] // Draw from lowest to highest to respect sprite priority
 		if s.hasPriority != highPriority {
 			continue
 		}
 		idx := x - s.x
+		if s.expandedX {
+			idx >>= 1
+		}
 		if idx <= 16 && idx&0x07 == 0 {
 			s.sequencer = s.gData[idx>>3]
 		}
 		if s.enabled && s.sequencer&0x80 != 0 {
 			color = s.color & 0x0f
-			valid = true
+			spritesDrawn |= 0x01
 		}
-		s.sequencer <<= 1
+		// If expanded in the X-direction, shift only on even pixels.
+		if (x-s.x)&0x01 != 0 || !s.expandedX {
+			s.sequencer <<= 1
+		}
+		spritesDrawn <<= 1
 	}
-	return color, valid
+	return color, spritesDrawn
 }
 
 // 1. The expansion flip flop is set as long as the bit in MxYE in register

@@ -52,6 +52,16 @@ func initVicII(mainBus *core.Bus, colorRam core.AddressSpace) (*VicII, *image.RG
 	}
 	vicii.Init(bus, mainBus, colorRam, &ImageRaster{img}, PALDimensions)
 	vicii.borderCol = 14
+	vicii.bus.Connect(&charset.CharacterROM, 0x1000, 0x1fff)
+	vicii.bus.Connect(core.MakeRAM(0x2000), 0x2000, 0x3fff)
+	screenRAM := core.MakeRAM(1024)
+	vicii.bus.Connect(screenRAM, 0x0400, 0x07ff)
+	vicii.bus.Connect(colorRam, 0xd800, 0xdbff)
+	vicii.screenMemPtr = 0x0400
+	vicii.charSetPtr = 0xd000
+	vicii.backgroundColors[0] = 6
+	vicii.scrollY = 3
+	vicii.scrollX = 0
 	return &vicii, img
 }
 
@@ -85,12 +95,6 @@ func Test_CharacterMode(t *testing.T) {
 	for i := uint16(0); i < 1024; i++ {
 		colorRam.WriteByte(i, 14)
 	}
-	vicii.bus.Connect(colorRam, 0xd800, 0xdbff)
-	vicii.screenMemPtr = 0x0400
-	vicii.charSetPtr = 0xd000
-	vicii.backgroundColors[0] = 6
-	vicii.scrollY = 3
-	vicii.scrollX = 0
 	start := time.Now()
 	for i := 0; i < int(PalScreenWidth)*int(PalScreenHeight)/4; i++ {
 		vicii.Clock()
@@ -114,8 +118,6 @@ func Test_ExtendedCharacterMode(t *testing.T) {
 		colorRam.WriteByte(i, 14)
 	}
 	vicii.bus.Connect(colorRam, 0xd800, 0xdbff)
-	vicii.screenMemPtr = 0x0400
-	vicii.charSetPtr = 0xd000
 	vicii.backgroundColors[0] = 1
 	vicii.backgroundColors[1] = 2
 	vicii.backgroundColors[2] = 3
@@ -145,8 +147,6 @@ func Test_MultiColorCharacterMode(t *testing.T) {
 		colorRam.WriteByte(i, 14)
 	}
 	vicii.bus.Connect(colorRam, 0xd800, 0xdbff)
-	vicii.screenMemPtr = 0x0400
-	vicii.charSetPtr = 0xd000
 	vicii.backgroundColors[0] = 0
 	vicii.backgroundColors[1] = 2
 	vicii.backgroundColors[2] = 3
@@ -184,11 +184,7 @@ func Test_BitmapMode(t *testing.T) {
 		colorRam.WriteByte(i, 14)
 	}
 	vicii.bus.Connect(colorRam, 0xd800, 0xdbff)
-	vicii.screenMemPtr = 0x0400
 	vicii.charSetPtr = 0x2000
-	vicii.backgroundColors[0] = 6
-	vicii.scrollY = 3
-	vicii.scrollX = 0
 	vicii.bitmapMode = true
 	start := time.Now()
 	for i := 0; i < int(PalScreenWidth)*int(PalScreenHeight)/4; i++ {
@@ -217,12 +213,8 @@ func Test_BitmapModeMultiColor(t *testing.T) {
 		colorRam.WriteByte(i, 14)
 	}
 	vicii.bus.Connect(colorRam, 0xd800, 0xdbff)
-	vicii.screenMemPtr = 0x0400
 	vicii.charSetPtr = 0x2000
-	vicii.backgroundColors[0] = 6
 	vicii.multiColor = true
-	vicii.scrollY = 3
-	vicii.scrollX = 0
 	vicii.bitmapMode = true
 	start := time.Now()
 	for i := 0; i < int(PalScreenWidth)*int(PalScreenHeight)/4; i++ {
@@ -238,7 +230,6 @@ func Test_RasterlinePolling(t *testing.T) {
 	colorRam := core.MakeRAM(1024)
 	mainBus := core.Bus{}
 	vicii, img := initVicII(&mainBus, colorRam)
-	vicii.bus.Connect(&charset.CharacterROM, 0xd000, 0xdfff)
 	screenMem := make([]uint8, 1024)
 	for i := range screenMem {
 		if i > 1000 {
@@ -250,16 +241,6 @@ func Test_RasterlinePolling(t *testing.T) {
 		}
 	}
 	vicii.bus.Connect(&core.RAM{Bytes: screenMem[:]}, 0x0400, 0x07ff)
-	for i := uint16(0); i < 1024; i++ {
-		colorRam.WriteByte(i, 14)
-	}
-	vicii.bus.Connect(colorRam, 0xd800, 0xdbff)
-	vicii.screenMemPtr = 0x0400
-	vicii.charSetPtr = 0xd000
-	vicii.backgroundColors[0] = 6
-	vicii.scrollY = 3
-	vicii.scrollX = 3
-
 	mainBus.Connect(vicii, 0xd000, 0xd0ff)
 	mainBus.Connect(core.MakeRAM(100), 0x0000, 0x00ff)
 	cpu := core.CPU{}
@@ -274,11 +255,7 @@ LOOP	LDA	$D012
 		BEQ LOOP
 		STA $02
 		AND #$07
-		BNE NOTZERO
-		INC $D021
-		JMP LOOP
-NOTZERO	CMP #$04
-		BNE	LOOP
+		BNE LOOP
 		INC $D021
 		JMP LOOP
 `)
@@ -298,7 +275,6 @@ func Test_RasterlineInterrupt(t *testing.T) {
 	colorRam := core.MakeRAM(1024)
 	mainBus := core.Bus{}
 	vicii, img := initVicII(&mainBus, colorRam)
-	vicii.bus.Connect(&charset.CharacterROM, 0xd000, 0xdfff)
 	screenMem := make([]uint8, 1024)
 	for i := range screenMem {
 		if i > 1000 {
@@ -310,15 +286,6 @@ func Test_RasterlineInterrupt(t *testing.T) {
 		}
 	}
 	vicii.bus.Connect(&core.RAM{Bytes: screenMem[:]}, 0x0400, 0x07ff)
-	for i := uint16(0); i < 1024; i++ {
-		colorRam.WriteByte(i, 14)
-	}
-	vicii.bus.Connect(colorRam, 0xd800, 0xdbff)
-	vicii.screenMemPtr = 0x0400
-	vicii.charSetPtr = 0xd000
-	vicii.backgroundColors[0] = 6
-	vicii.scrollY = 3
-	vicii.scrollX = 3
 
 	mainBus.Connect(vicii, 0xd000, 0xd0ff)
 	mainBus.Connect(core.MakeRAM(0x300), 0x0000, 0x02ff)
@@ -357,6 +324,7 @@ IRQ		INC $D021	; Change background color
 		LDA $D011	; Make sure high bit is zero
 		LDA #$01
 		STA $D021	; Start with a black band again
+		LDA $D011	; Clear high bit in raster counter
 		AND	#$7f
 		STA $D011
 		LDA $D01A
@@ -455,7 +423,7 @@ func TestSAccess(t *testing.T) {
 	}
 }
 
-func TestDrawSprite(t *testing.T) {
+func initSprites() (*VicII, *image.RGBA) {
 	cycles := []uint16{58, 60, 62, 1, 3, 5, 7, 9}
 	colorRam := core.MakeRAM(1024)
 	vicii, img := initVicII(nil, colorRam)
@@ -485,9 +453,55 @@ func TestDrawSprite(t *testing.T) {
 		vicii.sprites[i].expandedY = false
 		vicii.cycle = cycles[i]
 	}
+	return vicii, img
+}
+
+func TestDrawSprite(t *testing.T) {
+	vicii, img := initSprites()
 	for c := 0; c < PalScreenWidth*PalScreenHeight/4; c++ {
 		vicii.Clock()
 	}
 	f, _ := os.Create("sprite.png")
+	defer f.Close()
+	png.Encode(f, img)
+}
+
+func TestDrawSpriteExpandedX(t *testing.T) {
+	vicii, img := initSprites()
+	for i := range vicii.sprites {
+		vicii.sprites[i].expandedX = true
+	}
+	for c := 0; c < PalScreenWidth*PalScreenHeight/4; c++ {
+		vicii.Clock()
+	}
+	f, _ := os.Create("sprite_expx.png")
+	defer f.Close()
+	png.Encode(f, img)
+}
+
+func TestDrawSpriteExpandedY(t *testing.T) {
+	vicii, img := initSprites()
+	for i := range vicii.sprites {
+		vicii.sprites[i].expandedY = true
+	}
+	for c := 0; c < PalScreenWidth*PalScreenHeight/4; c++ {
+		vicii.Clock()
+	}
+	f, _ := os.Create("sprite_expy.png")
+	defer f.Close()
+	png.Encode(f, img)
+}
+
+func TestDrawSpriteExpandedXY(t *testing.T) {
+	vicii, img := initSprites()
+	for i := range vicii.sprites {
+		vicii.sprites[i].expandedX = true
+		vicii.sprites[i].expandedY = true
+	}
+	for c := 0; c < PalScreenWidth*PalScreenHeight/4; c++ {
+		vicii.Clock()
+	}
+	f, _ := os.Create("sprite_expxy.png")
+	defer f.Close()
 	png.Encode(f, img)
 }
