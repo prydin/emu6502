@@ -117,9 +117,13 @@ type Sprite struct {
 	mc             uint8
 	sIndex         int
 	mcBase         uint8
-	dma            bool // Will do DMA before/after visible area
-	expand         bool // Internal expand flip-flop
+	dma            bool  // Will do DMA before/after visible area
+	expandYFF      bool  // Internal Y expansion flip flop
+	repeatCnt      uint8 // Number of times to repeat a pixel due to multicolor and expansion
+	mcFF           bool  // Internal multicolor flip flop
 	displayEnabled bool
+	lastColor      uint8 // Temporary color storage for multicolor sprites
+	lastWasDrawn   bool  // Was the last pixel drawn or transparent?
 }
 
 type VicII struct {
@@ -204,7 +208,7 @@ func (v *VicII) Init(bus *core.Bus, cpuBus *core.Bus, colorRam core.AddressSpace
 	v.hBorderFF = true
 	v.vBorderFF = true
 	for i := range v.sprites {
-		v.sprites[i].expand = true
+		v.sprites[i].expandYFF = true
 	}
 }
 

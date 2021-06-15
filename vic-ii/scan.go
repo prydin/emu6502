@@ -112,7 +112,7 @@ func (v *VicII) Clock() {
 				// In the first phase of cycle 15, it is checked if the expansion flip flop
 				// is set. If so, MCBASE is incremented by 2.
 				for i := range v.sprites {
-					if v.sprites[i].expand {
+					if v.sprites[i].expandYFF {
 						v.sprites[i].mcBase += 2
 					}
 				}
@@ -125,7 +125,7 @@ func (v *VicII) Clock() {
 				// if it is.
 				for i := range v.sprites {
 					s := &v.sprites[i]
-					if s.expand {
+					if s.expandYFF {
 						s.mcBase = (s.mcBase + 1) & 0x3f
 						if s.mcBase == 0x3f {
 							s.dma = false
@@ -372,7 +372,7 @@ func (v *VicII) renderCycle() {
 			v.bus.NotIRQ.PullDown()
 		}
 	}
-	
+
 	v.spriteSpriteColl |= cycleSpriteColl
 	v.spriteDataColl |= cycleBgColl
 }
@@ -454,21 +454,60 @@ func (v *VicII) generateSpriteColor(x uint16, highPriority bool) (uint8, uint8) 
 		if s.hasPriority != highPriority {
 			continue
 		}
+		// Are we repeating pixels? Just return the previous one!
+		if s.repeatCnt > 0 {
+			s.repeatCnt--
+			color = s.lastColor
+			if s.lastWasDrawn {
+				spritesDrawn |= 0x01
+			}
+			continue
+		}
+
+		// Determine for how many pixels (if any) we should repeat
 		idx := x - s.x
+		r := uint8(1)
+		if s.multicolor {
+			r <<= 1
+		}
 		if s.expandedX {
+			r <<= 1
 			idx >>= 1
 		}
+		s.repeatCnt = r - 1
 		if idx <= 16 && idx&0x07 == 0 {
 			s.sequencer = s.gData[idx>>3]
 		}
-		if s.enabled && s.sequencer&0x80 != 0 {
-			color = s.color & 0x0f
-			spritesDrawn |= 0x01
+		drawn := false
+		if s.enabled {
+			if s.multicolor {
+				switch (s.sequencer & 0xc0) >> 6 {
+				case 0:
+					color = 0
+				case 1:
+					color = v.spriteMultiClr0
+					drawn = true
+				case 2:
+					color = s.color
+					drawn = true
+				case 3:
+					color = v.spriteMultiClr1
+					drawn = true
+				}
+				s.sequencer <<= 1 // Advance an extra step since we used up two bits
+			} else {
+				if s.sequencer&0x80 != 0 {
+					color = s.color & 0x0f
+					drawn = true
+				}
+			}
+			if drawn {
+				spritesDrawn |= 0x01
+			}
+			s.lastColor = color
+			s.lastWasDrawn = drawn
 		}
-		// If expanded in the X-direction, shift only on even pixels.
-		if (x-s.x)&0x01 != 0 || !s.expandedX {
-			s.sequencer <<= 1
-		}
+		s.sequencer <<= 1
 	}
 	return color, spritesDrawn
 }
@@ -497,12 +536,12 @@ func (v *VicII) checkSpriteAndInit(first bool) {
 	for i := start; i <= end; i++ {
 		s := &v.sprites[i]
 		if s.expandedY {
-			s.expand = !s.expand
+			s.expandYFF = !s.expandYFF
 		}
 		if s.enabled && s.y == uint8(v.rasterLine&0xff) && !s.dma {
 			s.mcBase = 0
 			s.dma = true
-			s.expand = !s.expandedY // If not expanded, flip-flop will remain set forever
+			s.expandYFF = !s.expandedY // If not expanded, flip-flop will remain set forever
 		}
 	}
 }
