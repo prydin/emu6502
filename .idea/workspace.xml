@@ -48,7 +48,7 @@
       <change afterPath="$PROJECT_DIR$/../vrealize-automation-plugin-for-jenkins/vrealize-automation-8.iml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/vic-ii/scan.go" beforeDir="false" afterPath="$PROJECT_DIR$/vic-ii/scan.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/vic-ii/vic_ii.go" beforeDir="false" afterPath="$PROJECT_DIR$/vic-ii/vic_ii.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/vic-ii/scan_test.go" beforeDir="false" afterPath="$PROJECT_DIR$/vic-ii/scan_test.go" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../fizzbuzz/fizzbuzz.iml" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/../gradle/wrapper/gradle-wrapper.jar" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/../gradle/wrapper/gradle-wrapper.properties" beforeDir="false" />
@@ -206,7 +206,7 @@
       <recent name="$PROJECT_DIR$/core" />
     </key>
   </component>
-  <component name="RunManager" selected="Go Build.Run Demo">
+  <component name="RunManager" selected="Go Test.TestDrawSpriteMulticolor in github.com/prydin/emu6502/vic-ii">
     <configuration name="Run Demo" type="GoApplicationRunConfiguration" factoryName="Go Application">
       <module name="emu6502" />
       <working_directory value="$PROJECT_DIR$" />
@@ -215,6 +215,18 @@
       <package value="github.com/prydin/emu6502" />
       <directory value="$PROJECT_DIR$" />
       <filePath value="$PROJECT_DIR$/main.go" />
+      <method v="2" />
+    </configuration>
+    <configuration name="TestDrawSpriteMulticolor in github.com/prydin/emu6502/vic-ii" type="GoTestRunConfiguration" factoryName="Go Test" temporary="true" nameIsGenerated="true">
+      <module name="emu6502" />
+      <working_directory value="$PROJECT_DIR$/vic-ii" />
+      <root_directory value="$PROJECT_DIR$" />
+      <kind value="PACKAGE" />
+      <package value="github.com/prydin/emu6502/vic-ii" />
+      <directory value="$PROJECT_DIR$" />
+      <filePath value="$PROJECT_DIR$" />
+      <framework value="gotest" />
+      <pattern value="^\QTestDrawSpriteMulticolor\E$" />
       <method v="2" />
     </configuration>
     <configuration name="TestNoSpriteSpriteCollision in github.com/prydin/emu6502/vic-ii" type="GoTestRunConfiguration" factoryName="Go Test" temporary="true" nameIsGenerated="true">
@@ -239,18 +251,6 @@
       <filePath value="$PROJECT_DIR$" />
       <framework value="gotest" />
       <pattern value="^\QTestSpriteSpriteCollision\E$" />
-      <method v="2" />
-    </configuration>
-    <configuration name="Test_BitmapMode in github.com/prydin/emu6502/vic-ii" type="GoTestRunConfiguration" factoryName="Go Test" temporary="true" nameIsGenerated="true">
-      <module name="emu6502" />
-      <working_directory value="$PROJECT_DIR$/vic-ii" />
-      <root_directory value="$PROJECT_DIR$" />
-      <kind value="PACKAGE" />
-      <package value="github.com/prydin/emu6502/vic-ii" />
-      <directory value="$PROJECT_DIR$" />
-      <filePath value="$PROJECT_DIR$" />
-      <framework value="gotest" />
-      <pattern value="^\QTest_BitmapMode\E$" />
       <method v="2" />
     </configuration>
     <configuration name="Test_RasterlineInterrupt in github.com/prydin/emu6502/vic-ii" type="GoTestRunConfiguration" factoryName="Go Test" temporary="true" nameIsGenerated="true">
@@ -279,19 +279,19 @@
     </configuration>
     <list>
       <item itemvalue="Go Build.Run Demo" />
-      <item itemvalue="Go Test.Test_BitmapMode in github.com/prydin/emu6502/vic-ii" />
       <item itemvalue="Go Test.Test_RasterlinePolling in github.com/prydin/emu6502/vic-ii" />
       <item itemvalue="Go Test.Test_RasterlineInterrupt in github.com/prydin/emu6502/vic-ii" />
       <item itemvalue="Go Test.TestSpriteSpriteCollision in github.com/prydin/emu6502/vic-ii" />
       <item itemvalue="Go Test.TestNoSpriteSpriteCollision in github.com/prydin/emu6502/vic-ii" />
+      <item itemvalue="Go Test.TestDrawSpriteMulticolor in github.com/prydin/emu6502/vic-ii" />
     </list>
     <recent_temporary>
       <list>
+        <item itemvalue="Go Test.TestDrawSpriteMulticolor in github.com/prydin/emu6502/vic-ii" />
         <item itemvalue="Go Test.TestSpriteSpriteCollision in github.com/prydin/emu6502/vic-ii" />
         <item itemvalue="Go Test.TestNoSpriteSpriteCollision in github.com/prydin/emu6502/vic-ii" />
         <item itemvalue="Go Test.Test_RasterlineInterrupt in github.com/prydin/emu6502/vic-ii" />
         <item itemvalue="Go Test.Test_RasterlinePolling in github.com/prydin/emu6502/vic-ii" />
-        <item itemvalue="Go Test.Test_BitmapMode in github.com/prydin/emu6502/vic-ii" />
       </list>
     </recent_temporary>
   </component>
@@ -396,6 +396,11 @@
           <url>file://$PROJECT_DIR$/vic-ii/scan.go</url>
           <line>354</line>
           <option name="timeStamp" value="231" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="DlvLineBreakpoint">
+          <url>file://$PROJECT_DIR$/vic-ii/scan.go</url>
+          <line>448</line>
+          <option name="timeStamp" value="248" />
         </line-breakpoint>
       </breakpoints>
     </breakpoint-manager>

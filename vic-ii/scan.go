@@ -482,8 +482,6 @@ func (v *VicII) generateSpriteColor(x uint16, highPriority bool) (uint8, uint8) 
 		if s.enabled {
 			if s.multicolor {
 				switch (s.sequencer & 0xc0) >> 6 {
-				case 0:
-					color = 0
 				case 1:
 					color = v.spriteMultiClr0
 					drawn = true

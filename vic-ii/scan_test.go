@@ -465,6 +465,21 @@ func TestDrawSprite(t *testing.T) {
 	png.Encode(f, img)
 }
 
+func TestDrawSpriteMulticolor(t *testing.T) {
+	vicii, img := initSprites()
+	vicii.spriteMultiClr0 = 2
+	vicii.spriteMultiClr1 = 3
+	for i := range vicii.sprites {
+		vicii.sprites[i].multicolor = true
+	}
+	for c := 0; c < PalScreenWidth*PalScreenHeight/4; c++ {
+		vicii.Clock()
+	}
+	f, _ := os.Create("sprite_multi.png")
+	defer f.Close()
+	png.Encode(f, img)
+}
+
 func TestDrawSpriteExpandedX(t *testing.T) {
 	vicii, img := initSprites()
 	for i := range vicii.sprites {
