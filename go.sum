@@ -1,5 +1,7 @@
 github.com/beevik/go6502 v0.0.0-20200203011559-66de1e3db8b2 h1:gBRPGTd4c7bI27slxmd9sN+oHMJamSo/GddmaBVN79w=
 github.com/beevik/go6502 v0.0.0-20200203011559-66de1e3db8b2/go.mod h1:uy5h75FMDAp9cAYrcGG0M8wWbRjmXS5T8ISmypEDhWU=
+github.com/cnkei/gospline v0.0.0-20191204072713-842a72f86331 h1:LaKIRdLDg4mn0OkEtcr3unP0M8uQ1oyEw/05SbX/O48=
+github.com/cnkei/gospline v0.0.0-20191204072713-842a72f86331/go.mod h1:DXXGDL64/wxXgBSgmGMEL0vYC0tdvpgNhkJrvavhqDM=
 github.com/davecgh/go-spew v1.1.0 h1:ZDRjVQ15GmhC3fiQ8ni8+OwkZQO4DARzQgrnXU1Liz8=
 github.com/davecgh/go-spew v1.1.0/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
 github.com/dterei/gotsc v0.0.0-20160722215413-e78f872945c6 h1:iD62k/20LzNdTc2bmrOTQ4xgRbI0uJvOxTkEAmd20eQ=

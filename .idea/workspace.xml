@@ -8,6 +8,14 @@
       <change afterPath="$PROJECT_DIR$/../OpenKOM/src/main/main.iml" afterDir="false" />
       <change afterPath="$PROJECT_DIR$/../OpenKOM/src/test/test.iml" afterDir="false" />
       <change afterPath="$PROJECT_DIR$/../code/code.iml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/sid/definitions.go" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/sid/envelope.go" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/sid/filter.go" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/sid/generator.go" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/sid/generator_test.go" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/sid/sid.go" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/sid/voice.go" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/sid/wavetables.go" afterDir="false" />
       <change afterPath="$PROJECT_DIR$/../jmandel/jmandel.iml" afterDir="false" />
       <change afterPath="$PROJECT_DIR$/../mksprite/main.go" afterDir="false" />
       <change afterPath="$PROJECT_DIR$/../pptest/pptest.iml" afterDir="false" />
@@ -47,8 +55,8 @@
       <change afterPath="$PROJECT_DIR$/../vrealize-automation-plugin-for-jenkins/vra8-jenkins-plugin.iml" afterDir="false" />
       <change afterPath="$PROJECT_DIR$/../vrealize-automation-plugin-for-jenkins/vrealize-automation-8.iml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/vic-ii/scan.go" beforeDir="false" afterPath="$PROJECT_DIR$/vic-ii/scan.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/vic-ii/scan_test.go" beforeDir="false" afterPath="$PROJECT_DIR$/vic-ii/scan_test.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/go.mod" beforeDir="false" afterPath="$PROJECT_DIR$/go.mod" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/go.sum" beforeDir="false" afterPath="$PROJECT_DIR$/go.sum" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../fizzbuzz/fizzbuzz.iml" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/../gradle/wrapper/gradle-wrapper.jar" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/../gradle/wrapper/gradle-wrapper.properties" beforeDir="false" />
@@ -201,12 +209,15 @@
     <property name="settings.editor.selected.configurable" value="settings.saveactions" />
   </component>
   <component name="RecentsManager">
+    <key name="CopyFile.RECENT_KEYS">
+      <recent name="$USER_HOME$" />
+    </key>
     <key name="MoveFile.RECENT_KEYS">
       <recent name="$PROJECT_DIR$/computer" />
       <recent name="$PROJECT_DIR$/core" />
     </key>
   </component>
-  <component name="RunManager" selected="Go Test.TestDrawSpriteMulticolor in github.com/prydin/emu6502/vic-ii">
+  <component name="RunManager" selected="Go Test.TestGenerator_Triangle in github.com/prydin/emu6502/sid">
     <configuration name="Run Demo" type="GoApplicationRunConfiguration" factoryName="Go Application">
       <module name="emu6502" />
       <working_directory value="$PROJECT_DIR$" />
@@ -227,6 +238,30 @@
       <filePath value="$PROJECT_DIR$" />
       <framework value="gotest" />
       <pattern value="^\QTestDrawSpriteMulticolor\E$" />
+      <method v="2" />
+    </configuration>
+    <configuration name="TestGenerator_Sawtooth in github.com/prydin/emu6502/sid" type="GoTestRunConfiguration" factoryName="Go Test" temporary="true" nameIsGenerated="true">
+      <module name="emu6502" />
+      <working_directory value="$PROJECT_DIR$/sid" />
+      <root_directory value="$PROJECT_DIR$" />
+      <kind value="PACKAGE" />
+      <package value="github.com/prydin/emu6502/sid" />
+      <directory value="$PROJECT_DIR$" />
+      <filePath value="$PROJECT_DIR$" />
+      <framework value="gotest" />
+      <pattern value="^\QTestGenerator_Sawtooth\E$" />
+      <method v="2" />
+    </configuration>
+    <configuration name="TestGenerator_Triangle in github.com/prydin/emu6502/sid" type="GoTestRunConfiguration" factoryName="Go Test" temporary="true" nameIsGenerated="true">
+      <module name="emu6502" />
+      <working_directory value="$PROJECT_DIR$/sid" />
+      <root_directory value="$PROJECT_DIR$" />
+      <kind value="PACKAGE" />
+      <package value="github.com/prydin/emu6502/sid" />
+      <directory value="$PROJECT_DIR$" />
+      <filePath value="$PROJECT_DIR$" />
+      <framework value="gotest" />
+      <pattern value="^\QTestGenerator_Triangle\E$" />
       <method v="2" />
     </configuration>
     <configuration name="TestNoSpriteSpriteCollision in github.com/prydin/emu6502/vic-ii" type="GoTestRunConfiguration" factoryName="Go Test" temporary="true" nameIsGenerated="true">
@@ -253,45 +288,21 @@
       <pattern value="^\QTestSpriteSpriteCollision\E$" />
       <method v="2" />
     </configuration>
-    <configuration name="Test_RasterlineInterrupt in github.com/prydin/emu6502/vic-ii" type="GoTestRunConfiguration" factoryName="Go Test" temporary="true" nameIsGenerated="true">
-      <module name="emu6502" />
-      <working_directory value="$PROJECT_DIR$/vic-ii" />
-      <root_directory value="$PROJECT_DIR$" />
-      <kind value="PACKAGE" />
-      <package value="github.com/prydin/emu6502/vic-ii" />
-      <directory value="$PROJECT_DIR$" />
-      <filePath value="$PROJECT_DIR$" />
-      <framework value="gotest" />
-      <pattern value="^\QTest_RasterlineInterrupt\E$" />
-      <method v="2" />
-    </configuration>
-    <configuration name="Test_RasterlinePolling in github.com/prydin/emu6502/vic-ii" type="GoTestRunConfiguration" factoryName="Go Test" temporary="true" nameIsGenerated="true">
-      <module name="emu6502" />
-      <working_directory value="$PROJECT_DIR$/vic-ii" />
-      <root_directory value="$PROJECT_DIR$" />
-      <kind value="PACKAGE" />
-      <package value="github.com/prydin/emu6502/vic-ii" />
-      <directory value="$PROJECT_DIR$" />
-      <filePath value="$PROJECT_DIR$" />
-      <framework value="gotest" />
-      <pattern value="^\QTest_RasterlinePolling\E$" />
-      <method v="2" />
-    </configuration>
     <list>
       <item itemvalue="Go Build.Run Demo" />
-      <item itemvalue="Go Test.Test_RasterlinePolling in github.com/prydin/emu6502/vic-ii" />
-      <item itemvalue="Go Test.Test_RasterlineInterrupt in github.com/prydin/emu6502/vic-ii" />
       <item itemvalue="Go Test.TestSpriteSpriteCollision in github.com/prydin/emu6502/vic-ii" />
       <item itemvalue="Go Test.TestNoSpriteSpriteCollision in github.com/prydin/emu6502/vic-ii" />
       <item itemvalue="Go Test.TestDrawSpriteMulticolor in github.com/prydin/emu6502/vic-ii" />
+      <item itemvalue="Go Test.TestGenerator_Sawtooth in github.com/prydin/emu6502/sid" />
+      <item itemvalue="Go Test.TestGenerator_Triangle in github.com/prydin/emu6502/sid" />
     </list>
     <recent_temporary>
       <list>
+        <item itemvalue="Go Test.TestGenerator_Triangle in github.com/prydin/emu6502/sid" />
+        <item itemvalue="Go Test.TestGenerator_Sawtooth in github.com/prydin/emu6502/sid" />
         <item itemvalue="Go Test.TestDrawSpriteMulticolor in github.com/prydin/emu6502/vic-ii" />
         <item itemvalue="Go Test.TestSpriteSpriteCollision in github.com/prydin/emu6502/vic-ii" />
         <item itemvalue="Go Test.TestNoSpriteSpriteCollision in github.com/prydin/emu6502/vic-ii" />
-        <item itemvalue="Go Test.Test_RasterlineInterrupt in github.com/prydin/emu6502/vic-ii" />
-        <item itemvalue="Go Test.Test_RasterlinePolling in github.com/prydin/emu6502/vic-ii" />
       </list>
     </recent_temporary>
   </component>
@@ -401,6 +412,12 @@
           <url>file://$PROJECT_DIR$/vic-ii/scan.go</url>
           <line>448</line>
           <option name="timeStamp" value="248" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="DlvLineBreakpoint">
+          <condition expression="g.accumulator &gt; 0xfff" language="go" />
+          <url>file://$PROJECT_DIR$/sid/generator.go</url>
+          <line>87</line>
+          <option name="timeStamp" value="249" />
         </line-breakpoint>
       </breakpoints>
     </breakpoint-manager>

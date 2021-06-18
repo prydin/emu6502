@@ -4,6 +4,7 @@ go 1.16
 
 require (
 	github.com/beevik/go6502 v0.0.0-20200203011559-66de1e3db8b2
+	github.com/cnkei/gospline v0.0.0-20191204072713-842a72f86331 // indirect
 	github.com/dterei/gotsc v0.0.0-20160722215413-e78f872945c6
 	github.com/faiface/pixel v0.10.0
 	github.com/stretchr/testify v1.7.0
