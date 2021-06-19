@@ -49,8 +49,20 @@ func (c *Commodore64) Init(screen vic_ii.Raster, dimensions vic_ii.ScreenDimensi
 	vbus := core.Bus{}
 	c.Bus.ConnectClockablePh1(&c.Cpu)
 	colorRam := core.MakeRAM(1024)
+
+	// Initialize CPI
 	c.Cpu.Init(&c.Bus)
-	c.Vic.Init(&vbus, &c.Bus, colorRam, screen, dimensions)
+
+	// Initialize CIAs
+	cia1 := cia.CIA{}
+	cia1.Init(&c.Bus)
+	c.Bus.ConnectClockablePh1(&cia1)
+	cia2 := cia.CIA{}
+	cia2.Init(&c.Bus)
+	c.Bus.ConnectClockablePh1(&cia2)
+
+	// Initialize VIC
+	c.Vic.Init(&vbus, &c.Bus, &cia2, colorRam, screen, dimensions)
 	c.ram = core.RAM{Bytes: make([]uint8, 10000)} // TODO: Size
 
 	// Load ROMs
@@ -66,16 +78,9 @@ func (c *Commodore64) Init(screen vic_ii.Raster, dimensions vic_ii.ScreenDimensi
 
 	ram0 := core.MakeRAM(40960) // Main RAM
 	ram1 := core.MakeRAM(8192)  // High RAM
-	ram2 := core.MakeRAM(4096)  // Banked RAM
+	ram2 := core.MakeRAM(8192)  // Banked RAM
 	ram3 := core.MakeRAM(4096)  // Banked RAM
 	ram4 := core.MakeRAM(8192)  // Banked RAM
-
-	cia1 := cia.CIA{}
-	cia1.Init(&c.Bus)
-	c.Bus.ConnectClockablePh1(&cia1)
-	cia2 := cia.CIA{}
-	cia2.Init(&c.Bus)
-	c.Bus.ConnectClockablePh1(&cia2)
 
 	io := core.NewPagedSpace([]core.AddressSpace{
 		&c.Vic,            // D000
@@ -97,7 +102,7 @@ func (c *Commodore64) Init(screen vic_ii.Raster, dimensions vic_ii.ScreenDimensi
 	// Set up the main system Bus
 	switcher := core.NewBankSwitcher([][]core.AddressSpace{
 		{ram2, ram2, ram2, basic, ram2, ram2, ram2, basic},
-		{ram3, &charset.CharacterROM, &charset.CharacterROM, &charset.CharacterROM, ram3, io, io, io},
+		{ram3, ram3, &charset.CharacterROM, &charset.CharacterROM, ram3, io, io, io},
 		{ram4, ram4, kernal, kernal, ram4, ram4, kernal, kernal},
 	})
 	switcher.Switch(7)
@@ -108,7 +113,7 @@ func (c *Commodore64) Init(screen vic_ii.Raster, dimensions vic_ii.ScreenDimensi
 	c.Bus.Connect(switcher.GetBank(0), 0xa000, 0xbfff)
 	c.Bus.Connect(switcher.GetBank(1), 0xd000, 0xdfff)
 	c.Bus.Connect(switcher.GetBank(2), 0xe000, 0xffff)
-	c.Bus.Connect(colorRam, 0xd800, 0xdbff) // Color RAM
+	//c.Bus.Connect(colorRam, 0xd800, 0xdbff) // Color RAM
 
 	// Connect peripherals
 	c.Keyboard = &keyboard.Keyboard{}

@@ -28,54 +28,41 @@ import (
 
 func TestPort_ReadOutputs(t *testing.T) {
 	p := Port{}
-	for pullup := uint8(0);; {
-		p.PullUps = pullup
-		for ddr := uint8(0);; {
-			p.ddr = ddr
-			for data := uint8(0);; {
-				p.internalWrite(data)
-				d := p.ReadOutputs()
-				require.Equal(t, pullup & ^ddr | data & ddr, d, "Data mismatch. pu=%02x, ddr=%02x, data=%02x", pullup, ddr, data)
-				if data == 255 {
-					break
-				}
-				data++
-			}
-			if ddr == 255 {
+	for ddr := uint8(0); ; {
+		p.ddr = ddr
+		for data := uint8(0); ; {
+			p.internalWrite(data)
+			d := p.ReadOutputs()
+			require.Equal(t, data&ddr, d, "Data mismatch. ddr=%02x, data=%02x", ddr, data)
+			if data == 255 {
 				break
 			}
-			ddr++
+			data++
 		}
-		if pullup == 255 {
+		if ddr == 255 {
 			break
 		}
-		pullup++
+		ddr++
 	}
 }
 
 func TestPort_SetInputs(t *testing.T) {
 	p := Port{}
-	for pullup := uint8(0);; {
-		p.PullUps = pullup
-		for ddr := uint8(0);; {
-			p.ddr = ddr
-			for data := uint8(0);; {
-				p.SetInputs(data)
-				d := p.internalRead()
-				require.Equal(t, pullup & ddr | data & ^ddr, d, "Data mismatch. pu=%02x, ddr=%02x, data=%02x", pullup, ddr, data)
-				if data == 255 {
-					break
-				}
-				data++
-			}
-			if ddr == 255 {
+
+	for ddr := uint8(0); ; {
+		p.ddr = ddr
+		for data := uint8(0); ; {
+			p.SetInputs(data)
+			d := p.internalRead()
+			require.Equal(t, data, d, "Data mismatch. ddr=%02x, data=%02x", ddr, data)
+			if data == 255 {
 				break
 			}
-			ddr++
+			data++
 		}
-		if pullup == 255 {
+		if ddr == 255 {
 			break
 		}
-		pullup++
+		ddr++
 	}
 }

@@ -25,6 +25,7 @@ import (
 	"fmt"
 	"github.com/beevik/go6502/asm"
 	"github.com/prydin/emu6502/charset"
+	"github.com/prydin/emu6502/cia"
 	"github.com/prydin/emu6502/core"
 	"github.com/stretchr/testify/require"
 	"image"
@@ -50,7 +51,10 @@ func initVicII(mainBus *core.Bus, colorRam core.AddressSpace) (*VicII, *image.RG
 	if mainBus == nil {
 		mainBus = bus
 	}
-	vicii.Init(bus, mainBus, colorRam, &ImageRaster{img}, PALDimensions)
+	cia2 := cia.CIA{}
+	cia2.PortA.SetInputs(3)
+	cia2.WriteByte(2, 255)
+	vicii.Init(bus, mainBus, &cia2, colorRam, &ImageRaster{img}, PALDimensions)
 	vicii.borderCol = 14
 	vicii.bus.Connect(&charset.CharacterROM, 0x1000, 0x1fff)
 	vicii.bus.Connect(core.MakeRAM(0x2000), 0x2000, 0x3fff)
@@ -568,4 +572,18 @@ func TestNoSpriteSpriteCollision(t *testing.T) {
 		vicii.Clock()
 	}
 	require.Equal(t, uint8(0x00), vicii.spriteSpriteColl, "Collision should not have occurred")
+}
+
+func TestBanking(t *testing.T) {
+	colorRam := core.MakeRAM(1024)
+	vicii, _ := initVicII(nil, colorRam)
+	vicii.cia2.WriteByte(0, 3)
+	vicii.cia2.WriteByte(1, 0x3f)
+	require.Equal(t, uint16(0x0000), vicii.getBankBase())
+	vicii.cia2.WriteByte(0, 2)
+	require.Equal(t, uint16(0x4000), vicii.getBankBase())
+	vicii.cia2.WriteByte(0, 1)
+	require.Equal(t, uint16(0x8000), vicii.getBankBase())
+	vicii.cia2.WriteByte(0, 0)
+	require.Equal(t, uint16(0xc000), vicii.getBankBase())
 }

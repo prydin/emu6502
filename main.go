@@ -23,6 +23,7 @@ package main
 
 import (
 	"flag"
+	"fmt"
 	"github.com/beevik/go6502/asm"
 	"github.com/faiface/pixel"
 	"github.com/faiface/pixel/pixelgl"
@@ -30,6 +31,7 @@ import (
 	"github.com/prydin/emu6502/screen"
 	vic_ii "github.com/prydin/emu6502/vic-ii"
 	"image"
+	"io/ioutil"
 	"log"
 	"os"
 	"runtime/pprof"
@@ -38,6 +40,7 @@ import (
 
 var cpuprofile = flag.String("cpuprofile", "", "write cpu profile to file")
 var loadasm = flag.String("loadasm", "", "load assembly language file")
+var loadprg = flag.String("loadprg", "", "load binary program file")
 
 var PalFPS = 50.125
 var PalFrameTime = time.Duration((1 / PalFPS) * 1e9)
@@ -67,6 +70,24 @@ func main() {
 		if err != nil {
 			panic(err)
 		}
+	}
+	if *loadprg != "" {
+		prg, err := os.Open(*loadprg)
+		if err != nil {
+			panic(err)
+		}
+		defer prg.Close()
+		bytes, err := ioutil.ReadAll(prg)
+		if err != nil {
+			panic(err)
+		}
+		code = &asm.Assembly{
+			Code: bytes[2:],
+		}
+		sourceMap = asm.NewSourceMap()
+		sourceMap.Size = uint32(len(bytes) - 2)
+		sourceMap.Origin = uint16(bytes[0]) + uint16(bytes[1])<<8
+		fmt.Printf("Loaded %d bytes starting at %d (%04x)\n", sourceMap.Size, sourceMap.Origin, sourceMap.Origin)
 	}
 
 	pixelgl.Run(func() {

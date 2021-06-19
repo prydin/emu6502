@@ -61,14 +61,14 @@ func (v *VicII) Clock() {
 			v.rasterLine = 0
 		}
 
-		switch localCycle {
+		switch localCycle { // TODO: Details are a bit sketchy here. Double check this!
 		case 0:
 			if v.cycle > 0 {
 				v.rasterLine++
 				v.rasterInterrupt()
 			}
 		case 1:
-			if v.cycle == 0 {
+			if v.cycle/63 == 0 {
 				v.rasterLine = 0
 				v.rasterInterrupt()
 			}
@@ -193,7 +193,7 @@ func (v *VicII) Clock() {
 }
 
 func (v *VicII) cAccess() {
-	ch := v.bus.ReadByte(v.screenMemPtr | v.vc)
+	ch := v.bus.ReadByte(v.screenMemPtr | v.vc | v.getBankBase())
 	col := v.colorRam.ReadByte(v.vc)
 	if v.bitmapMode {
 		v.cBuf[v.vmli] = uint16(ch)
@@ -203,7 +203,7 @@ func (v *VicII) cAccess() {
 }
 
 func (v *VicII) gAccess() {
-	basePtr := v.charSetPtr
+	basePtr := v.charSetPtr | v.getBankBase()
 	var addr uint16
 	if v.bitmapMode {
 		basePtr &= 0x2000
@@ -223,7 +223,7 @@ func (v *VicII) gAccess() {
 }
 
 func (v *VicII) pAccess(spriteIndex uint16) {
-	addr := v.screenMemPtr | 0x03f8 | spriteIndex
+	addr := v.screenMemPtr | 0x03f8 | spriteIndex | v.getBankBase()
 	v.sprites[spriteIndex].pointer = uint16(v.bus.ReadByte(addr)) << 6
 }
 
@@ -235,7 +235,7 @@ func (v *VicII) sAccess(spriteIndex uint16) {
 		s.gData[2] = 0
 		return
 	}
-	s.gData[s.sIndex] = v.bus.ReadByte(s.pointer + uint16(s.mc))
+	s.gData[s.sIndex] = v.bus.ReadByte(s.pointer | uint16(s.mc) | v.getBankBase())
 	s.sIndex++
 	s.mc++
 	if s.sIndex > 2 {
@@ -407,7 +407,7 @@ func (v *VicII) generateTextColor() (uint8, bool) {
 		if cIndex == 0x03 {
 			return fgColor & 0x0f, true
 		} else {
-			// Color 1 is treated as background too. Go figure!
+			// Color 1 is treated as background too.
 			return v.backgroundColors[cIndex] & 0x0f, cIndex != 1
 		}
 	} else {
@@ -549,6 +549,10 @@ func (v *VicII) checkSpriteAndInit(first bool) {
 func (v *VicII) spriteWillNeedBus(localCycle uint16) bool {
 	sIndex, pCycle := getSpriteForCycle((localCycle - 3) % 63)
 	return sIndex != 0x0ff && pCycle && v.sprites[sIndex].dma
+}
+
+func (v *VicII) getBankBase() uint16 {
+	return uint16(^v.cia2.PortA.ReadOutputs()&0x03) << 14
 }
 
 // Returns the sprite for this cycle (or 0xff if no sprite) and 'true' if this is

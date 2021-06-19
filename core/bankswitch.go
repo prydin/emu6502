@@ -23,7 +23,7 @@ package core
 
 type Bank struct {
 	selector int
-	devices []AddressSpace
+	devices  []AddressSpace
 }
 
 type BankSwitcher struct {
@@ -38,24 +38,23 @@ func (b *Bank) WriteByte(addr uint16, data uint8) {
 	b.devices[b.selector].WriteByte(addr, data)
 }
 
-func (bs* BankSwitcher) Switch(selector int) {
+func (bs *BankSwitcher) Switch(selector int) {
+	/*if selector != bs.banks[0].selector {
+		println(selector)
+	}*/
 	for i := range bs.banks {
 		bs.banks[i].selector = selector
 	}
 }
 
-func (bs *BankSwitcher) GetBank(index int) AddressSpace{
+func (bs *BankSwitcher) GetBank(index int) AddressSpace {
 	return &bs.banks[index]
 }
 
 func NewBankSwitcher(devices [][]AddressSpace) *BankSwitcher {
-	bs := BankSwitcher{ banks: make([]Bank, len(devices)) }
+	bs := BankSwitcher{banks: make([]Bank, len(devices))}
 	for i, d := range devices {
-		bs.banks[i] = Bank{ devices: d}
+		bs.banks[i] = Bank{devices: d}
 	}
 	return &bs
 }
-
-
-
-

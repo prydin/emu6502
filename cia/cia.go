@@ -62,9 +62,8 @@ type CIA struct {
 }
 
 type Port struct {
-	data    uint8 // Input and output bits
-	ddr     uint8 // Corresponding it is 0 for input, 1 for output
-	PullUps uint8 // Corresponding bit set 1 simulates pullup-resistor
+	data uint8 // Input and output bits
+	ddr  uint8 // Corresponding it is 0 for input, 1 for output
 }
 
 type Timer struct {
@@ -189,19 +188,19 @@ func (c *CIA) Clock() {
 }
 
 func (p *Port) internalRead() uint8 {
-	return p.data & ^p.ddr | p.PullUps&p.ddr
+	return p.data
 }
 
 func (p *Port) internalWrite(data uint8) {
-	p.data = p.data & ^p.ddr | data&p.ddr
+	p.data = data
 }
 
 func (p *Port) ReadOutputs() uint8 {
-	return p.data&p.ddr | p.PullUps & ^p.ddr
+	return p.data & p.ddr
 }
 
 func (p *Port) SetInputs(data uint8) {
-	p.data = p.data&p.ddr | data & ^p.ddr
+	p.data = data
 }
 
 func (t *Timer) PulseCNT() {

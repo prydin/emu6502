@@ -53,11 +53,11 @@ type Device struct {
 }
 
 type Bus struct {
-	pages 	   [256]Device
+	pages      [256]Device
 	phase1     []Clockable
 	phase2     []Clockable
 	dmaAllowed bool
-	switcher *BankSwitcher
+	switcher   *BankSwitcher
 
 	// Event pins
 	RDY    TriState
@@ -75,7 +75,7 @@ func MakeRAM(size uint16) *RAM {
 
 func (b *Bus) Connect(device AddressSpace, start, end uint16) {
 	d := Device{start, end, device}
-	for page := start >> 8; page <= end >> 8; page++ {
+	for page := start >> 8; page <= end>>8; page++ {
 		b.pages[page] = d
 	}
 }
@@ -101,8 +101,12 @@ func (b *Bus) ClockPh2() {
 }
 
 func (b *Bus) ReadByte(addr uint16) uint8 {
-	d := b.pages[addr >> 8]
+
+	d := b.pages[addr>>8]
 	if d.device != nil {
+		if addr == 0xdd00 {
+			fmt.Printf("CIA2 read: %02x\n", d.device.ReadByte(addr-d.start))
+		}
 		return d.device.ReadByte(addr - d.start)
 	} else {
 		return 0
@@ -111,10 +115,14 @@ func (b *Bus) ReadByte(addr uint16) uint8 {
 
 func (b *Bus) WriteByte(addr uint16, data uint8) {
 	// Special case: Write to the "CPU port" configures the bank switcher
+	/*if addr == 0xdd00 {
+		fmt.Printf("CIA2 write: %02x\n", data)
+	}*/
 	if addr == 0x0001 && b.switcher != nil {
+		fmt.Printf("CPU port write: %02x\n", data)
 		b.switcher.Switch(int(data & 0x07))
 	}
-	d := b.pages[addr >> 8]
+	d := b.pages[addr>>8]
 	d.device.WriteByte(addr-d.start, data)
 }
 
@@ -157,13 +165,13 @@ func (r *RAM) WriteByte(addr uint16, data uint8) {
 	if int(addr) < len(r.Bytes) {
 		r.Bytes[int(addr)] = data
 	} else {
-		fmt.Printf("WARNING: Attempt to write outside RAM: %04x", addr)
+		fmt.Printf("WARNING: Attempt to write outside RAM: %04x\n", addr)
 	}
 }
 
 func (r *RAM) Page(page int) *RAM {
 	return &RAM{
-		Bytes: r.Bytes[page << 8:(page+1)<<8],
+		Bytes: r.Bytes[page<<8 : (page+1)<<8],
 	}
 }
 
@@ -201,7 +209,7 @@ func (p *PagedSpace) ReadByte(addr uint16) uint8 {
 	}
 	page := p.pages[n]
 	if page != nil {
-		return page.ReadByte(addr)
+		return page.ReadByte(addr & 0xff)
 	}
 	return 0
 }
@@ -213,10 +221,10 @@ func (p *PagedSpace) WriteByte(addr uint16, data uint8) {
 	}
 	page := p.pages[n]
 	if page != nil {
-		page.WriteByte(addr, data)
+		page.WriteByte(addr&0xff, data)
 	}
 }
 
 func NewPagedSpace(pages []AddressSpace) *PagedSpace {
-	return &PagedSpace{ pages: pages }
+	return &PagedSpace{pages: pages}
 }

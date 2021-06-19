@@ -22,6 +22,7 @@
 package vic_ii
 
 import (
+	"github.com/prydin/emu6502/cia"
 	"github.com/prydin/emu6502/core"
 )
 
@@ -160,6 +161,7 @@ type VicII struct {
 	rasterLine             uint16
 	spriteSpriteColl       uint8
 	spriteDataColl         uint8
+	cia2                   *cia.CIA // Pointer to CIA managing bank switch
 
 	// Internal registers
 	vc        uint16
@@ -189,7 +191,7 @@ type VicII struct {
 	cData     uint16 // Current c-data
 }
 
-func (v *VicII) Init(bus *core.Bus, cpuBus *core.Bus, colorRam core.AddressSpace, screen Raster, dimensions ScreenDimensions) {
+func (v *VicII) Init(bus *core.Bus, cpuBus *core.Bus, cia2 *cia.CIA, colorRam core.AddressSpace, screen Raster, dimensions ScreenDimensions) {
 	v.screenMemPtr = 0x0400
 	v.scrollY = 3
 	v.scrollX = 0
@@ -207,6 +209,7 @@ func (v *VicII) Init(bus *core.Bus, cpuBus *core.Bus, colorRam core.AddressSpace
 	v.cpuBus = cpuBus
 	v.hBorderFF = true
 	v.vBorderFF = true
+	v.cia2 = cia2
 	for i := range v.sprites {
 		v.sprites[i].expandYFF = true
 	}
@@ -420,7 +423,7 @@ func (v *VicII) WriteByte(addr uint16, data uint8) {
 		}
 	case REG_MEMPTR:
 		if data&0x0e>>1 == 2 || data&0x0e>>1 == 3 {
-			v.charSetPtr = 0x1000 // TODO: Temporary hack. Fix when banking is implemented
+			v.charSetPtr = 0x1000 // TODO: Temporary hack. Fix when banking is implemented. Not valid for bitmap mode!
 		} else {
 			v.charSetPtr = uint16(data&0x0e) << 10
 		}
