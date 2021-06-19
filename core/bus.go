@@ -27,6 +27,8 @@ type AddressSpace interface {
 	ReadByte(addr uint16) uint8
 
 	WriteByte(addr uint16, data uint8)
+
+	IsWriteable() bool
 }
 
 type Clockable interface {
@@ -66,7 +68,8 @@ type Bus struct {
 }
 
 type PagedSpace struct {
-	pages []AddressSpace
+	pages     []AddressSpace
+	writeable bool
 }
 
 func MakeRAM(size uint16) *RAM {
@@ -126,6 +129,10 @@ func (b *Bus) WriteByte(addr uint16, data uint8) {
 	d.device.WriteByte(addr-d.start, data)
 }
 
+func (b *Bus) IsWriteable() bool {
+	return true // Uhm... Yeah sure. At least partially.
+}
+
 func (b *Bus) SetSwitcher(switcher *BankSwitcher) {
 	b.switcher = switcher
 }
@@ -153,6 +160,10 @@ func (r *ROM) ReadByte(addr uint16) uint8 {
 func (r *ROM) WriteByte(addr uint16, data uint8) {
 }
 
+func (r *ROM) IsWriteable() bool {
+	return false
+}
+
 func (r *RAM) ReadByte(addr uint16) uint8 {
 	if int(addr) < len(r.Bytes) {
 		return r.Bytes[int(addr)]
@@ -167,6 +178,10 @@ func (r *RAM) WriteByte(addr uint16, data uint8) {
 	} else {
 		fmt.Printf("WARNING: Attempt to write outside RAM: %04x\n", addr)
 	}
+}
+
+func (r *RAM) IsWriteable() bool {
+	return true
 }
 
 func (r *RAM) Page(page int) *RAM {
@@ -225,6 +240,10 @@ func (p *PagedSpace) WriteByte(addr uint16, data uint8) {
 	}
 }
 
-func NewPagedSpace(pages []AddressSpace) *PagedSpace {
-	return &PagedSpace{pages: pages}
+func (p *PagedSpace) IsWriteable() bool {
+	return p.writeable
+}
+
+func NewPagedSpace(pages []AddressSpace, writeable bool) *PagedSpace {
+	return &PagedSpace{pages: pages, writeable: writeable}
 }

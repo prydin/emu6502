@@ -187,6 +187,10 @@ func (c *CIA) Clock() {
 	}
 }
 
+func (c *CIA) IsWriteable() bool {
+	return true
+}
+
 func (p *Port) internalRead() uint8 {
 	return p.data
 }
@@ -196,7 +200,7 @@ func (p *Port) internalWrite(data uint8) {
 }
 
 func (p *Port) ReadOutputs() uint8 {
-	return p.data & p.ddr
+	return p.data&p.ddr | ^p.ddr // Pull all inputs high
 }
 
 func (p *Port) SetInputs(data uint8) {

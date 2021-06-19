@@ -22,12 +22,20 @@
 package core
 
 type Bank struct {
-	selector int
-	devices  []AddressSpace
+	selector  int
+	devices   []AddressSpace
+	writeable []bool
 }
 
 type BankSwitcher struct {
 	banks []Bank
+}
+
+func (b *Bank) init() {
+	b.writeable = make([]bool, len(b.devices))
+	for i, d := range b.devices {
+		b.writeable[i] = d.IsWriteable()
+	}
 }
 
 func (b *Bank) ReadByte(addr uint16) uint8 {
@@ -35,7 +43,19 @@ func (b *Bank) ReadByte(addr uint16) uint8 {
 }
 
 func (b *Bank) WriteByte(addr uint16, data uint8) {
-	b.devices[b.selector].WriteByte(addr, data)
+	// If we're trying to write to a read-only area (like a ROM), we should
+	// instead write to the RAM that's mapped to the same address. We do
+	// this by temporarily switching to bank 0 (all RAM)
+	if !b.writeable[b.selector] {
+		b.devices[0].WriteByte(addr, data)
+	} else {
+		b.devices[b.selector].WriteByte(addr, data)
+	}
+
+}
+
+func (b *Bank) IsWriteable() bool {
+	return b.devices[b.selector].IsWriteable()
 }
 
 func (bs *BankSwitcher) Switch(selector int) {
@@ -55,6 +75,7 @@ func NewBankSwitcher(devices [][]AddressSpace) *BankSwitcher {
 	bs := BankSwitcher{banks: make([]Bank, len(devices))}
 	for i, d := range devices {
 		bs.banks[i] = Bank{devices: d}
+		bs.banks[i].init()
 	}
 	return &bs
 }

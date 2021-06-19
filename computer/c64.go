@@ -97,7 +97,7 @@ func (c *Commodore64) Init(screen vic_ii.Raster, dimensions vic_ii.ScreenDimensi
 		colorRam.Page(3),  // DB00
 		&cia1,             // DC00
 		&cia2,             // DD00
-	})
+	}, true)
 
 	// Set up the main system Bus
 	switcher := core.NewBankSwitcher([][]core.AddressSpace{

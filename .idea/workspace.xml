@@ -48,15 +48,10 @@
       <change afterPath="$PROJECT_DIR$/../vrealize-automation-plugin-for-jenkins/vrealize-automation-8.iml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/cia/cia.go" beforeDir="false" afterPath="$PROJECT_DIR$/cia/cia.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/cia/cia_test.go" beforeDir="false" afterPath="$PROJECT_DIR$/cia/cia_test.go" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/computer/c64.go" beforeDir="false" afterPath="$PROJECT_DIR$/computer/c64.go" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/core/bankswitch.go" beforeDir="false" afterPath="$PROJECT_DIR$/core/bankswitch.go" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/core/bus.go" beforeDir="false" afterPath="$PROJECT_DIR$/core/bus.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/main.go" beforeDir="false" afterPath="$PROJECT_DIR$/main.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/vic-ii/scan.go" beforeDir="false" afterPath="$PROJECT_DIR$/vic-ii/scan.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/vic-ii/scan_test.go" beforeDir="false" afterPath="$PROJECT_DIR$/vic-ii/scan_test.go" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/vic-ii/vic_ii.go" beforeDir="false" afterPath="$PROJECT_DIR$/vic-ii/vic_ii.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/vic-ii/vic_ii_test.go" beforeDir="false" afterPath="$PROJECT_DIR$/vic-ii/vic_ii_test.go" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../fizzbuzz/fizzbuzz.iml" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/../gradle/wrapper/gradle-wrapper.jar" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/../gradle/wrapper/gradle-wrapper.properties" beforeDir="false" />
@@ -218,10 +213,20 @@
     </key>
   </component>
   <component name="RunManager" selected="Go Build.Run Copper Booze">
-    <configuration name="Run Copper Booze" type="GoApplicationRunConfiguration" factoryName="Go Application">
+    <configuration name="Run Banking Test" type="GoApplicationRunConfiguration" factoryName="Go Application">
       <module name="emu6502" />
       <working_directory value="$PROJECT_DIR$" />
       <parameters value="--loadprg $USER_HOME$/prg/tests/banking.prg" />
+      <kind value="FILE" />
+      <package value="github.com/prydin/emu6502" />
+      <directory value="$PROJECT_DIR$" />
+      <filePath value="$PROJECT_DIR$/main.go" />
+      <method v="2" />
+    </configuration>
+    <configuration name="Run Copper Booze" type="GoApplicationRunConfiguration" factoryName="Go Application">
+      <module name="emu6502" />
+      <working_directory value="$PROJECT_DIR$" />
+      <parameters value="--loadprg $USER_HOME$/prg/copperbooze.prg" />
       <kind value="FILE" />
       <package value="github.com/prydin/emu6502" />
       <directory value="$PROJECT_DIR$" />
@@ -301,6 +306,7 @@
     <list>
       <item itemvalue="Go Build.Run Demo" />
       <item itemvalue="Go Build.Run Copper Booze" />
+      <item itemvalue="Go Build.Run Banking Test" />
       <item itemvalue="Go Test.TestPort_ReadOutputs in github.com/prydin/emu6502/cia" />
       <item itemvalue="Go Test.TestPort_SetInputs in github.com/prydin/emu6502/cia" />
       <item itemvalue="Go Test.Test_ExtendedCharacterMode in github.com/prydin/emu6502/vic-ii" />

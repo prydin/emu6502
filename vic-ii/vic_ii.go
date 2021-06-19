@@ -488,3 +488,7 @@ func (v *VicII) GetCycle() uint16 {
 func (v *VicII) IsVSynch() bool {
 	return v.cycle == 0 && !v.clockPhase2
 }
+
+func (v *VicII) IsWriteable() bool {
+	return true
+}
