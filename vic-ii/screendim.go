@@ -21,13 +21,17 @@
 
 package vic_ii
 
+// IMPORTANT NOTICE: Some VIC-II literature, including Christian Bauer's famous
+// text file use one-based numbering of cycles within a line. In this code, we
+// use zero-based values. Thus, everything will be off by one! Pay attention!
+//
 // PAL screen constants
 const (
-	PalFirstVisibleCycle = 11
+	PalFirstVisibleCycle = 10
 	PalFirstVisibleLine  = 16
 	PalLastVisibleLine   = 287
 	PalCyclesPerLine     = 63
-	PalLastVisibleCycle  = 58
+	PalLastVisibleCycle  = 57
 
 	PalLeftBorderWidth40Cols  = 32
 	PalRightBorderWidth40Cols = 32
@@ -45,8 +49,8 @@ const (
 	PalContentWidth40Cols = 320
 	PalContentWidth38Cols = PalContentWidth40Cols - 16
 
-	PalFirstContentCycle = 15
-	PalLastContentCycle  = 56
+	PalFirstContentCycle = 14
+	PalLastContentCycle  = 55
 	PalScreenWidth       = PalCyclesPerLine * 8
 	PalScreenHeight      = 312
 

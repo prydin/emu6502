@@ -22,6 +22,9 @@
 package vic_ii
 
 func (v *VicII) Clock() {
+	// IMPORTANT NOTICE: Some VIC-II literature, including Christian Bauer's famous
+	// text file use one-based numbering of cycles within a line. In this code, we
+	// use zero-based values. Thus, everything will be off by one! Pay attention!
 	localCycle := v.cycle % v.dimensions.CyclesPerLine
 
 	if v.clockPhase2 {
@@ -30,22 +33,40 @@ func (v *VicII) Clock() {
 		}
 		// ******** CLOCK PHASE 2 ********
 
+		// The negative edge of IRQ on a raster interrupt has been used to define the
+		// beginning of a line (this is also the moment in which the RASTER register
+		// is incremented). Raster line 0 is, however, an exception: In this line, IRQ
+		// and incrementing (and resetting) of RASTER are performed one cycle later
+		// than in the other lines. But for simplicity we assume equal line lengths
+		// and define the beginning of raster line 0 to be one cycle before the
+		// occurrence of the IRQ.
+		if localCycle == 0 && v.cycle != 0 {
+			v.rasterLine++
+			v.rasterInterrupt()
+		} else if localCycle == 1 && v.cycle == 1 {
+			// First line is one clock cycle delayed in triggering interrupt
+			v.rasterLine = 0
+			v.rasterInterrupt()
+		}
+
 		if localCycle >= PalFirstVisibleCycle && localCycle <= PalLastVisibleCycle &&
 			v.rasterLine >= PalFirstVisibleLine && v.rasterLine <= PalLastVisibleLine {
 			v.renderCycle()
 		}
 
 		// Perform c-access on bad lines
-		if v.badLine && localCycle >= 15 && localCycle <= 54 {
+		if v.badLine && localCycle >= 14 && localCycle <= 53 {
 			v.cAccess()
 		}
-		v.cpuBus.ClockPh2()
 
 		// Perform s-access if sprites are enabled
 		sprite, _ := getSpriteForCycle(localCycle)
 		if sprite != 0x0ff {
 			v.sAccess(sprite)
 		}
+
+		// Let the CPU do it's thing!
+		v.cpuBus.ClockPh2()
 
 		// Move to next cycle
 		v.cycle++
@@ -58,20 +79,6 @@ func (v *VicII) Clock() {
 		if v.cycle == 0 {
 			v.vcBase = 0 // vic-ii.txt: 3.7.2.2
 			v.badLine = false
-			v.rasterLine = 0
-		}
-
-		switch localCycle { // TODO: Details are a bit sketchy here. Double check this!
-		case 0:
-			if v.cycle > 0 {
-				v.rasterLine++
-				v.rasterInterrupt()
-			}
-		case 1:
-			if v.cycle/63 == 0 {
-				v.rasterLine = 0
-				v.rasterInterrupt()
-			}
 		}
 
 		// Handle sprite access if we're in the right part of the line.
@@ -102,13 +109,13 @@ func (v *VicII) Clock() {
 				v.skipFrame = false
 			}
 			switch localCycle {
-			case 14:
+			case 13:
 				v.vc = v.vcBase // vic-ii.txt: 3.7.2.2
 				v.vmli = 0
 				if v.badLine {
 					v.rc = 0
 				}
-			case 15:
+			case 14:
 				// In the first phase of cycle 15, it is checked if the expansion flip flop
 				// is set. If so, MCBASE is incremented by 2.
 				for i := range v.sprites {
@@ -116,7 +123,7 @@ func (v *VicII) Clock() {
 						v.sprites[i].mcBase += 2
 					}
 				}
-			case 16:
+			case 15:
 				v.displayState = true
 
 				// In the first phase of cycle 16, it is checked if the expansion flip flop
@@ -132,16 +139,16 @@ func (v *VicII) Clock() {
 						}
 					}
 				}
-			case 55:
+			case 54:
 				// Bad lines always end here regardless of how they started
 				if v.badLine {
 					v.badLine = false
 					v.bus.RDY.Release()
 				}
 				v.checkSpriteAndInit(true)
-			case 56:
+			case 55:
 				v.checkSpriteAndInit(false)
-			case 58:
+			case 57:
 				if v.rc == 0x07 {
 					v.rc = 0 // vic-ii.txt: 3.7.2.5
 					v.vcBase = v.vc
@@ -161,17 +168,17 @@ func (v *VicII) Clock() {
 						s.displayEnabled = true
 					}
 				}
-			case 59:
+			case 58:
 				if v.displayState {
 					v.rc = (v.rc + 1) & 0x07
 				}
 			}
 
 			// Misc stuff that's better handled outside the switch
-			if localCycle >= 16 && localCycle < 56 {
+			if localCycle >= 15 && localCycle < 55 {
 				v.gAccess()
 			}
-			if localCycle >= 12 && localCycle <= 54 {
+			if localCycle >= 11 && localCycle <= 53 {
 				if !v.skipFrame && v.rasterLine&0x07 == v.scrollY {
 					if !v.badLine {
 						// Flipping from normal to bad
@@ -558,16 +565,43 @@ func (v *VicII) getBankBase() uint16 {
 // Returns the sprite for this cycle (or 0xff if no sprite) and 'true' if this is
 // a p-access cycle.
 func getSpriteForCycle(localCycle uint16) (uint16, bool) {
-	if localCycle == 0 {
-		return 2, false // Wrap around from cycle 63 on previous line
+	// Ugly but fast.
+	switch localCycle {
+	case 0:
+		return 3, true
+	case 1:
+		return 3, false
+	case 2:
+		return 4, true
+	case 3:
+		return 4, false
+	case 4:
+		return 5, true
+	case 5:
+		return 5, false
+	case 6:
+		return 6, true
+	case 7:
+		return 6, false
+	case 8:
+		return 7, true
+	case 9:
+		return 7, false
+	case 57:
+		return 0, true
+	case 58:
+		return 0, false
+	case 59:
+		return 1, true
+	case 60:
+		return 1, false
+	case 61:
+		return 2, true
+	case 62:
+		return 2, false
+	default:
+		return 0xff, false
 	}
-	if localCycle <= 10 {
-		return (localCycle-1)/2 + 3, localCycle&1 == 1
-	}
-	if localCycle >= 58 {
-		return (localCycle - 58) / 2, localCycle&1 == 0
-	}
-	return 0xff, false
 }
 
 func min(a uint16, b uint16) uint16 {

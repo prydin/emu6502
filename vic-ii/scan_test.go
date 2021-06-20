@@ -62,7 +62,7 @@ func initVicII(mainBus *core.Bus, colorRam core.AddressSpace) (*VicII, *image.RG
 	vicii.bus.Connect(screenRAM, 0x0400, 0x07ff)
 	vicii.bus.Connect(colorRam, 0xd800, 0xdbff)
 	vicii.screenMemPtr = 0x0400
-	vicii.charSetPtr = 0xd000
+	vicii.charSetPtr = 0x1000
 	vicii.backgroundColors[0] = 6
 	vicii.scrollY = 3
 	vicii.scrollX = 0
@@ -243,32 +243,125 @@ func Test_RasterlinePolling(t *testing.T) {
 		} else {
 			screenMem[i] = uint8(i%10 + 0x30)
 		}
+		screenMem[i] = 32
+		colorRam.Bytes[i] = 1
 	}
-	vicii.bus.Connect(&core.RAM{Bytes: screenMem[:]}, 0x0400, 0x07ff)
+	vicii.bus.Connect(&core.RAM{Bytes: screenMem}, 0x0400, 0x07ff)
+	mainBus.Connect(&core.RAM{Bytes: screenMem}, 0x0400, 0x07ff)
 	mainBus.Connect(vicii, 0xd000, 0xd0ff)
-	mainBus.Connect(core.MakeRAM(100), 0x0000, 0x00ff)
+	mainBus.Connect(core.MakeRAM(0x400), 0x0000, 0x03ff)
 	cpu := core.CPU{}
 	cpu.Init(&mainBus)
 	mainBus.ConnectClockablePh1(&cpu)
 
 	code, err := assemble(`
-		LDA #$FF
-		STA $02
-LOOP	LDA	$D012
-		CMP $02
-		BEQ LOOP
-		STA $02
-		AND #$07
-		BNE LOOP
-		INC $D021
-		JMP LOOP
+		org $1000
+baseline .eq $32
+		sei
+
+loop	ldx #8
+		;jsr rastersync
+
+		ldx #1
+        lda #baseline + (2 * 8)
+l1      cmp $d012		
+        bne l1			
+        stx $d020		
+
+        lda #baseline + (4 * 8)
+l2      cmp $d012		; 4 cycles
+        bne l2			; 2 (if no branch)
+        inc $d020		
+		inc $d021		
+
+        lda #baseline + (6 * 8)
+l3      cmp $d012
+        bne l3
+        inc $d020
+		inc $d021
+
+		lda #baseline + (8 * 8)
+l4      cmp $d012
+        bne l4
+        inc $d020
+		inc $d021
+
+		lda #baseline + (10 * 8)
+l5      cmp $d012
+        bne l5
+        inc $d020
+		inc $d021
+
+		lda #baseline + (12 * 8)
+l6      cmp $d012
+        bne l6
+        inc $d020
+		inc $d021
+
+		lda #baseline + (14 * 8)
+l7      cmp $d012
+        bne l7
+        inc $d020
+		inc $d021
+
+        ldy #1
+        ldx #$0f
+        lda #baseline + (16 * 8)
+l8      cmp $d012
+        bne l8
+		sty $d020
+		stx $d021 
+
+
+		jmp loop
+
+;--------------------------------------------------
+; simple polling rastersync routine
+
+		  .align 64
+
+rastersync:
+
+lp1:
+          cpx $d012
+          bne lp1
+          jsr cycles
+          bit $ea
+          nop
+          cpx $d012
+          beq skip1
+          nop
+          nop
+skip1:    jsr cycles
+          bit $ea
+          nop
+          cpx $d012
+          beq skip2
+          bit $ea
+skip2:    jsr cycles
+          nop
+          nop
+          nop
+          cpx $d012
+          bne onecycle
+onecycle: rts
+
+cycles:
+         ldy #$06
+lp2:     dey
+         bne lp2
+         inx
+         nop
+         nop
+         rts
+
 `)
 	if err != nil {
 		panic(err)
 	}
 	mainBus.Connect(&core.RAM{Bytes: code}, 0x1000, 0x1000+uint16(len(code)))
 	cpu.SetPC(0x1000)
-	for i := 0; i < 100000; i++ {
+	for i := 0; i < int(PalScreenWidth)*int(PalScreenHeight)/4; i++ {
 		vicii.Clock()
 	}
 	f, _ := os.Create("raster_poll.png")
@@ -292,8 +385,7 @@ func Test_RasterlineInterrupt(t *testing.T) {
 	vicii.bus.Connect(&core.RAM{Bytes: screenMem[:]}, 0x0400, 0x07ff)
 
 	mainBus.Connect(vicii, 0xd000, 0xd0ff)
-	mainBus.Connect(core.MakeRAM(0x300), 0x0000, 0x02ff)
-	mainBus.Connect(core.MakeRAM(0x1000), 0xf000, 0xffff)
+	mainBus.Connect(core.MakeRAM(0x400), 0x0000, 0x03ff)
 
 	cpu := core.CPU{}
 	cpu.Init(&mainBus)
@@ -350,21 +442,21 @@ INCR	STA $D012	; Not at bottom. Keep going
 
 func Test_getSpriteFromCycle(t *testing.T) {
 	sprites := map[uint16]uint16{
-		0:  2,
+		0:  3,
 		1:  3,
-		2:  3,
+		2:  4,
 		3:  4,
-		4:  4,
+		4:  5,
 		5:  5,
-		6:  5,
+		6:  6,
 		7:  6,
-		8:  6,
+		8:  7,
 		9:  7,
-		10: 7,
+		57: 0,
 		58: 0,
-		59: 0,
+		59: 1,
 		60: 1,
-		61: 1,
+		61: 2,
 		62: 2,
 	}
 	for i := uint16(0); i < 63; i++ {
@@ -374,7 +466,7 @@ func Test_getSpriteFromCycle(t *testing.T) {
 			index = 0xff
 		}
 		require.Equalf(t, index, s, "Sprite index mismatch at %d", i)
-		if present && i < 11 && i&1 == 1 || i > 57 && i&1 == 0 {
+		if present && i < 10 && i&1 == 0 || i > 56 && i&1 == 1 {
 			require.Truef(t, pAccess, "pAccess mismatch at %d", i)
 		} else {
 			require.Falsef(t, pAccess, "pAccess mismatch at %d", i)
@@ -433,10 +525,13 @@ func initSprites() (*VicII, *image.RGBA) {
 	vicii.bus.Connect(&charset.CharacterROM, 0x1000, 0x1fff)
 	vicii.bus.Connect(core.MakeRAM(0x2000), 0x2000, 0x3fff)
 	screenRAM := core.MakeRAM(1024)
+	for i := range screenRAM.Bytes {
+		screenRAM.Bytes[i] = 32
+	}
 	vicii.bus.Connect(screenRAM, 0x0400, 0x07ff)
 	vicii.bus.Connect(colorRam, 0xd800, 0xdbff)
 	vicii.screenMemPtr = 0x0400
-	vicii.charSetPtr = 0xd000
+	vicii.charSetPtr = 0x1000
 	vicii.backgroundColors[0] = 6
 	vicii.scrollY = 3
 	vicii.scrollX = 3
