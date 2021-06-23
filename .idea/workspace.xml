@@ -189,6 +189,7 @@
     <option name="showLibraryContents" value="true" />
   </component>
   <component name="PropertiesComponent">
+    <property name="ASKED_ADD_EXTERNAL_FILES" value="true" />
     <property name="DefaultGoTemplateProperty" value="Go File" />
     <property name="RunOnceActivity.ShowReadmeOnStart" value="true" />
     <property name="SHARE_PROJECT_CONFIGURATION_FILES" value="true" />
@@ -242,7 +243,7 @@
       <filePath value="$PROJECT_DIR$/main.go" />
       <method v="2" />
     </configuration>
-    <configuration name="TestBanking in github.com/prydin/emu6502/vic-ii" type="GoTestRunConfiguration" factoryName="Go Test" temporary="true" nameIsGenerated="true">
+    <configuration name="TestBanking in github.com/prydin/emu6502/vic-ii" type="GoTestRunConfiguration" factoryName="Go Test" nameIsGenerated="true">
       <module name="emu6502" />
       <working_directory value="$PROJECT_DIR$/vic-ii" />
       <root_directory value="$PROJECT_DIR$" />
@@ -266,6 +267,18 @@
       <pattern value="^\QTestDrawSprite\E$" />
       <method v="2" />
     </configuration>
+    <configuration name="TestSAccess in github.com/prydin/emu6502/vic-ii" type="GoTestRunConfiguration" factoryName="Go Test" temporary="true" nameIsGenerated="true">
+      <module name="emu6502" />
+      <working_directory value="$PROJECT_DIR$/vic-ii" />
+      <root_directory value="$PROJECT_DIR$" />
+      <kind value="PACKAGE" />
+      <package value="github.com/prydin/emu6502/vic-ii" />
+      <directory value="$PROJECT_DIR$" />
+      <filePath value="$PROJECT_DIR$" />
+      <framework value="gotest" />
+      <pattern value="^\QTestSAccess\E$" />
+      <method v="2" />
+    </configuration>
     <configuration name="Test_CharacterMode in github.com/prydin/emu6502/vic-ii" type="GoTestRunConfiguration" factoryName="Go Test" temporary="true" nameIsGenerated="true">
       <module name="emu6502" />
       <working_directory value="$PROJECT_DIR$/vic-ii" />
@@ -278,7 +291,7 @@
       <pattern value="^\QTest_CharacterMode\E$" />
       <method v="2" />
     </configuration>
-    <configuration name="Test_RasterlinePolling in github.com/prydin/emu6502/vic-ii" type="GoTestRunConfiguration" factoryName="Go Test" temporary="true" nameIsGenerated="true">
+    <configuration name="Test_RasterlinePolling in github.com/prydin/emu6502/vic-ii" type="GoTestRunConfiguration" factoryName="Go Test" nameIsGenerated="true">
       <module name="emu6502" />
       <working_directory value="$PROJECT_DIR$/vic-ii" />
       <root_directory value="$PROJECT_DIR$" />
@@ -311,14 +324,14 @@
       <item itemvalue="Go Test.Test_RasterlinePolling in github.com/prydin/emu6502/vic-ii" />
       <item itemvalue="Go Test.Test_getSpriteFromCycle in github.com/prydin/emu6502/vic-ii" />
       <item itemvalue="Go Test.TestDrawSprite in github.com/prydin/emu6502/vic-ii" />
+      <item itemvalue="Go Test.TestSAccess in github.com/prydin/emu6502/vic-ii" />
     </list>
     <recent_temporary>
       <list>
+        <item itemvalue="Go Test.Test_CharacterMode in github.com/prydin/emu6502/vic-ii" />
+        <item itemvalue="Go Test.TestSAccess in github.com/prydin/emu6502/vic-ii" />
         <item itemvalue="Go Test.TestDrawSprite in github.com/prydin/emu6502/vic-ii" />
         <item itemvalue="Go Test.Test_getSpriteFromCycle in github.com/prydin/emu6502/vic-ii" />
-        <item itemvalue="Go Test.Test_CharacterMode in github.com/prydin/emu6502/vic-ii" />
-        <item itemvalue="Go Test.Test_RasterlinePolling in github.com/prydin/emu6502/vic-ii" />
-        <item itemvalue="Go Test.TestBanking in github.com/prydin/emu6502/vic-ii" />
       </list>
     </recent_temporary>
   </component>
@@ -421,22 +434,34 @@
           <option name="timeStamp" value="331" />
         </line-breakpoint>
         <line-breakpoint enabled="true" type="DlvLineBreakpoint">
-          <url>file://$PROJECT_DIR$/core/cpu.go</url>
-          <line>794</line>
-          <option name="timeStamp" value="336" />
+          <url>file://$PROJECT_DIR$/vic-ii/scan_test.go</url>
+          <line>460</line>
+          <option name="timeStamp" value="391" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="DlvLineBreakpoint">
+          <url>file://$PROJECT_DIR$/vic-ii/scan.go</url>
+          <line>205</line>
+          <option name="timeStamp" value="393" />
         </line-breakpoint>
       </breakpoints>
     </breakpoint-manager>
     <watches-manager>
       <configuration name="GoApplicationRunConfiguration">
-        <watch expression="0xd0 &lt;&lt;6" language="go" />
+        <watch expression="v.cycle%63" language="go" />
+        <watch expression="v.vc" language="go" />
+        <watch expression="v.vmli" language="go" />
+        <watch expression="v.vcBase" language="go" />
+        <watch expression="v.cycle" language="go" />
+        <watch expression="v.rc" language="go" />
         <watch expression="v.rasterLine" language="go" />
-        <watch expression="v.rasterLineTrigger" language="go" />
-        <watch expression="*(*&quot;uint16&quot;)(824635851446)" />
       </configuration>
       <configuration name="GoTestRunConfiguration">
-        <watch expression="vicii.bus.ReadByte(0x400)" language="go" />
-        <watch expression="vicii.bus.ReadByte(0x1000)" language="go" />
+        <watch expression="v.vc" language="go" />
+        <watch expression="v.vcBase" language="go" />
+        <watch expression="v.rc" language="go" />
+        <watch expression="localCycle" language="go" />
+        <watch expression="v.cycle" language="go" />
+        <watch expression="v.rasterLine" language="go" />
       </configuration>
     </watches-manager>
   </component>

@@ -100,7 +100,7 @@ func Test_CharacterMode(t *testing.T) {
 		colorRam.WriteByte(i, 14)
 	}
 	start := time.Now()
-	for i := 0; i < int(PalScreenWidth)*int(PalScreenHeight)/4; i++ {
+	for i := 0; i < int(PalScreenWidth)*int(PalScreenHeight)/2; i++ {
 		vicii.Clock()
 	}
 	fmt.Printf("Rendering time: %s", time.Now().Sub(start))
@@ -438,40 +438,6 @@ INCR	STA $D012	; Not at bottom. Keep going
 	}
 	f, _ := os.Create("raster_irq.png")
 	png.Encode(f, img)
-}
-
-func Test_getSpriteFromCycle(t *testing.T) {
-	sprites := map[uint16]uint16{
-		0:  3,
-		1:  3,
-		2:  4,
-		3:  4,
-		4:  5,
-		5:  5,
-		6:  6,
-		7:  6,
-		8:  7,
-		9:  7,
-		57: 0,
-		58: 0,
-		59: 1,
-		60: 1,
-		61: 2,
-		62: 2,
-	}
-	for i := uint16(0); i < 63; i++ {
-		s, pAccess := getSpriteForCycle(i)
-		index, present := sprites[i]
-		if !present {
-			index = 0xff
-		}
-		require.Equalf(t, index, s, "Sprite index mismatch at %d", i)
-		if present && i < 10 && i&1 == 0 || i > 56 && i&1 == 1 {
-			require.Truef(t, pAccess, "pAccess mismatch at %d", i)
-		} else {
-			require.Falsef(t, pAccess, "pAccess mismatch at %d", i)
-		}
-	}
 }
 
 func TestPAccess(t *testing.T) {

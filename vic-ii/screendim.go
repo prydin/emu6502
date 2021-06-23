@@ -61,6 +61,9 @@ const (
 
 	PalVisibleWidth  = PalContentWidth40Cols + PalRightBorderWidth40Cols + PalLeftBorderWidth40Cols
 	PalVisibleHeight = PalContentBottom25Lines + PalTopBorderHeight40Cols
+
+	DMAStart = 0x30
+	DMAEnd   = 0xf7
 )
 
 type ScreenDimensions struct {

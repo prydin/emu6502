@@ -21,6 +21,8 @@
 
 package vic_ii
 
+import "fmt"
+
 func (v *VicII) Clock() {
 	// IMPORTANT NOTICE: Some VIC-II literature, including Christian Bauer's famous
 	// text file use one-based numbering of cycles within a line. In this code, we
@@ -53,16 +55,57 @@ func (v *VicII) Clock() {
 			v.rasterLine >= PalFirstVisibleLine && v.rasterLine <= PalLastVisibleLine {
 			v.renderCycle()
 		}
-
-		// Perform c-access on bad lines
-		if v.badLine && localCycle >= 14 && localCycle <= 53 {
-			v.cAccess()
-		}
-
-		// Perform s-access if sprites are enabled
-		sprite, _ := getSpriteForCycle(localCycle)
-		if sprite != 0x0ff {
-			v.sAccess(sprite)
+		switch localCycle {
+		case 0:
+			// Nothing
+		case 1:
+			v.sAccess(3)
+		case 2:
+			// Nothing
+		case 3:
+			v.sAccess(4)
+		case 4:
+			// Nothing
+		case 5:
+			v.sAccess(5)
+		case 6:
+			// Nothing
+		case 7:
+			v.sAccess(6)
+		case 8:
+			// Nothing
+		case 9:
+			v.pAccess(7)
+		case 10:
+			// Nothing
+		case 11:
+			// Nothing
+		case 12:
+			// Nothing
+		case 13:
+			// Nothing
+		case 54:
+			// Nothing
+		case 55:
+			// Nothing
+		case 56:
+			// Nothing
+		case 57:
+			// Nothing
+		case 58:
+			v.sAccess(0)
+		case 59:
+			// Nothing
+		case 60:
+			v.sAccess(1)
+		case 61:
+			// Nothing
+		case 62:
+			v.sAccess(2)
+		default: // 14-54
+			if v.badLine {
+				v.cAccess()
+			}
 		}
 
 		// Let the CPU do it's thing!
@@ -75,131 +118,186 @@ func (v *VicII) Clock() {
 			v.skipFrame = true // Skip unless DEN is set at line 48
 		}
 	} else {
-		// ******** CLOCK PHASE 1 ********
-		if v.cycle == 0 {
-			v.vcBase = 0 // vic-ii.txt: 3.7.2.2
-			v.badLine = false
-		}
-
-		// Handle sprite access if we're in the right part of the line.
-		sprite, pCycle := getSpriteForCycle(localCycle)
-		if sprite != 0xff {
-			if pCycle {
-				v.pAccess(sprite)
-			} else {
-				v.sAccess(sprite)
-			}
-		}
-
-		// Are we three cycles away from a sprite with DMA enabled?
-		// Then we need to lower the RDY line to stun the CPU while
-		// we do phase 2 accesses to get the sprite data. The
-		// RDY line will be raised at the end of the last S-access.
-		if v.spriteWillNeedBus(localCycle) {
-			v.bus.RDY.PullDown()
-		}
-
-		// Handle visible stuff
-		contentBottom := v.dimensions.ContentBottom24Lines
-		if v.line25 {
-			contentBottom = v.dimensions.ContentBottom25Lines
-		}
-		if v.rasterLine >= 48 && v.rasterLine <= contentBottom {
-			if v.rasterLine == 48 && v.enable {
-				v.skipFrame = false
-			}
-			switch localCycle {
-			case 13:
-				v.vc = v.vcBase // vic-ii.txt: 3.7.2.2
-				v.vmli = 0
-				if v.badLine {
-					v.rc = 0
-				}
-			case 14:
-				// In the first phase of cycle 15, it is checked if the expansion flip flop
-				// is set. If so, MCBASE is incremented by 2.
-				for i := range v.sprites {
-					if v.sprites[i].expandYFF {
-						v.sprites[i].mcBase += 2
-					}
-				}
-			case 15:
-				v.displayState = true
-
-				// In the first phase of cycle 16, it is checked if the expansion flip flop
-				// is set. If so, MCBASE is incremented by 1. After that, the VIC checks if
-				// MCBASE is equal to 63 and turns of the DMA and the display of the sprite
-				// if it is.
-				for i := range v.sprites {
-					s := &v.sprites[i]
-					if s.expandYFF {
-						s.mcBase = (s.mcBase + 1) & 0x3f
-						if s.mcBase == 0x3f {
-							s.dma = false
-						}
-					}
-				}
-			case 54:
-				// Bad lines always end here regardless of how they started
-				if v.badLine {
-					v.badLine = false
-					v.bus.RDY.Release()
-				}
-				v.checkSpriteAndInit(true)
-			case 55:
-				v.checkSpriteAndInit(false)
-			case 57:
-				if v.rc == 0x07 {
-					v.rc = 0 // vic-ii.txt: 3.7.2.5
-					v.vcBase = v.vc
-					v.displayState = false
-				}
-
-				/* 4. In the first phase of cycle 58, the MC of every sprite is loaded from
-				   its belonging MCBASE (MCBASE->MC) and it is checked if the DMA for the
-				   sprite is turned on and the Y coordinate of the sprite matches the lower
-				   8 bits of RASTER. If this is the case, the display of the sprite is
-				   turned on.
-				*/
-				for i := range v.sprites {
-					s := &v.sprites[i]
-					s.mc = s.mcBase
-					if s.dma {
-						s.displayEnabled = true
-					}
-				}
-			case 58:
-				if v.displayState {
-					v.rc = (v.rc + 1) & 0x07
-				}
-			}
-
-			// Misc stuff that's better handled outside the switch
-			if localCycle >= 15 && localCycle < 55 {
-				v.gAccess()
-			}
-			if localCycle >= 11 && localCycle <= 53 {
-				if !v.skipFrame && v.rasterLine&0x07 == v.scrollY {
-					if !v.badLine {
-						// Flipping from normal to bad
-						v.badLine = true
-						v.bus.RDY.PullDown()
-					}
-				} else {
-					// Flipping from bad to normal
-					if v.badLine {
-						v.badLine = false
-						v.bus.RDY.Release()
-					}
-				}
-			}
-		}
+		v.phi1()
 		v.cpuBus.ClockPh1()
 	}
 	v.clockPhase2 = !v.clockPhase2
 }
 
+func (v *VicII) phi1() {
+	if v.rasterLine == 48 && v.enable {
+		v.skipFrame = false
+	}
+	localCycle := v.cycle % v.dimensions.CyclesPerLine
+	switch localCycle { // TODO: This is hardcoded for PAL
+	case 0:
+		v.initLine()
+		v.pAccess(3)
+	case 1:
+		v.sAccess(3)
+	case 2:
+		v.pAccess(4)
+	case 3:
+		v.sAccess(4)
+	case 4:
+		v.pAccess(5)
+	case 5:
+		v.sAccess(5)
+	case 6:
+		v.pAccess(6)
+	case 7:
+		v.sAccess(6)
+	case 8:
+		v.pAccess(7)
+	case 9:
+		v.pAccess(7)
+	case 10:
+		// Nothing
+	case 11:
+		v.checkForBadLine()
+	case 12:
+		v.checkForBadLine()
+	case 13:
+		// In the first phase of cycle 14 of each line, VC is loaded from VCBASE
+		// (VCBASE->VC) and VMLI is cleared. If there is a Bad Line Condition in
+		// this phase, RC is also reset to zero.
+		v.checkForBadLine()
+		v.initVc()
+	case 14:
+		v.checkForBadLine()
+		v.handleSpriteYExpStep()
+	case 15:
+		v.checkForBadLine()
+		if v.badLine {
+			v.displayState = true
+		}
+		v.initMc()
+		v.gAccess()
+	case 54:
+		// Bad lines always end here regardless of how they started
+		v.resetBadLine()
+		v.checkSpriteAndInit(true)
+		v.gAccess()
+	case 55:
+		v.checkSpriteAndInit(false)
+		fallthrough
+	case 56:
+		v.idleGap()
+	case 57:
+		v.prepareVc()
+		v.pAccess(0)
+	case 58:
+		v.sAccess(0)
+	case 59:
+		v.pAccess(1)
+	case 60:
+		v.sAccess(1)
+	case 61:
+		v.pAccess(2)
+	case 62:
+		v.sAccess(2)
+	default: // 16-53
+		v.gAccess()
+	}
+}
+
+func (v *VicII) initLine() {
+	if v.cycle == 0 {
+		v.vcBase = 0 // vic-ii.txt: 3.7.2.2
+		v.badLine = false
+		v.rasterLine = 0
+	}
+}
+
+func (v *VicII) initVc() {
+	v.vc = v.vcBase
+	v.vmli = 0
+	if v.badLine {
+		v.rc = 0
+	}
+}
+
+func (v *VicII) prepareVc() {
+	// In the first phase of cycle 58, the VIC checks if RC=7. If so, the video
+	// logic goes to idle state and VCBASE is loaded from VC (VC->VCBASE). If
+	// the video logic is in display state afterwards (this is always the case
+	// if there is a Bad Line Condition), RC is incremented.
+	if v.rc == 0x07 {
+		v.rc = 0
+		v.vcBase = v.vc
+		v.displayState = false
+		fmt.Printf("vc=%d, vcBase=%d, cycle=%d, vc/40=%d, cycle/63=%d\n", v.vc, v.vcBase, v.cycle, v.vc/40, (v.cycle-3711)/63/8)
+	} else {
+		if v.displayState {
+			v.rc = (v.rc + 1) & 0x07
+		}
+	}
+}
+
+func (v *VicII) resetBadLine() {
+	if v.badLine {
+		v.badLine = false
+		v.bus.RDY.Release()
+	}
+}
+
+func (v *VicII) initMc() {
+	// In the first phase of cycle 16, it is checked if the expansion flip flop
+	// is set. If so, MCBASE is incremented by 1. After that, the VIC checks if
+	// MCBASE is equal to 63 and turns of the DMA and the display of the sprite
+	// if it is.
+	for i := range v.sprites {
+		s := &v.sprites[i]
+		if s.expandYFF {
+			s.mcBase = (s.mcBase + 1) & 0x3f
+			if s.mcBase == 0x3f {
+				s.dma = false
+			}
+		}
+	}
+}
+
+func (v *VicII) checkForBadLine() {
+	// If there is a Bad Line Condition in cycles 12-54, BA is set low and the
+	// c-accesses are started. Once started, one c-access is done in the second
+	// phase of every clock cycle in the range 15-54. The read data is stored
+	// in the video matrix/color line at the position specified by VMLI. These
+	// data is internally read from the position specified by VMLI as well on
+	// each g-access in display state.
+	if !v.skipFrame && v.rasterLine&0x07 == v.scrollY && v.rasterLine >= DMAStart && v.rasterLine <= DMAEnd {
+		if !v.badLine {
+			// Flipping from normal to bad
+			v.badLine = true
+			v.bus.RDY.PullDown()
+		}
+	} else {
+		// Flipping from bad to normal
+		if v.badLine {
+			v.badLine = false
+			v.bus.RDY.Release()
+		}
+	}
+}
+
+func (v *VicII) idleGap() {
+	// TODO: Do idle accesses here.
+}
+
+func (v *VicII) handleSpriteYExpStep() {
+	// In the first phase of cycle 15, it is checked if the expansion flip flop
+	// is set. If so, MCBASE is incremented by 2.
+	for i := range v.sprites {
+		if v.sprites[i].expandYFF {
+			v.sprites[i].mcBase += 2
+		}
+	}
+}
+
 func (v *VicII) cAccess() {
+	// If the CPU hasn't given us the bus yet, we read $FF
+	if !v.cpuBus.IsDMAAllowed() {
+		v.cBuf[v.vmli] = 0xff
+	}
 	ch := v.bus.ReadByte(v.screenMemPtr | v.vc | v.getBankBase())
 	col := v.colorRam.ReadByte(v.vc)
 	if v.bitmapMode {
@@ -210,6 +308,19 @@ func (v *VicII) cAccess() {
 }
 
 func (v *VicII) gAccess() {
+	if !v.displayState {
+		// In idle state, only g-accesses occur. The access is always to address
+		// $3fff ($39ff when the ECM bit in register $d016 is set). The graphics
+		// are displayed by the sequencer exactly as in display state, but with
+		// the video matrix data treated as "0" bits.
+		addr := uint16(0x3fff)
+		if v.extendedClr {
+			addr = 0x39ff
+		}
+		v.gBuf[v.vmli] = v.bus.ReadByte(addr + v.getBankBase())
+		v.vmli = (v.vmli + 1) & 0x003f
+		return
+	}
 	basePtr := v.charSetPtr | v.getBankBase()
 	var addr uint16
 	if v.bitmapMode {
@@ -232,6 +343,12 @@ func (v *VicII) gAccess() {
 func (v *VicII) pAccess(spriteIndex uint16) {
 	addr := v.screenMemPtr | 0x03f8 | spriteIndex | v.getBankBase()
 	v.sprites[spriteIndex].pointer = uint16(v.bus.ReadByte(addr)) << 6
+
+	// Check if the next sprite will need bus. In that case, grab the bus now.
+	next := (spriteIndex + 1) & 0x07
+	if v.sprites[next].dma {
+		v.bus.RDY.PullDown()
+	}
 }
 
 func (v *VicII) sAccess(spriteIndex uint16) {
@@ -263,7 +380,6 @@ func (v *VicII) renderCycle() {
 	var contentRight uint16
 	var contentTop uint16
 	var contentBottom uint16
-	//var scrollOffset uint16
 	if v.col40 {
 		contentLeft = v.dimensions.LeftBorderWidth40Cols
 		contentRight = contentLeft + v.dimensions.ContentWidth40Cols
@@ -274,15 +390,13 @@ func (v *VicII) renderCycle() {
 	if v.line25 {
 		contentTop = v.dimensions.ContentTop25Lines
 		contentBottom = v.dimensions.ContentBottom25Lines
-		//scrollOffset = 3
 	} else {
 		contentTop = v.dimensions.ContentTop24Lines
 		contentBottom = v.dimensions.ContentBottom24Lines
-		//scrollOffset = 7
 	}
 
-	localCycle := (v.cycle % v.dimensions.CyclesPerLine) - v.dimensions.FirstVisibleCycle
-	startPixel := localCycle << 3
+	localCycle := v.cycle % v.dimensions.CyclesPerLine
+	startPixel := (localCycle - v.dimensions.FirstVisibleCycle) << 3
 
 	lastFgColor := uint8(0)
 	cycleSpriteColl := uint8(0) // Sprite collisions during this cycle
@@ -311,7 +425,7 @@ func (v *VicII) renderCycle() {
 		if v.rasterLine == contentBottom {
 			v.vBorderFF = true
 		}
-		if v.rasterLine == contentTop {
+		if v.rasterLine == contentTop && v.enable {
 			v.vBorderFF = false
 		}
 		if pixel == contentLeft && !v.vBorderFF && v.enable {
@@ -551,57 +665,8 @@ func (v *VicII) checkSpriteAndInit(first bool) {
 	}
 }
 
-// Predict whether a sprite will need DMA in three cycles to allow
-// the VIC to pull RDY low.
-func (v *VicII) spriteWillNeedBus(localCycle uint16) bool {
-	sIndex, pCycle := getSpriteForCycle((localCycle - 3) % 63)
-	return sIndex != 0x0ff && pCycle && v.sprites[sIndex].dma
-}
-
 func (v *VicII) getBankBase() uint16 {
 	return uint16(^v.cia2.PortA.ReadOutputs()&0x03) << 14
-}
-
-// Returns the sprite for this cycle (or 0xff if no sprite) and 'true' if this is
-// a p-access cycle.
-func getSpriteForCycle(localCycle uint16) (uint16, bool) {
-	// Ugly but fast.
-	switch localCycle {
-	case 0:
-		return 3, true
-	case 1:
-		return 3, false
-	case 2:
-		return 4, true
-	case 3:
-		return 4, false
-	case 4:
-		return 5, true
-	case 5:
-		return 5, false
-	case 6:
-		return 6, true
-	case 7:
-		return 6, false
-	case 8:
-		return 7, true
-	case 9:
-		return 7, false
-	case 57:
-		return 0, true
-	case 58:
-		return 0, false
-	case 59:
-		return 1, true
-	case 60:
-		return 1, false
-	case 61:
-		return 2, true
-	case 62:
-		return 2, false
-	default:
-		return 0xff, false
-	}
 }
 
 func min(a uint16, b uint16) uint16 {
