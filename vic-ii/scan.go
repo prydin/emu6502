@@ -21,102 +21,13 @@
 
 package vic_ii
 
-import "fmt"
-
 func (v *VicII) Clock() {
 	// IMPORTANT NOTICE: Some VIC-II literature, including Christian Bauer's famous
 	// text file use one-based numbering of cycles within a line. In this code, we
 	// use zero-based values. Thus, everything will be off by one! Pay attention!
-	localCycle := v.cycle % v.dimensions.CyclesPerLine
-
 	if v.clockPhase2 {
-		if v.cycle == 0 {
-			v.screen.Flip()
-		}
-		// ******** CLOCK PHASE 2 ********
-
-		// The negative edge of IRQ on a raster interrupt has been used to define the
-		// beginning of a line (this is also the moment in which the RASTER register
-		// is incremented). Raster line 0 is, however, an exception: In this line, IRQ
-		// and incrementing (and resetting) of RASTER are performed one cycle later
-		// than in the other lines. But for simplicity we assume equal line lengths
-		// and define the beginning of raster line 0 to be one cycle before the
-		// occurrence of the IRQ.
-		if localCycle == 0 && v.cycle != 0 {
-			v.rasterLine++
-			v.rasterInterrupt()
-		} else if localCycle == 1 && v.cycle == 1 {
-			// First line is one clock cycle delayed in triggering interrupt
-			v.rasterLine = 0
-			v.rasterInterrupt()
-		}
-
-		if localCycle >= PalFirstVisibleCycle && localCycle <= PalLastVisibleCycle &&
-			v.rasterLine >= PalFirstVisibleLine && v.rasterLine <= PalLastVisibleLine {
-			v.renderCycle()
-		}
-		switch localCycle {
-		case 0:
-			// Nothing
-		case 1:
-			v.sAccess(3)
-		case 2:
-			// Nothing
-		case 3:
-			v.sAccess(4)
-		case 4:
-			// Nothing
-		case 5:
-			v.sAccess(5)
-		case 6:
-			// Nothing
-		case 7:
-			v.sAccess(6)
-		case 8:
-			// Nothing
-		case 9:
-			v.pAccess(7)
-		case 10:
-			// Nothing
-		case 11:
-			// Nothing
-		case 12:
-			// Nothing
-		case 13:
-			// Nothing
-		case 54:
-			// Nothing
-		case 55:
-			// Nothing
-		case 56:
-			// Nothing
-		case 57:
-			// Nothing
-		case 58:
-			v.sAccess(0)
-		case 59:
-			// Nothing
-		case 60:
-			v.sAccess(1)
-		case 61:
-			// Nothing
-		case 62:
-			v.sAccess(2)
-		default: // 14-54
-			if v.badLine {
-				v.cAccess()
-			}
-		}
-
-		// Let the CPU do it's thing!
+		v.phi2()
 		v.cpuBus.ClockPh2()
-
-		// Move to next cycle
-		v.cycle++
-		if v.cycle >= v.dimensions.Cycles {
-			v.cycle = 0
-			v.skipFrame = true // Skip unless DEN is set at line 48
-		}
 	} else {
 		v.phi1()
 		v.cpuBus.ClockPh1()
@@ -201,6 +112,95 @@ func (v *VicII) phi1() {
 	}
 }
 
+func (v *VicII) phi2() {
+	if v.cycle == 0 {
+		v.screen.Flip()
+	}
+	localCycle := v.cycle % v.dimensions.CyclesPerLine
+
+	// The negative edge of IRQ on a raster interrupt has been used to define the
+	// beginning of a line (this is also the moment in which the RASTER register
+	// is incremented). Raster line 0 is, however, an exception: In this line, IRQ
+	// and incrementing (and resetting) of RASTER are performed one cycle later
+	// than in the other lines. But for simplicity we assume equal line lengths
+	// and define the beginning of raster line 0 to be one cycle before the
+	// occurrence of the IRQ.
+	if localCycle == 0 && v.cycle != 0 {
+		v.rasterLine++
+		v.rasterInterrupt()
+	} else if localCycle == 1 && v.cycle == 1 {
+		// First line is one clock cycle delayed in triggering interrupt
+		v.rasterLine = 0
+		v.rasterInterrupt()
+	}
+
+	if localCycle >= PalFirstVisibleCycle && localCycle <= PalLastVisibleCycle &&
+		v.rasterLine >= PalFirstVisibleLine && v.rasterLine <= PalLastVisibleLine {
+		v.renderCycle()
+	}
+	switch localCycle {
+	case 0:
+		// Nothing
+	case 1:
+		v.sAccess(3)
+	case 2:
+		// Nothing
+	case 3:
+		v.sAccess(4)
+	case 4:
+		// Nothing
+	case 5:
+		v.sAccess(5)
+	case 6:
+		// Nothing
+	case 7:
+		v.sAccess(6)
+	case 8:
+		// Nothing
+	case 9:
+		v.pAccess(7)
+	case 10:
+		// Nothing
+	case 11:
+		// Nothing
+	case 12:
+		// Nothing
+	case 13:
+		// Nothing
+	case 54:
+		// Nothing
+	case 55:
+		// Nothing
+	case 56:
+		// Nothing
+	case 57:
+		// Nothing
+	case 58:
+		v.sAccess(0)
+	case 59:
+		// Nothing
+	case 60:
+		v.sAccess(1)
+	case 61:
+		// Nothing
+	case 62:
+		v.sAccess(2)
+	default: // 14-54
+		if v.badLine {
+			v.cAccess()
+		}
+	}
+
+	// Let the CPU do it's thing!
+
+	// Move to next cycle
+	v.cycle++
+	if v.cycle >= v.dimensions.Cycles {
+		v.cycle = 0
+		v.skipFrame = true // Skip unless DEN is set at line 48
+	}
+}
+
 func (v *VicII) initLine() {
 	if v.cycle == 0 {
 		v.vcBase = 0 // vic-ii.txt: 3.7.2.2
@@ -226,7 +226,7 @@ func (v *VicII) prepareVc() {
 		v.rc = 0
 		v.vcBase = v.vc
 		v.displayState = false
-		fmt.Printf("vc=%d, vcBase=%d, cycle=%d, vc/40=%d, cycle/63=%d\n", v.vc, v.vcBase, v.cycle, v.vc/40, (v.cycle-3711)/63/8)
+		//fmt.Printf("vc=%d, vcBase=%d, cycle=%d, vc/40=%d, cycle/63=%d\n", v.vc, v.vcBase, v.cycle, v.vc/40, (v.cycle-3711)/63/8)
 	} else {
 		if v.displayState {
 			v.rc = (v.rc + 1) & 0x07
@@ -496,20 +496,6 @@ func (v *VicII) renderCycle() {
 
 	v.spriteSpriteColl |= cycleSpriteColl
 	v.spriteDataColl |= cycleBgColl
-}
-
-func (v *VicII) drawBorder(n uint16, segment []uint8) {
-	for i := uint16(0); i < n; i++ {
-		segment[i] = v.borderCol
-		// v.screen.SetPixel(i+x, v.rasterLine-v.dimensions.FirstVisibleLine, C64Colors[v.borderCol&0x0f])
-	}
-}
-
-func (v *VicII) drawBackground(n uint16, segment []uint8) {
-	for i := uint16(0); i < n; i++ {
-		segment[i] = v.backgroundColors[0] & 0x0f
-		// v.screen.SetPixel(i+x, v.rasterLine-v.dimensions.FirstVisibleLine, C64Colors[v.backgroundColors[0]&0x0f])
-	}
 }
 
 func (v *VicII) generateTextColor() (uint8, bool) {

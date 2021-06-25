@@ -253,6 +253,7 @@ func Test_RasterlinePolling(t *testing.T) {
 	cpu := core.CPU{}
 	cpu.Init(&mainBus)
 	mainBus.ConnectClockablePh1(&cpu)
+	cpu.Trace = true
 
 	code, err := assemble(`
 		org $1000
@@ -263,7 +264,8 @@ loop	ldx #8
 		;jsr rastersync
 
 		ldx #1
-        lda #baseline + (2 * 8)
+        ;lda #baseline + (2 * 8)
+		lda #1
 l1      cmp $d012		
         bne l1			
         stx $d020		

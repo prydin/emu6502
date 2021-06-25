@@ -49,7 +49,6 @@
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/vic-ii/scan.go" beforeDir="false" afterPath="$PROJECT_DIR$/vic-ii/scan.go" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/vic-ii/scan_test.go" beforeDir="false" afterPath="$PROJECT_DIR$/vic-ii/scan_test.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/vic-ii/screendim.go" beforeDir="false" afterPath="$PROJECT_DIR$/vic-ii/screendim.go" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../fizzbuzz/fizzbuzz.iml" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/../gradle/wrapper/gradle-wrapper.jar" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/../gradle/wrapper/gradle-wrapper.properties" beforeDir="false" />
@@ -212,7 +211,7 @@
       <recent name="$PROJECT_DIR$/core" />
     </key>
   </component>
-  <component name="RunManager" selected="Go Build.Run Demo">
+  <component name="RunManager" selected="Go Test.Test_RasterlinePolling in github.com/prydin/emu6502/vic-ii">
     <configuration name="Run Banking Test" type="GoApplicationRunConfiguration" factoryName="Go Application">
       <module name="emu6502" />
       <working_directory value="$PROJECT_DIR$" />
@@ -319,9 +318,9 @@
       <item itemvalue="Go Build.Run Demo" />
       <item itemvalue="Go Build.Run Copper Booze" />
       <item itemvalue="Go Build.Run Banking Test" />
-      <item itemvalue="Go Test.Test_CharacterMode in github.com/prydin/emu6502/vic-ii" />
       <item itemvalue="Go Test.TestBanking in github.com/prydin/emu6502/vic-ii" />
       <item itemvalue="Go Test.Test_RasterlinePolling in github.com/prydin/emu6502/vic-ii" />
+      <item itemvalue="Go Test.Test_CharacterMode in github.com/prydin/emu6502/vic-ii" />
       <item itemvalue="Go Test.Test_getSpriteFromCycle in github.com/prydin/emu6502/vic-ii" />
       <item itemvalue="Go Test.TestDrawSprite in github.com/prydin/emu6502/vic-ii" />
       <item itemvalue="Go Test.TestSAccess in github.com/prydin/emu6502/vic-ii" />
@@ -435,13 +434,23 @@
         </line-breakpoint>
         <line-breakpoint enabled="true" type="DlvLineBreakpoint">
           <url>file://$PROJECT_DIR$/vic-ii/scan_test.go</url>
-          <line>460</line>
+          <line>462</line>
           <option name="timeStamp" value="391" />
         </line-breakpoint>
         <line-breakpoint enabled="true" type="DlvLineBreakpoint">
           <url>file://$PROJECT_DIR$/vic-ii/scan.go</url>
-          <line>205</line>
-          <option name="timeStamp" value="393" />
+          <line>501</line>
+          <option name="timeStamp" value="394" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="DlvLineBreakpoint">
+          <url>file://$PROJECT_DIR$/vic-ii/scan.go</url>
+          <line>128</line>
+          <option name="timeStamp" value="397" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="DlvLineBreakpoint">
+          <url>file://$PROJECT_DIR$/vic-ii/scan.go</url>
+          <line>29</line>
+          <option name="timeStamp" value="399" />
         </line-breakpoint>
       </breakpoints>
     </breakpoint-manager>
@@ -460,7 +469,7 @@
         <watch expression="v.vcBase" language="go" />
         <watch expression="v.rc" language="go" />
         <watch expression="localCycle" language="go" />
-        <watch expression="v.cycle" language="go" />
+        <watch expression="v.cycle%63" language="go" />
         <watch expression="v.rasterLine" language="go" />
       </configuration>
     </watches-manager>
