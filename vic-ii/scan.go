@@ -22,15 +22,20 @@
 package vic_ii
 
 func (v *VicII) Clock() {
+/*	if v.sprites[1].dma {
+		println(v.cycle%63, v.sprites[1].mcBase, v.sprites[1].mc)
+	} */
 	// IMPORTANT NOTICE: Some VIC-II literature, including Christian Bauer's famous
 	// text file use one-based numbering of cycles within a line. In this code, we
 	// use zero-based values. Thus, everything will be off by one! Pay attention!
 	if v.clockPhase2 {
+		v.cpuBus.ClockPh2() // TODO: Not sure about the order here? In theory it's simulateneous
 		v.phi2()
-		v.cpuBus.ClockPh2()
+
 	} else {
+		v.cpuBus.ClockPh1() // TODO: Not sure about the order here? In theory it's simulateneous
 		v.phi1()
-		v.cpuBus.ClockPh1()
+
 	}
 	v.clockPhase2 = !v.clockPhase2
 }
@@ -61,7 +66,7 @@ func (v *VicII) phi1() {
 	case 8:
 		v.pAccess(7)
 	case 9:
-		v.pAccess(7)
+		v.sAccess(7)
 	case 10:
 		// Nothing
 	case 11:
@@ -96,6 +101,7 @@ func (v *VicII) phi1() {
 		v.idleGap()
 	case 57:
 		v.prepareVc()
+		v.resetSpriteCounters()
 		v.pAccess(0)
 	case 58:
 		v.sAccess(0)
@@ -140,25 +146,25 @@ func (v *VicII) phi2() {
 	}
 	switch localCycle {
 	case 0:
-		// Nothing
+		fallthrough
 	case 1:
 		v.sAccess(3)
 	case 2:
-		// Nothing
+		fallthrough
 	case 3:
 		v.sAccess(4)
 	case 4:
-		// Nothing
+		fallthrough
 	case 5:
 		v.sAccess(5)
 	case 6:
-		// Nothing
+		fallthrough
 	case 7:
 		v.sAccess(6)
 	case 8:
-		// Nothing
+		fallthrough
 	case 9:
-		v.pAccess(7)
+		v.sAccess(7)
 	case 10:
 		// Nothing
 	case 11:
@@ -174,15 +180,15 @@ func (v *VicII) phi2() {
 	case 56:
 		// Nothing
 	case 57:
-		// Nothing
+		fallthrough
 	case 58:
 		v.sAccess(0)
 	case 59:
-		// Nothing
+		fallthrough
 	case 60:
 		v.sAccess(1)
 	case 61:
-		// Nothing
+		fallthrough
 	case 62:
 		v.sAccess(2)
 	default: // 14-54
@@ -250,7 +256,7 @@ func (v *VicII) initMc() {
 		s := &v.sprites[i]
 		if s.expandYFF {
 			s.mcBase = (s.mcBase + 1) & 0x3f
-			if s.mcBase == 0x3f {
+			if s.mcBase == 63 {
 				s.dma = false
 			}
 		}
@@ -354,7 +360,7 @@ func (v *VicII) pAccess(spriteIndex uint16) {
 func (v *VicII) sAccess(spriteIndex uint16) {
 	s := &v.sprites[spriteIndex]
 	if !s.dma {
-		s.gData[0] = 0
+		s.gData[0] = 0 // TODO: Should this really be needed?
 		s.gData[1] = 0
 		s.gData[2] = 0
 		return
@@ -647,6 +653,21 @@ func (v *VicII) checkSpriteAndInit(first bool) {
 			s.mcBase = 0
 			s.dma = true
 			s.expandYFF = !s.expandedY // If not expanded, flip-flop will remain set forever
+		}
+	}
+}
+
+ // In the first phase of cycle 58, the MC of every sprite is loaded from
+ // its belonging MCBASE (MCBASE->MC) and it is checked if the DMA for the
+ // sprite is turned on and the Y coordinate of the sprite matches the lower
+ // 8 bits of RASTER. If this is the case, the display of the sprite is
+ // turned on.
+func (v *VicII) resetSpriteCounters() {
+	for i := range v.sprites {
+		s := &v.sprites[i]
+		s.mc = s.mcBase
+		if s.dma && uint8(v.rasterLine & 0xff) == s.y {
+			s.displayEnabled = true
 		}
 	}
 }

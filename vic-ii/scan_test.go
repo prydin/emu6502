@@ -524,7 +524,7 @@ func initSprites() (*VicII, *image.RGBA) {
 
 func TestDrawSprite(t *testing.T) {
 	vicii, img := initSprites()
-	for c := 0; c < PalScreenWidth*PalScreenHeight/4; c++ {
+	for c := 0; c < 1000000; c++ {
 		vicii.Clock()
 	}
 	f, _ := os.Create("sprite.png")

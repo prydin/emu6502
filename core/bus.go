@@ -122,7 +122,7 @@ func (b *Bus) WriteByte(addr uint16, data uint8) {
 		fmt.Printf("CIA2 write: %02x\n", data)
 	}*/
 	if addr == 0x0001 && b.switcher != nil {
-		fmt.Printf("CPU port write: %02x\n", data)
+//		fmt.Printf("CPU port write: %02x\n", data)
 		b.switcher.Switch(int(data & 0x07))
 	}
 	d := b.pages[addr>>8]
