@@ -1,13 +1,17 @@
-    ldx #01
-    ldy #01
-    lda #$00
-    sta $0800
-    lda #$ff
-    sta $8002
-    lda #$20
-    sta $8001
-    sta $8003
+    .org $0400
 
+    ; Initialization
+    ldx #01         ; =2
+    ldy #01         ; =2
+    lda #00         ; =2
+    sta $80         ; =3
+    lda #$ff        ; =2
+    sta $82         ; =3
+    lda #$20        ; =2
+    sta $81         ; =3
+    sta $83         ; =3
+
+    ; Start the actual tests
     adc #01         ; =2
     adc $00         ; =3
     adc $1000       ; =4
@@ -15,9 +19,9 @@
     adc $1fff,x     ; =5
     adc $1000,y     ; =4
     adc $1fff,y     ; =5
-    adc ($0800,X)   ; =6
-    adc ($8000),Y   ; =5
-    adc ($8002),Y   ; =6
+    adc ($80,X)     ; =6
+    adc ($80),Y     ; =5
+    adc ($82),Y     ; =6
 
     and #00         ; =2
     and $00         ; =3
@@ -27,9 +31,9 @@
     and $1fff,x     ; =5
     and $1000,y     ; =4
     and $1fff,y     ; =5
-    and ($0800,x)   ; =6
-    and ($0800),y   ; =5
-    and ($0802),y   ; =6
+    and ($80,x)     ; =6
+    and ($80),y     ; =5
+    and ($82),y     ; =6
 
     asl             ; =2
     asl $00         ; =5
@@ -60,9 +64,9 @@ l7  sbc #1          ; =2
     bmi l8          ; =3
 l8
     lda #1          ; =2
-    bne l9          ; =2
-    lda #0          ; =2
-    bne l10         ; =3
+    bne l9          ; =3
+l9  lda #0          ; =2
+    bne l10         ; =2
 l10
     lda #0          ; =2
     sbc #1          ; =2
@@ -76,6 +80,7 @@ l12
     lda #>l13       ; =2
     sta $ffff       ; =4
     brk             ; =7
+    .db $00         ; =0
     jmp skip        ; =3
 l13 rti             ; =6
 
@@ -89,6 +94,7 @@ l14 lda #$00        ; =2
     plp             ; =4
     bvc l15         ; =3
 
+l15
     lda #$ff        ; =2
     pha             ; =3
     plp             ; =4
@@ -113,9 +119,9 @@ l17
     cmp $1fff,x     ; =5
     cmp $1000,y     ; =4
     cmp $1fff,y     ; =5
-    cmp ($0800,X)   ; =6
-    cmp ($8000),Y   ; =5
-    cmp ($8002),Y   ; =6
+    cmp ($80,X)   ; =6
+    cmp ($80),Y   ; =5
+    cmp ($82),Y   ; =6
 
     cpx #00         ; =2
     cpx $00         ; =3
@@ -131,8 +137,10 @@ l17
     dec $1000,x     ; =7
     
     dex             ; =2
+    inx             ; =2
     
     dey             ; =2
+    iny             ; =2
 
     eor #00         ; =2
     eor $00         ; =3
@@ -142,9 +150,9 @@ l17
     eor $1fff,x     ; =5
     eor $1000,y     ; =4
     eor $1fff,y     ; =5
-    eor ($0800,x)   ; =6
-    eor ($0800),y   ; =5
-    eor ($0802),y   ; =6
+    eor ($80,x)     ; =6
+    eor ($80),y     ; =5
+    eor ($82),y     ; =6
     
     inc $00         ; =5
     inc $00,x       ; =6
@@ -152,13 +160,13 @@ l17
     inc $1000,x     ; =7
     
     inx             ; =2
-    
+
     iny             ; =2
     
     jmp l18         ; =3
 l18 lda #<l19       ; =2
     sta $1000       ; =4
-    lda $>l19       ; =2
+    lda #>l19       ; =2
     sta $1001       ; =4
     jmp ($1000)     ; =5
 l19
@@ -173,17 +181,17 @@ l21
     lda $1fff,x     ; =5
     lda $1000,y     ; =4
     lda $1fff,y     ; =5
-    lda ($0800,X)   ; =6
-    lda ($8000),Y   ; =5
-    lda ($8002),Y   ; =6
+    lda ($80,X)     ; =6
+    lda ($80),Y     ; =5
+    lda ($82),Y     ; =6
 
     stx $01         ; =3
     ldx #0          ; =2
     ldx $00         ; =3
     ldx $00,y       ; =4
     lda $1000       ; =4
-    ldx $(1000),x   ; =4
-    ldx $(1fff),x   ; =5
+    ldx $1000,y     ; =4
+    ldx $1fff,y     ; =5
     ldx $01         ; =3
     
     sty $01         ; =3
@@ -211,9 +219,9 @@ l21
     ora $1fff,x     ; =5
     ora $1000,y     ; =4
     ora $1fff,y     ; =5
-    ora ($0800,x)   ; =6
-    ora ($0800),y   ; =5
-    ora ($0802),y   ; =6
+    ora ($80,x)     ; =6
+    ora ($80),y     ; =5
+    ora ($82),y     ; =6
     
     pha             ; =3
     
@@ -244,9 +252,9 @@ l21
     sbc $1fff,x     ; =5
     sbc $1000,y     ; =4
     sbc $1fff,y     ; =5
-    sbc ($0800,X)   ; =6
-    sbc ($8000),Y   ; =5
-    sbc ($8002),Y   ; =6
+    sbc ($80,X)     ; =6
+    sbc ($80),Y   ; =5
+    sbc ($82),Y     ; =6
 
     sec             ; =2
 
@@ -263,8 +271,8 @@ l21
     sta $1fff,x     ; =5
     sta $1000,y     ; =5
     sta $1fff,y     ; =5
-    sta ($1000,x)   ; =6
-    sta ($1000),y   ; =6
+    sta ($80,x)     ; =6
+    sta ($80),y     ; =6
 
     stx $00         ; =3
     stx $00,y       ; =4

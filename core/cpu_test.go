@@ -22,23 +22,17 @@
 package core
 
 import (
+	"bufio"
 	"fmt"
 	"github.com/beevik/go6502/asm"
 	"github.com/stretchr/testify/require"
 	"math/rand"
 	"os"
+	"strconv"
 	"strings"
 	"testing"
 	"time"
 )
-
-var timings [256]int
-
-func init() {
-	timings[ADC_I] = 2
-	timings[ADC_Z] = 3
-	timings[ADC_ZX] = 4
-}
 
 type IRQGenerator struct {
 	cpu *CPU
@@ -56,6 +50,10 @@ func (i *IRQGenerator) WriteByte(addr uint16, data uint8) {
 	}
 }
 
+func (i *IRQGenerator) IsWriteable() bool {
+	return false
+}
+
 func (i *IRQGenerator) ReadByte(addr uint16) uint8 {
 	return 0
 }
@@ -70,6 +68,10 @@ func (n *NMIGenerator) WriteByte(addr uint16, data uint8) {
 
 func (n *NMIGenerator) ReadByte(addr uint16) uint8 {
 	return 0
+}
+
+func (n *NMIGenerator) IsWriteable() bool {
+	return false
 }
 
 func Assemble(program string) ([]byte, error) {
@@ -1303,5 +1305,76 @@ func TestCPUStun(t *testing.T) {
 		if cpu.pc == 0x3469 {
 			break
 		}
+	}
+}
+
+func TestTiming(t *testing.T) {
+	bytes := make([]byte, 65546)
+	mem := RAM{Bytes: bytes}
+	bus := Bus{}
+	cpu := CPU{}
+	bus.Connect(&mem, 0x0000, 0xffff)
+	cpu.CrashOnInvalidInst = true
+	cpu.Trace = true
+	cpu.Init(&bus)
+	cpu.pc = 0x0400
+
+	file := "../testsuite/timing.a65"
+	in, err := os.Open(file)
+	defer in.Close()
+	if err != nil {
+		panic(err)
+	}
+	code, sourceMap, err := asm.Assemble(in, file, os.Stderr, 0)
+	for _, parseErr := range code.Errors {
+		println(parseErr)
+	}
+	if err != nil {
+		panic(err)
+	}
+	for i := 0; i < int(sourceMap.Size); i++ {
+		bytes[int(sourceMap.Origin)+i] = code.Code[i]
+	}
+
+	in2, err := os.Open(file)
+	defer in2.Close()
+
+	scanner := bufio.NewScanner(in2)
+	timings := make(map [int]int)
+	totalTime := 0
+	sl := 0
+	for i := 0; scanner.Scan(); i++ {
+		l := scanner.Text()
+		parts := strings.Split(l, ";")
+		if sourceMap.Lines[sl].Line-1 == i {
+			if len(parts) == 2 {
+				ts := strings.TrimSpace(parts[1])
+				if ts[0] == '=' {
+					t, err := strconv.Atoi(ts[1:])
+					if err != nil {
+						panic(err)
+					}
+					timings[sourceMap.Lines[sl].Address] = t
+					totalTime += t
+				}
+			}
+			sl++
+		}
+	}
+
+	current := 0
+	for i := 0; i < totalTime; i++ {
+		if cpu.microPc == 0 {
+			pc := int(cpu.pc - 1)
+			tick, found := timings[pc]
+			if found {
+				//fmt.Printf("%d %d %04x\n", i, tick, pc)
+				if current != i-1 {
+					require.Equalf(t, current, i-1, "Clock cycle mismatch at pc=%04x", pc)
+				}
+				current += tick
+			}
+		}
+		cpu.Clock()
 	}
 }

@@ -8,7 +8,6 @@
       <change afterPath="$PROJECT_DIR$/../OpenKOM/src/main/main.iml" afterDir="false" />
       <change afterPath="$PROJECT_DIR$/../OpenKOM/src/test/test.iml" afterDir="false" />
       <change afterPath="$PROJECT_DIR$/../code/code.iml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/testsuite/timing.a65" afterDir="false" />
       <change afterPath="$PROJECT_DIR$/../jmandel/jmandel.iml" afterDir="false" />
       <change afterPath="$PROJECT_DIR$/../mksprite/main.go" afterDir="false" />
       <change afterPath="$PROJECT_DIR$/../pptest/pptest.iml" afterDir="false" />
@@ -48,9 +47,9 @@
       <change afterPath="$PROJECT_DIR$/../vrealize-automation-plugin-for-jenkins/vra8-jenkins-plugin.iml" afterDir="false" />
       <change afterPath="$PROJECT_DIR$/../vrealize-automation-plugin-for-jenkins/vrealize-automation-8.iml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/core/cpu.go" beforeDir="false" afterPath="$PROJECT_DIR$/core/cpu.go" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/core/cpu_test.go" beforeDir="false" afterPath="$PROJECT_DIR$/core/cpu_test.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/vic-ii/scan.go" beforeDir="false" afterPath="$PROJECT_DIR$/vic-ii/scan.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/vic-ii/scan_test.go" beforeDir="false" afterPath="$PROJECT_DIR$/vic-ii/scan_test.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/testsuite/timing.a65" beforeDir="false" afterPath="$PROJECT_DIR$/testsuite/timing.a65" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../fizzbuzz/fizzbuzz.iml" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/../gradle/wrapper/gradle-wrapper.jar" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/../gradle/wrapper/gradle-wrapper.properties" beforeDir="false" />
@@ -214,7 +213,7 @@
       <recent name="$PROJECT_DIR$/core" />
     </key>
   </component>
-  <component name="RunManager" selected="Go Build.Run Banking Test">
+  <component name="RunManager" selected="Go Test.TestTiming in github.com/prydin/emu6502/core">
     <configuration name="Run Banking Test" type="GoApplicationRunConfiguration" factoryName="Go Application">
       <module name="emu6502" />
       <working_directory value="$PROJECT_DIR$" />
@@ -269,16 +268,28 @@
       <pattern value="^\QTestDrawSprite\E$" />
       <method v="2" />
     </configuration>
-    <configuration name="TestSAccess in github.com/prydin/emu6502/vic-ii" type="GoTestRunConfiguration" factoryName="Go Test" temporary="true" nameIsGenerated="true">
+    <configuration name="TestKlaus in github.com/prydin/emu6502/core" type="GoTestRunConfiguration" factoryName="Go Test" temporary="true" nameIsGenerated="true">
       <module name="emu6502" />
-      <working_directory value="$PROJECT_DIR$/vic-ii" />
+      <working_directory value="$PROJECT_DIR$/core" />
       <root_directory value="$PROJECT_DIR$" />
       <kind value="PACKAGE" />
-      <package value="github.com/prydin/emu6502/vic-ii" />
+      <package value="github.com/prydin/emu6502/core" />
       <directory value="$PROJECT_DIR$" />
       <filePath value="$PROJECT_DIR$" />
       <framework value="gotest" />
-      <pattern value="^\QTestSAccess\E$" />
+      <pattern value="^\QTestKlaus\E$" />
+      <method v="2" />
+    </configuration>
+    <configuration name="TestTiming in github.com/prydin/emu6502/core" type="GoTestRunConfiguration" factoryName="Go Test" temporary="true" nameIsGenerated="true">
+      <module name="emu6502" />
+      <working_directory value="$PROJECT_DIR$/core" />
+      <root_directory value="$PROJECT_DIR$" />
+      <kind value="PACKAGE" />
+      <package value="github.com/prydin/emu6502/core" />
+      <directory value="$PROJECT_DIR$" />
+      <filePath value="$PROJECT_DIR$" />
+      <framework value="gotest" />
+      <pattern value="^\QTestTiming\E$" />
       <method v="2" />
     </configuration>
     <configuration name="Test_CharacterMode in github.com/prydin/emu6502/vic-ii" type="GoTestRunConfiguration" factoryName="Go Test" temporary="true" nameIsGenerated="true">
@@ -305,18 +316,6 @@
       <pattern value="^\QTest_RasterlinePolling\E$" />
       <method v="2" />
     </configuration>
-    <configuration name="Test_getSpriteFromCycle in github.com/prydin/emu6502/vic-ii" type="GoTestRunConfiguration" factoryName="Go Test" temporary="true" nameIsGenerated="true">
-      <module name="emu6502" />
-      <working_directory value="$PROJECT_DIR$/vic-ii" />
-      <root_directory value="$PROJECT_DIR$" />
-      <kind value="PACKAGE" />
-      <package value="github.com/prydin/emu6502/vic-ii" />
-      <directory value="$PROJECT_DIR$" />
-      <filePath value="$PROJECT_DIR$" />
-      <framework value="gotest" />
-      <pattern value="^\QTest_getSpriteFromCycle\E$" />
-      <method v="2" />
-    </configuration>
     <list>
       <item itemvalue="Go Build.Run Demo" />
       <item itemvalue="Go Build.Run Copper Booze" />
@@ -324,17 +323,17 @@
       <item itemvalue="Go Test.TestBanking in github.com/prydin/emu6502/vic-ii" />
       <item itemvalue="Go Test.Test_RasterlinePolling in github.com/prydin/emu6502/vic-ii" />
       <item itemvalue="Go Test.Test_CharacterMode in github.com/prydin/emu6502/vic-ii" />
-      <item itemvalue="Go Test.Test_getSpriteFromCycle in github.com/prydin/emu6502/vic-ii" />
       <item itemvalue="Go Test.TestDrawSprite in github.com/prydin/emu6502/vic-ii" />
-      <item itemvalue="Go Test.TestSAccess in github.com/prydin/emu6502/vic-ii" />
+      <item itemvalue="Go Test.TestTiming in github.com/prydin/emu6502/core" />
+      <item itemvalue="Go Test.TestKlaus in github.com/prydin/emu6502/core" />
     </list>
     <recent_temporary>
       <list>
+        <item itemvalue="Go Test.TestTiming in github.com/prydin/emu6502/core" />
+        <item itemvalue="Go Test.TestKlaus in github.com/prydin/emu6502/core" />
         <item itemvalue="Go Test.Test_RasterlinePolling in github.com/prydin/emu6502/vic-ii" />
         <item itemvalue="Go Test.TestDrawSprite in github.com/prydin/emu6502/vic-ii" />
         <item itemvalue="Go Test.Test_CharacterMode in github.com/prydin/emu6502/vic-ii" />
-        <item itemvalue="Go Test.TestSAccess in github.com/prydin/emu6502/vic-ii" />
-        <item itemvalue="Go Test.Test_getSpriteFromCycle in github.com/prydin/emu6502/vic-ii" />
       </list>
     </recent_temporary>
   </component>
@@ -383,12 +382,12 @@
       <breakpoints>
         <line-breakpoint enabled="true" type="DlvLineBreakpoint">
           <url>file://$PROJECT_DIR$/core/cpu_test.go</url>
-          <line>882</line>
+          <line>884</line>
           <option name="timeStamp" value="73" />
         </line-breakpoint>
         <line-breakpoint enabled="true" type="DlvLineBreakpoint">
           <url>file://$PROJECT_DIR$/core/cpu_test.go</url>
-          <line>996</line>
+          <line>998</line>
           <option name="timeStamp" value="82" />
         </line-breakpoint>
         <line-breakpoint enabled="true" type="DlvLineBreakpoint">
@@ -398,7 +397,7 @@
         </line-breakpoint>
         <line-breakpoint enabled="true" type="DlvLineBreakpoint">
           <url>file://$PROJECT_DIR$/core/cpu_test.go</url>
-          <line>1207</line>
+          <line>1209</line>
           <option name="timeStamp" value="114" />
         </line-breakpoint>
         <line-breakpoint enabled="true" type="DlvLineBreakpoint">
@@ -413,17 +412,17 @@
         </line-breakpoint>
         <line-breakpoint enabled="true" type="DlvLineBreakpoint">
           <url>file://$PROJECT_DIR$/core/cpu_test.go</url>
-          <line>66</line>
+          <line>64</line>
           <option name="timeStamp" value="160" />
         </line-breakpoint>
         <line-breakpoint enabled="true" type="DlvLineBreakpoint">
           <url>file://$PROJECT_DIR$/core/cpu_test.go</url>
-          <line>52</line>
+          <line>46</line>
           <option name="timeStamp" value="164" />
         </line-breakpoint>
         <line-breakpoint enabled="true" type="DlvLineBreakpoint">
           <url>file://$PROJECT_DIR$/core/cpu_test.go</url>
-          <line>54</line>
+          <line>48</line>
           <option name="timeStamp" value="166" />
         </line-breakpoint>
         <line-breakpoint enabled="true" type="DlvLineBreakpoint">
@@ -457,6 +456,11 @@
           <line>32</line>
           <option name="timeStamp" value="399" />
         </line-breakpoint>
+        <line-breakpoint enabled="true" type="DlvLineBreakpoint">
+          <url>file://$PROJECT_DIR$/core/cpu.go</url>
+          <line>722</line>
+          <option name="timeStamp" value="426" />
+        </line-breakpoint>
       </breakpoints>
     </breakpoint-manager>
     <watches-manager>
@@ -470,15 +474,13 @@
         <watch expression="v.rc" language="go" />
       </configuration>
       <configuration name="GoTestRunConfiguration">
-        <watch expression="v.vc" language="go" />
-        <watch expression="v.vcBase" language="go" />
-        <watch expression="v.rc" language="go" />
-        <watch expression="localCycle" language="go" />
-        <watch expression="v.sprites[1].mcBase" language="go" />
-        <watch expression="v.clockPhase2" language="go" />
-        <watch expression="v.rasterLine" language="go" />
-        <watch expression="s.mc" language="go" />
-        <watch expression="v.cycle%63" language="go" />
+        <watch expression="cpu.pc" language="go" />
+        <watch expression="i" language="go" />
+        <watch expression="prevTick" language="go" />
+        <watch expression="cpu.instruction.Mnemonic" language="go" />
+        <watch expression="prevAddr" language="go" />
+        <watch expression="cpu.microPc" language="go" />
+        <watch expression="tick" language="go" />
       </configuration>
     </watches-manager>
   </component>

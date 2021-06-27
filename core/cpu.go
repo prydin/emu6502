@@ -279,8 +279,9 @@ func (c *CPU) Init(bus *Bus) {
 	absYOverlap := []func(){c.fetchOperandLow, c.fetchOperandHighAndAddY, c.nop}
 	absX := []func(){c.fetchOperandLow, c.fetchOperandHigh, c.addXToOperand}
 	absY := []func(){c.fetchOperandLow, c.fetchOperandHigh, c.addYToOperand}
-	indirectX := []func(){c.fetchAddressLow, c.addXToAddress, c.fetchIndirectLow, c.fetchIndirectHigh}
-	indirectY := []func(){c.fetchAddressLow, c.fetchIndirectLow, c.fetchIndirectHighAndAddY, c.nop}
+	indirectX := []func(){c.fetchAddressLow, c.addXToAddress, c.fetchIndirectLow, c.fetchIndirectHigh }
+	indirectY := []func(){c.fetchAddressLow, c.fetchIndirectLow, c.fetchIndirectHighAndAddY, c.nop }
+	indirectYSimple := []func(){c.fetchAddressLow, c.fetchIndirectLow, c.fetchIndirectHigh, c.addYToOperand }
 
 	// Processor control instructions
 	if c.HaltOnBRK {
@@ -325,7 +326,7 @@ func (c *CPU) Init(bus *Bus) {
 	c.instructionSet[STA_AX] = MkInstr("STA_AX", append(absX, c.sta))
 	c.instructionSet[STA_AY] = MkInstr("STA_AY", append(absY, c.sta))
 	c.instructionSet[STA_INDX] = MkInstr("STA_INDX", append(indirectX, c.sta))
-	c.instructionSet[STA_INDY] = MkInstr("STA_INDY", append(indirectY, c.sta))
+	c.instructionSet[STA_INDY] = MkInstr("STA_INDY", append(indirectYSimple, c.sta))
 
 	// Index X load/store
 	c.instructionSet[LDX_A] = MkInstr("LDX_A", append(fetch16Bits, c.ldx))
@@ -406,8 +407,8 @@ func (c *CPU) Init(bus *Bus) {
 	// The bus timing is still correct.
 	c.instructionSet[PHA] = MkInstr("PHA", []func(){c.nop, c.pha})
 	c.instructionSet[PHP] = MkInstr("PHP", []func(){c.nop, c.php})
-	c.instructionSet[PLA] = MkInstr("PLA", []func(){c.nop, c.pla})
-	c.instructionSet[PLP] = MkInstr("PLP", []func(){c.nop, c.plp})
+	c.instructionSet[PLA] = MkInstr("PLA", []func(){c.nop, c.nop, c.pla})
+	c.instructionSet[PLP] = MkInstr("PLP", []func(){c.nop, c.nop, c.plp})
 
 	// Arithmetic
 	c.instructionSet[ADC_A] = MkInstr("ADC_A", append(fetch16Bits, c.adc))
@@ -605,7 +606,7 @@ func (c *CPU) StateAsString() string {
 		code = c.instruction.Dissasemble(c.bus, c.pc)
 	}
 	return fmt.Sprintf("PC=%04x [PC]=%02x MPC=%02x SP=%04x A=%02x X=%02x Y=%02x Flags=%02x Oper=%04x, [Oper]=%02x ALU=%02x Addr=%02x %s",
-		c.pc, c.bus.ReadByte(c.pc), c.microPc, c.sp, c.a, c.x, c.y, c.flags, c.operand, c.bus.ReadByte(c.operand), c.alu, c.address, code)
+		c.pc-1, c.bus.ReadByte(c.pc-1), c.microPc, c.sp, c.a, c.x, c.y, c.flags, c.operand, c.bus.ReadByte(c.operand), c.alu, c.address, code)
 }
 
 func (c *CPU) readByte(addr uint16) uint8 {
@@ -719,7 +720,7 @@ func (c *CPU) fetchOperandHighAndAdd(reg *uint8) {
 	c.operand |= t << 8
 	c.pc++
 	op := c.operand + uint16(*reg)
-	if t&0xff00 == c.operand&0xff00 {
+	if t<<8== op&0xff00 {
 		c.microPc++ // Skip extra clock cycle if it didn't cross page boundaries
 	}
 	c.operand = op
@@ -779,7 +780,7 @@ func (c *CPU) fetchIndirectHighAndAddY() {
 	}
 	c.operand |= t << 8
 	op := c.operand + uint16(c.y)
-	if t&0xf0 == c.operand&0xf0 {
+	if t<<8 == op&0xff00 {
 		c.microPc++ // Skip extra clock cycle
 	}
 	c.operand = op
