@@ -29,13 +29,11 @@ func (v *VicII) Clock() {
 	// text file use one-based numbering of cycles within a line. In this code, we
 	// use zero-based values. Thus, everything will be off by one! Pay attention!
 	if v.clockPhase2 {
-		v.cpuBus.ClockPh2() // TODO: Not sure about the order here? In theory it's simulateneous
 		v.phi2()
-
+		v.cpuBus.ClockPh2() // TODO: Not sure about the order here? In theory it's simulateneous
 	} else {
-		v.cpuBus.ClockPh1() // TODO: Not sure about the order here? In theory it's simulateneous
 		v.phi1()
-
+		v.cpuBus.ClockPh1() // TODO: Not sure about the order here? In theory it's simulateneous
 	}
 	v.clockPhase2 = !v.clockPhase2
 }
@@ -447,8 +445,14 @@ func (v *VicII) renderCycle() {
 				localPixel := pixel - startPixel
 				if localPixel&0x07 == v.scrollX {
 					dataIdx := v.cycle%v.dimensions.CyclesPerLine - v.dimensions.FirstContentCycle
-					v.cData = v.cBuf[dataIdx]
-					v.sequencer = v.gBuf[dataIdx]
+					// Guard against overflow in case someone is messing with the border flip flops
+					if dataIdx < 40 {
+						v.cData = v.cBuf[dataIdx]
+						v.sequencer = v.gBuf[dataIdx]
+					} else {
+						v.cData = 0
+						v.sequencer = 0
+					}
 				}
 				c, lpSprites := v.generateSpriteColor(pixel, false) // Low priority sprites
 				if lpSprites != 0 {

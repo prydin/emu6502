@@ -32,6 +32,14 @@ import (
 	"time"
 )
 
+var timings [256]int
+
+func init() {
+	timings[ADC_I] = 2
+	timings[ADC_Z] = 3
+	timings[ADC_ZX] = 4
+}
+
 type IRQGenerator struct {
 	cpu *CPU
 }

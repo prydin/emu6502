@@ -243,7 +243,6 @@ func Test_RasterlinePolling(t *testing.T) {
 		} else {
 			screenMem[i] = uint8(i%10 + 0x30)
 		}
-		screenMem[i] = 32
 		colorRam.Bytes[i] = 1
 	}
 	vicii.bus.Connect(&core.RAM{Bytes: screenMem}, 0x0400, 0x07ff)
@@ -253,7 +252,7 @@ func Test_RasterlinePolling(t *testing.T) {
 	cpu := core.CPU{}
 	cpu.Init(&mainBus)
 	mainBus.ConnectClockablePh1(&cpu)
-	cpu.Trace = true
+	// cpu.Trace = true
 
 	code, err := assemble(`
 		org $1000
@@ -261,58 +260,59 @@ baseline .eq $32
 		sei
 
 loop	ldx #8
-		;jsr rastersync
+		jsr rastersync
 
-		ldx #1
-        ;lda #baseline + (2 * 8)
-		lda #1
+		ldx #2
+        lda #baseline + (4 * 8)
 l1      cmp $d012		
         bne l1			
         stx $d020		
-
-        lda #baseline + (4 * 8)
-l2      cmp $d012		; 4 cycles
-        bne l2			; 2 (if no branch)
-        inc $d020		
-		inc $d021		
+		;inx 
+		stx $d021
 
         lda #baseline + (6 * 8)
+l2      cmp $d012		; 4 cycles
+        bne l2			; 2 (if no branch)
+        inc $d021		
+		inc $d020		
+
+        lda #baseline + (8 * 8)
 l3      cmp $d012
         bne l3
-        inc $d020
-		inc $d021
-
-		lda #baseline + (8 * 8)
-l4      cmp $d012
-        bne l4
-        inc $d020
-		inc $d021
+        inc $d021
+		inc $d020
 
 		lda #baseline + (10 * 8)
-l5      cmp $d012
-        bne l5
-        inc $d020
-		inc $d021
+l4      cmp $d012
+        bne l4
+        inc $d021
+		inc $d020
 
 		lda #baseline + (12 * 8)
-l6      cmp $d012
-        bne l6
-        inc $d020
-		inc $d021
+l5      cmp $d012
+        bne l5
+        inc $d021
+		inc $d020
 
 		lda #baseline + (14 * 8)
+l6      cmp $d012
+        bne l6
+        inc $d021
+		inc $d020
+
+		lda #baseline + (16 * 8)
 l7      cmp $d012
         bne l7
-        inc $d020
-		inc $d021
+        inc $d021
+		inc $d020
 
         ldy #1
         ldx #$0f
-        lda #baseline + (16 * 8)
+        lda #baseline + (18 * 8)
 l8      cmp $d012
         bne l8
-		sty $d020
-		stx $d021 
+		sty $d021
+		stx $d020 
 
 
 		jmp loop
@@ -363,7 +363,7 @@ lp2:     dey
 	}
 	mainBus.Connect(&core.RAM{Bytes: code}, 0x1000, 0x1000+uint16(len(code)))
 	cpu.SetPC(0x1000)
-	for i := 0; i < int(PalScreenWidth)*int(PalScreenHeight)/4; i++ {
+	for i := 0; i < 1000000; i++ {
 		vicii.Clock()
 	}
 	f, _ := os.Create("raster_poll.png")

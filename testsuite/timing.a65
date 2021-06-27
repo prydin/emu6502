@@ -1,0 +1,284 @@
+    ldx #01
+    ldy #01
+    lda #$00
+    sta $0800
+    lda #$ff
+    sta $8002
+    lda #$20
+    sta $8001
+    sta $8003
+
+    adc #01         ; =2
+    adc $00         ; =3
+    adc $1000       ; =4
+    adc $1000,x     ; =4
+    adc $1fff,x     ; =5
+    adc $1000,y     ; =4
+    adc $1fff,y     ; =5
+    adc ($0800,X)   ; =6
+    adc ($8000),Y   ; =5
+    adc ($8002),Y   ; =6
+
+    and #00         ; =2
+    and $00         ; =3
+    and $00,x       ; =4
+    and $1000       ; =4
+    and $1000,x     ; =4
+    and $1fff,x     ; =5
+    and $1000,y     ; =4
+    and $1fff,y     ; =5
+    and ($0800,x)   ; =6
+    and ($0800),y   ; =5
+    and ($0802),y   ; =6
+
+    asl             ; =2
+    asl $00         ; =5
+    asl $00,x       ; =6
+    asl $1000       ; =6
+    asl $1000,x     ; =7
+
+    sec             ; =2
+    bcc l1          ; =2
+l1  clc             ; =2
+    bcc l2          ; =3
+l2  bcs l3          ; =2
+l3  sec             ; =2
+    bcs l4          ; =3
+l4
+    lda #1          ; =2
+    beq l5          ; =2
+l5  lda #0          ; =2
+    beq l6          ; =3
+l6
+    bit $00         ; =3
+    bit $1000       ; =4
+
+    lda #0          ; =2
+    adc #0          ; =2
+    bmi l7          ; =2
+l7  sbc #1          ; =2
+    bmi l8          ; =3
+l8
+    lda #1          ; =2
+    bne l9          ; =2
+    lda #0          ; =2
+    bne l10         ; =3
+l10
+    lda #0          ; =2
+    sbc #1          ; =2
+    bpl l11         ; =2
+l11 lda #0          ; =2
+    adc #0          ; =2
+    bpl l12         ; =3
+l12
+    lda #<l13       ; =2
+    sta $fffe       ; =4
+    lda #>l13       ; =2
+    sta $ffff       ; =4
+    brk             ; =7
+    jmp skip        ; =3
+l13 rti             ; =6
+
+skip
+    lda #$ff        ; =2
+    pha             ; =3
+    plp             ; =4
+    bvc l14         ; =2
+l14 lda #$00        ; =2
+    pha             ; =3
+    plp             ; =4
+    bvc l15         ; =3
+
+    lda #$ff        ; =2
+    pha             ; =3
+    plp             ; =4
+    bvs l16         ; =3
+l16 lda #$00        ; =2
+    pha             ; =3
+    plp             ; =4
+    bvs l17         ; =2
+l17  
+    clc             ; =2
+    
+    cld             ; =2
+    
+    cli             ; =2
+    
+    clv             ; =2
+     
+    cmp #01         ; =2
+    cmp $00         ; =3
+    cmp $1000       ; =4
+    cmp $1000,x     ; =4
+    cmp $1fff,x     ; =5
+    cmp $1000,y     ; =4
+    cmp $1fff,y     ; =5
+    cmp ($0800,X)   ; =6
+    cmp ($8000),Y   ; =5
+    cmp ($8002),Y   ; =6
+
+    cpx #00         ; =2
+    cpx $00         ; =3
+    cpx $1000       ; =4
+    
+    cpy #00         ; =2
+    cpy $00         ; =3
+    cpy $1000       ; =4
+    
+    dec $00         ; =5
+    dec $00,x       ; =6
+    dec $1000       ; =6 
+    dec $1000,x     ; =7
+    
+    dex             ; =2
+    
+    dey             ; =2
+
+    eor #00         ; =2
+    eor $00         ; =3
+    eor $00,x       ; =4
+    eor $1000       ; =4
+    eor $1000,x     ; =4
+    eor $1fff,x     ; =5
+    eor $1000,y     ; =4
+    eor $1fff,y     ; =5
+    eor ($0800,x)   ; =6
+    eor ($0800),y   ; =5
+    eor ($0802),y   ; =6
+    
+    inc $00         ; =5
+    inc $00,x       ; =6
+    inc $1000       ; =6 
+    inc $1000,x     ; =7
+    
+    inx             ; =2
+    
+    iny             ; =2
+    
+    jmp l18         ; =3
+l18 lda #<l19       ; =2
+    sta $1000       ; =4
+    lda $>l19       ; =2
+    sta $1001       ; =4
+    jmp ($1000)     ; =5
+l19
+    jsr l20         ; =6
+    jmp l21         ; =3
+l20 rts             ; =6
+l21
+    lda #01         ; =2
+    lda $00         ; =3
+    lda $1000       ; =4
+    lda $1000,x     ; =4
+    lda $1fff,x     ; =5
+    lda $1000,y     ; =4
+    lda $1fff,y     ; =5
+    lda ($0800,X)   ; =6
+    lda ($8000),Y   ; =5
+    lda ($8002),Y   ; =6
+
+    stx $01         ; =3
+    ldx #0          ; =2
+    ldx $00         ; =3
+    ldx $00,y       ; =4
+    lda $1000       ; =4
+    ldx $(1000),x   ; =4
+    ldx $(1fff),x   ; =5
+    ldx $01         ; =3
+    
+    sty $01         ; =3
+    ldy #0          ; =2
+    ldy $00         ; =3
+    ldy $00,x       ; =4
+    ldy $1000       ; =4
+    ldy $1000,x     ; =4
+    ldy $1fff,x     ; =5
+    ldy $01         ; =3
+    
+    lsr             ; =2
+    lsr $00         ; =5
+    lsr $00,x       ; =6
+    lsr $1000       ; =6
+    lsr $1000,x     ; =7
+    
+    nop             ; =2
+    
+    ora #00         ; =2
+    ora $00         ; =3
+    ora $00,x       ; =4
+    ora $1000       ; =4
+    ora $1000,x     ; =4
+    ora $1fff,x     ; =5
+    ora $1000,y     ; =4
+    ora $1fff,y     ; =5
+    ora ($0800,x)   ; =6
+    ora ($0800),y   ; =5
+    ora ($0802),y   ; =6
+    
+    pha             ; =3
+    
+    php             ; =3
+    
+    pla             ; =4
+    
+    plp             ; =4
+    
+    rol             ; =2
+    rol $00         ; =5
+    rol $00,x       ; =6
+    rol $1000       ; =6
+    rol $1000,x     ; =7
+
+    ror             ; =2
+    ror $00         ; =5
+    ror $00,x       ; =6
+    ror $1000       ; =6
+    ror $1000,x     ; =7
+    
+    ; rti and rts already tested
+    
+    sbc #01         ; =2
+    sbc $00         ; =3
+    sbc $1000       ; =4
+    sbc $1000,x     ; =4
+    sbc $1fff,x     ; =5
+    sbc $1000,y     ; =4
+    sbc $1fff,y     ; =5
+    sbc ($0800,X)   ; =6
+    sbc ($8000),Y   ; =5
+    sbc ($8002),Y   ; =6
+
+    sec             ; =2
+
+    sed             ; =2
+    cld             ; =2
+
+    sei             ; =2
+    cli             ; =2
+
+    sta $00         ; =3
+    sta $00,x       ; =4
+    sta $1000       ; =4
+    sta $1000,x     ; =5
+    sta $1fff,x     ; =5
+    sta $1000,y     ; =5
+    sta $1fff,y     ; =5
+    sta ($1000,x)   ; =6
+    sta ($1000),y   ; =6
+
+    stx $00         ; =3
+    stx $00,y       ; =4
+    stx $1000       ; =4
+
+    sty $00         ; =3
+    sty $00,x       ; =4
+    sty $1000       ; =4
+
+    txa             ; =2
+    tax             ; =2
+
+    tya             ; =2
+    tay             ; =2
+
+    txs             ; =2
+    tsx             ; =2
