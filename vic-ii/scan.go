@@ -31,6 +31,13 @@ func (v *VicII) Clock() {
 	if v.clockPhase2 {
 		v.phi2()
 		v.cpuBus.ClockPh2() // TODO: Not sure about the order here? In theory it's simulateneous
+
+		// Move to next cycle
+		v.cycle++
+		if v.cycle >= v.dimensions.Cycles {
+			v.cycle = 0
+			v.skipFrame = true // Skip unless DEN is set at line 48
+		}
 	} else {
 		v.phi1()
 		v.cpuBus.ClockPh1() // TODO: Not sure about the order here? In theory it's simulateneous
@@ -43,6 +50,9 @@ func (v *VicII) phi1() {
 		v.skipFrame = false
 	}
 	localCycle := v.cycle % v.dimensions.CyclesPerLine
+	if v.inVisibleArea(localCycle) {
+		v.renderCycle()
+	}
 	switch localCycle { // TODO: This is hardcoded for PAL
 	case 0:
 		v.initLine()
@@ -138,10 +148,6 @@ func (v *VicII) phi2() {
 		v.rasterInterrupt()
 	}
 
-	if localCycle >= PalFirstVisibleCycle && localCycle <= PalLastVisibleCycle &&
-		v.rasterLine >= PalFirstVisibleLine && v.rasterLine <= PalLastVisibleLine {
-		v.renderCycle()
-	}
 	switch localCycle {
 	case 0:
 		fallthrough
@@ -194,15 +200,6 @@ func (v *VicII) phi2() {
 			v.cAccess()
 		}
 	}
-
-	// Let the CPU do it's thing!
-
-	// Move to next cycle
-	v.cycle++
-	if v.cycle >= v.dimensions.Cycles {
-		v.cycle = 0
-		v.skipFrame = true // Skip unless DEN is set at line 48
-	}
 }
 
 func (v *VicII) initLine() {
@@ -241,7 +238,7 @@ func (v *VicII) prepareVc() {
 func (v *VicII) resetBadLine() {
 	if v.badLine {
 		v.badLine = false
-		v.bus.RDY.Release()
+		v.cpuBus.RDY.Release()
 	}
 }
 
@@ -272,13 +269,13 @@ func (v *VicII) checkForBadLine() {
 		if !v.badLine {
 			// Flipping from normal to bad
 			v.badLine = true
-			v.bus.RDY.PullDown()
+			v.cpuBus.RDY.PullDown()
 		}
 	} else {
 		// Flipping from bad to normal
 		if v.badLine {
 			v.badLine = false
-			v.bus.RDY.Release()
+			v.cpuBus.RDY.Release()
 		}
 	}
 }
@@ -351,7 +348,7 @@ func (v *VicII) pAccess(spriteIndex uint16) {
 	// Check if the next sprite will need bus. In that case, grab the bus now.
 	next := (spriteIndex + 1) & 0x07
 	if v.sprites[next].dma {
-		v.bus.RDY.PullDown()
+		v.cpuBus.RDY.PullDown()
 	}
 }
 
@@ -368,7 +365,7 @@ func (v *VicII) sAccess(spriteIndex uint16) {
 	s.mc++
 	if s.sIndex > 2 {
 		s.sIndex = 0
-		v.bus.RDY.Release()
+		v.cpuBus.RDY.Release()
 	}
 }
 
@@ -678,6 +675,11 @@ func (v *VicII) resetSpriteCounters() {
 
 func (v *VicII) getBankBase() uint16 {
 	return uint16(^v.cia2.PortA.ReadOutputs()&0x03) << 14
+}
+
+func (v *VicII) inVisibleArea(localCycle uint16) bool {
+	return localCycle >= PalFirstVisibleCycle && localCycle <= PalLastVisibleCycle &&
+		v.rasterLine >= PalFirstVisibleLine && v.rasterLine <= PalLastVisibleLine
 }
 
 func min(a uint16, b uint16) uint16 {

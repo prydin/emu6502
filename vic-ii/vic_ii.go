@@ -22,6 +22,7 @@
 package vic_ii
 
 import (
+	"fmt"
 	"github.com/prydin/emu6502/cia"
 	"github.com/prydin/emu6502/core"
 )
@@ -100,6 +101,27 @@ const (
 	IRQ_HAPPENED           = 0x80
 	IRQ_ENABLED            = 0x80
 )
+
+// Unused bits must be set to 1. This table provides a value we can or the result with
+// when reading any register.
+var unusedBitsMask = []uint8 {
+	0x00 /* $D000 */, 0x00 /* $D001 */, 0x00 /* $D002 */, 0x00 /* $D003 */,
+	0x00 /* $D004 */, 0x00 /* $D005 */, 0x00 /* $D006 */, 0x00 /* $D007 */,
+	0x00 /* $D008 */, 0x00 /* $D009 */, 0x00 /* $D00A */, 0x00 /* $D00B */,
+	0x00 /* $D00C */, 0x00 /* $D00D */, 0x00 /* $D00E */, 0x00 /* $D00F */,
+	0x00 /* $D010 */, 0x00 /* $D011 */, 0x00 /* $D012 */, 0x00 /* $D013 */,
+	0x00 /* $D014 */, 0x00 /* $D015 */, 0xc0 /* $D016 */, 0x00 /* $D017 */,
+	0x01 /* $D018 */, 0x70 /* $D019 */, 0xf0 /* $D01A */, 0x00 /* $D01B */,
+	0x00 /* $D01C */, 0x00 /* $D01D */, 0x00 /* $D01E */, 0x00 /* $D01F */,
+	0xf0 /* $D020 */, 0xf0 /* $D021 */, 0xf0 /* $D022 */, 0xf0 /* $D023 */,
+	0xf0 /* $D024 */, 0xf0 /* $D025 */, 0xf0 /* $D026 */, 0xf0 /* $D027 */,
+	0xf0 /* $D028 */, 0xf0 /* $D029 */, 0xf0 /* $D02A */, 0xf0 /* $D02B */,
+	0xf0 /* $D02C */, 0xf0 /* $D02D */, 0xf0 /* $D02E */, 0xff /* $D02F */,
+	0xff /* $D030 */, 0xff /* $D031 */, 0xff /* $D032 */, 0xff /* $D033 */,
+	0xff /* $D034 */, 0xff /* $D035 */, 0xff /* $D036 */, 0xff /* $D037 */,
+	0xff /* $D038 */, 0xff /* $D039 */, 0xff /* $D03A */, 0xff /* $D03B */,
+	0xff /* $D03C */, 0xff /* $D03D */, 0xff /* $D03E */, 0xff /* $D03F */,
+}
 
 type Sprite struct {
 	enabled     bool
@@ -216,26 +238,25 @@ func (v *VicII) Init(bus *core.Bus, cpuBus *core.Bus, cia2 *cia.CIA, colorRam co
 }
 
 func (v *VicII) ReadByte(addr uint16) uint8 {
+	fmt.Printf("READ $D0%02X at cycle %d of current_line $%04X\n",
+		addr, v.cycle % 63, v.rasterLine)
 	addr &= 0x003f
-	if addr >= 0x002f {
-		return 0xff // Read from unassigned address
-	}
+	data := uint8(0xff)
 	switch {
 	case addr <= REG_M7X && addr&0x01 == 0:
-		return uint8(v.sprites[addr>>1].x & 0xff)
+		data =  uint8(v.sprites[addr>>1].x & 0xff)
 	case addr <= REG_M7Y && addr&0x01 == 1:
-		return v.sprites[addr>>1].y & 0xff
+		data =  v.sprites[addr>>1].y & 0xff
 	case addr == REG_MX_HIGH:
-		r := uint8(0)
+		data = uint8(0)
 		for i := range v.sprites {
-			r >>= 1
-			r |= uint8((v.sprites[i].x & 0x100) >> 1)
+			data >>= 1
+			data |= uint8((v.sprites[i].x & 0x100) >> 1)
 		}
-		return r
 	case addr >= REG_BG0 && addr <= REG_BG3:
-		return v.backgroundColors[addr-REG_BG0] | 0xf0
+		data =  v.backgroundColors[addr-REG_BG0] | 0xf0
 	case addr >= REG_SPRITE_COL0 && addr <= REG_SPRITE_COL7:
-		return v.sprites[addr-REG_SPRITE_COL0].color | 0xf0
+		data =  v.sprites[addr-REG_SPRITE_COL0].color | 0xf0
 	}
 	switch addr {
 	case REG_CTRL1:
@@ -253,22 +274,22 @@ func (v *VicII) ReadByte(addr uint16) uint8 {
 			r |= CR1_25LINES
 		}
 		r |= v.scrollY & 0x07
-		return uint8(r)
+		data =  uint8(r)
 	case REG_RASTER_CNT:
-		return uint8(v.rasterLine & 0xff)
+		data =  uint8(v.rasterLine & 0xff)
 	case REG_LPX:
-		return 0
+		data =  0
 	case REG_LPY:
-		return 0
+		data =  0
 	case REG_SPRITE_ENABLE:
-		r := uint8(0)
+		data = uint8(0)
 		for i := range v.sprites {
-			r >>= 1
+			data >>= 1
 			if v.sprites[i].enabled {
-				r |= 0x80
+				data |= 0x80
 			}
 		}
-		return r
+		data =  data
 	case REG_CTRL2:
 		r := uint8(v.scrollX)
 		if v.col40 {
@@ -277,102 +298,96 @@ func (v *VicII) ReadByte(addr uint16) uint8 {
 		if v.multiColor {
 			r |= CR2_MULTICOLOR
 		}
-		return r | 0xc0
+		data =  r | 0xc0
 	case REG_MX_EXP:
-		r := uint8(0)
+		data = uint8(0)
 		for i := range v.sprites {
-			r >>= 1
+			data >>= 1
 			if v.sprites[i].expandedX {
-				r |= 0x80
+				data |= 0x80
 			}
 		}
-		return r
+		data = data
 	case REG_MEMPTR:
-		r := uint8(v.charSetPtr >> 10)
-		r |= uint8(v.screenMemPtr >> 6)
-		return r | 0x01
+		data = uint8(v.charSetPtr >> 10)
+		data |= uint8(v.screenMemPtr >> 6)
 	case REG_IRQ:
-		r := uint8(0)
+		data = uint8(0)
 		if v.irqRaster {
-			r |= IRQ_RASTER
+			data |= IRQ_RASTER
 		}
 		if v.irqSpriteBg {
-			r |= IRQ_SPRITE_BG_COLL
+			data |= IRQ_SPRITE_BG_COLL
 		}
 		if v.irqSpriteSprite {
-			r |= IRQ_SPRITE_SPRITE_COLL
+			data |= IRQ_SPRITE_SPRITE_COLL
 		}
 		if v.irqLp {
-			r |= IRQ_LP
+			data |= IRQ_LP
 		}
-		if r != 0 {
-			r |= IRQ_HAPPENED
+		if data != 0 {
+			data |= IRQ_HAPPENED
 		}
-		return r | 0x70
 	case REG_IRQ_ENABLE:
-		r := uint8(0)
+		data = uint8(0)
 		if v.irqRasterEnabled {
-			r |= IRQ_RASTER
+			data |= IRQ_RASTER
 		}
 		if v.irqSpriteBgEnabled {
-			r |= IRQ_SPRITE_BG_COLL
+			data |= IRQ_SPRITE_BG_COLL
 		}
 		if v.irqSpriteSpriteEnabled {
-			r |= IRQ_SPRITE_SPRITE_COLL
+			data |= IRQ_SPRITE_SPRITE_COLL
 		}
 		if v.irqLpEnabled {
-			r |= IRQ_LP
+			data |= IRQ_LP
 		}
 		if v.irqEnabled {
-			r |= IRQ_ENABLED
+			data |= IRQ_ENABLED
 		}
-		return r | 0xf0
 	case REG_SPRITE_PRIO:
-		r := uint8(0)
+		data = uint8(0)
 		for i := range v.sprites {
-			r >>= 1
+			data >>= 1
 			if v.sprites[i].hasPriority {
-				r |= 0x80
+				data |= 0x80
 			}
 		}
-		return r
 	case REG_SPRITE_MULTICLR:
-		r := uint8(0)
+		data = uint8(0)
 		for i := range v.sprites {
-			r >>= 1
+			data >>= 1
 			if v.sprites[i].multicolor {
-				r |= 0x80
+				data |= 0x80
 			}
 		}
-		return r
 	case REG_MY_EXP:
-		r := uint8(0)
+		data = uint8(0)
 		for i := range v.sprites {
-			r >>= 1
+			data >>= 1
 			if v.sprites[i].expandedY {
-				r |= 0x80
+				data |= 0x80
 			}
 		}
-		return r
 	case REG_SPRITE_COLL:
-		tmp := v.spriteSpriteColl
+		data = v.spriteSpriteColl
 		v.spriteSpriteColl = 0
-		return tmp
 	case REG_DATA_COLL:
-		tmp := v.spriteDataColl
+		data = v.spriteDataColl
 		v.spriteDataColl = 0
-		return tmp
 	case REG_BORDER:
-		return v.borderCol
+		data =  v.borderCol
 	case REG_SPRITE_MC0:
-		return v.spriteMultiClr0
+		data =  v.spriteMultiClr0
 	case REG_SPRITE_MC1:
-		return v.spriteMultiClr1
+		data =  v.spriteMultiClr1
 	}
-	return 0xff
+	return data | unusedBitsMask[addr]
 }
 
 func (v *VicII) WriteByte(addr uint16, data uint8) {
+	fmt.Printf("WRITE $D0%02X at cycle %d of current_line $%04X\n",
+		addr, v.cycle % 63, v.rasterLine)
 	addr &= 0x003f
 	if addr >= 0x002f {
 		return

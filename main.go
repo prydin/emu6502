@@ -135,6 +135,10 @@ func main() {
 				for i := uint16(0); i < uint16(sourceMap.Size); i++ {
 					c64.Bus.WriteByte(i+sourceMap.Origin, code.Code[i])
 				}
+				// Set pointer to end of BASIC program. // TODO: We should probably have a flag for this
+				end := uint16(sourceMap.Size + 1) + sourceMap.Origin
+				c64.Bus.WriteByte(0x002d, uint8(end & 0xff))
+				c64.Bus.WriteByte(0x002e, uint8(end >> 8))
 				code = nil
 			}
 			if n%1000000 == 0 {

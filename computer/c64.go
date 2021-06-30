@@ -47,7 +47,7 @@ func (c *Commodore64) Init(screen vic_ii.Raster, dimensions vic_ii.ScreenDimensi
 	c.Vic = vic_ii.VicII{}
 	c.Bus = core.Bus{}
 	vbus := core.Bus{}
-	c.Bus.ConnectClockablePh1(&c.Cpu)
+	c.Bus.ConnectClockablePh2(&c.Cpu)
 	colorRam := core.MakeRAM(1024)
 
 	// Initialize CPI
@@ -56,10 +56,10 @@ func (c *Commodore64) Init(screen vic_ii.Raster, dimensions vic_ii.ScreenDimensi
 	// Initialize CIAs
 	cia1 := cia.CIA{}
 	cia1.Init(&c.Bus)
-	c.Bus.ConnectClockablePh1(&cia1)
+	c.Bus.ConnectClockablePh2(&cia1)
 	cia2 := cia.CIA{}
 	cia2.Init(&c.Bus)
-	c.Bus.ConnectClockablePh1(&cia2)
+	c.Bus.ConnectClockablePh2(&cia2)
 
 	// Initialize VIC
 	c.Vic.Init(&vbus, &c.Bus, &cia2, colorRam, screen, dimensions)

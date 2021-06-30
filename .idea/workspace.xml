@@ -5,155 +5,12 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="58c6cb47-3664-4a3a-a472-e4643dd7a4d6" name="Default Changelist" comment="">
-      <change afterPath="$PROJECT_DIR$/../OpenKOM/src/main/main.iml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/../OpenKOM/src/test/test.iml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/../code/code.iml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/../jmandel/jmandel.iml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/../mksprite/main.go" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/../pptest/pptest.iml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/../prata/build.gradle" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/../prata/gradlew" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/../prata/gradlew.bat" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/../prata/settings.gradle" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/../prata/src/main/java/nu/rydin/prata/app/Application.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/../prata/src/main/java/nu/rydin/prata/app/CRUDController.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/../prata/src/main/java/nu/rydin/prata/app/PrataApplicationRunner.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/../prata/src/main/java/nu/rydin/prata/app/users/UserController.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/../prata/src/main/java/nu/rydin/prata/app/users/UserRepo.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/../prata/src/main/java/nu/rydin/prata/models/Channel.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/../prata/src/main/java/nu/rydin/prata/models/Identifiable.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/../prata/src/main/java/nu/rydin/prata/models/Membership.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/../prata/src/main/java/nu/rydin/prata/models/MembershipId.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/../prata/src/main/java/nu/rydin/prata/models/Post.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/../prata/src/main/java/nu/rydin/prata/models/User.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/../prata/src/main/java/nu/rydin/prata/repos/ChannelRepo.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/../prata/src/main/java/nu/rydin/prata/repos/MembershipRepo.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/../prata/src/main/java/nu/rydin/prata/repos/PostRepo.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/../prata/src/main/resources/application-dev.properties" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/../prata/src/main/resources/application.properties" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/../springtest/springtest.iml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/../vexpress-frontend/.gitignore" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/../vexpress-frontend/src/main/java/vexpress/frontend/Config.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/../vexpress-frontend/src/main/java/vexpress/frontend/FrontendApplication.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/../vexpress-frontend/src/main/java/vexpress/frontend/FrontendController.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/../vexpress-pricing/templates/application-properties.tpl" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/../vexpress-scheduling/src/main/main.iml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/../vexpress-scheduling/src/test/test.iml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/../vexpress-scheduling/templates/application-properties.tpl" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/../vmware-vra8-jenkins-plugin/vmware-vra8-jenkins-plugin.iml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/../vmware-vra8-jenkins-plugin/vra8-jenkins-plugin.iml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/../vra8gateway/src/main/java/com/fedex/cloudops/fake/security/redux/CipherCacheLoader.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/../vrealize-automation-plugin-for-jenkins/vmware-vra8-jenkins-plugin.iml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/../vrealize-automation-plugin-for-jenkins/vra8-jenkins-plugin.iml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/../vrealize-automation-plugin-for-jenkins/vrealize-automation-8.iml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/testsuite/banking.a65" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/core/cpu.go" beforeDir="false" afterPath="$PROJECT_DIR$/core/cpu.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/core/cpu_test.go" beforeDir="false" afterPath="$PROJECT_DIR$/core/cpu_test.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/testsuite/timing.a65" beforeDir="false" afterPath="$PROJECT_DIR$/testsuite/timing.a65" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../fizzbuzz/fizzbuzz.iml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../gradle/wrapper/gradle-wrapper.jar" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../gradle/wrapper/gradle-wrapper.properties" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../gradlew" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../gradlew.bat" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../settings.gradle" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../src/main/java/net/querz/io/Deserializer.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../src/main/java/net/querz/io/ExceptionBiFunction.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../src/main/java/net/querz/io/ExceptionTriConsumer.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../src/main/java/net/querz/io/MaxDepthIO.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../src/main/java/net/querz/io/MaxDepthReachedException.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../src/main/java/net/querz/io/Serializer.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../src/main/java/net/querz/io/StringDeserializer.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../src/main/java/net/querz/io/StringSerializer.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../src/main/java/net/querz/mca/Chunk.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../src/main/java/net/querz/mca/CompressionType.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../src/main/java/net/querz/mca/ExceptionFunction.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../src/main/java/net/querz/mca/MCAFile.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../src/main/java/net/querz/mca/MCAUtil.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../src/main/java/net/querz/mca/Section.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../src/main/java/net/querz/nbt/io/NBTDeserializer.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../src/main/java/net/querz/nbt/io/NBTInputStream.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../src/main/java/net/querz/nbt/io/NBTOutputStream.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../src/main/java/net/querz/nbt/io/NBTSerializer.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../src/main/java/net/querz/nbt/io/NBTUtil.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../src/main/java/net/querz/nbt/io/NamedTag.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../src/main/java/net/querz/nbt/io/ParseException.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../src/main/java/net/querz/nbt/io/SNBTDeserializer.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../src/main/java/net/querz/nbt/io/SNBTParser.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../src/main/java/net/querz/nbt/io/SNBTSerializer.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../src/main/java/net/querz/nbt/io/SNBTUtil.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../src/main/java/net/querz/nbt/io/SNBTWriter.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../src/main/java/net/querz/nbt/io/StringPointer.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../src/main/java/net/querz/nbt/tag/ArrayTag.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../src/main/java/net/querz/nbt/tag/ByteArrayTag.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../src/main/java/net/querz/nbt/tag/ByteTag.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../src/main/java/net/querz/nbt/tag/CompoundTag.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../src/main/java/net/querz/nbt/tag/DoubleTag.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../src/main/java/net/querz/nbt/tag/EndTag.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../src/main/java/net/querz/nbt/tag/FloatTag.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../src/main/java/net/querz/nbt/tag/IntArrayTag.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../src/main/java/net/querz/nbt/tag/IntTag.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../src/main/java/net/querz/nbt/tag/ListTag.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../src/main/java/net/querz/nbt/tag/LongArrayTag.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../src/main/java/net/querz/nbt/tag/LongTag.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../src/main/java/net/querz/nbt/tag/NonNullEntrySet.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../src/main/java/net/querz/nbt/tag/NumberTag.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../src/main/java/net/querz/nbt/tag/ShortTag.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../src/main/java/net/querz/nbt/tag/StringTag.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../src/main/java/net/querz/nbt/tag/Tag.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../src/test/java/net/querz/ExceptionRunnable.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../src/test/java/net/querz/ExceptionSupplier.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../src/test/java/net/querz/NBTTestCase.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../src/test/java/net/querz/mca/CompressionTypeTest.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../src/test/java/net/querz/mca/MCAFileTest.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../src/test/java/net/querz/mca/MCATestCase.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../src/test/java/net/querz/mca/MCAUtilTest.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../src/test/java/net/querz/nbt/io/NamedTagTest.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../src/test/java/net/querz/nbt/io/SNBTParserTest.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../src/test/java/net/querz/nbt/io/SNBTWriterTest.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../src/test/java/net/querz/nbt/io/StringPointerTest.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../src/test/java/net/querz/nbt/tag/ByteArrayTagTest.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../src/test/java/net/querz/nbt/tag/ByteTagTest.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../src/test/java/net/querz/nbt/tag/CompoundTagTest.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../src/test/java/net/querz/nbt/tag/DoubleTagTest.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../src/test/java/net/querz/nbt/tag/EndTagTest.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../src/test/java/net/querz/nbt/tag/FloatTagTest.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../src/test/java/net/querz/nbt/tag/IntArrayTagTest.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../src/test/java/net/querz/nbt/tag/IntTagTest.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../src/test/java/net/querz/nbt/tag/ListTagTest.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../src/test/java/net/querz/nbt/tag/LongArrayTagTest.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../src/test/java/net/querz/nbt/tag/LongTagTest.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../src/test/java/net/querz/nbt/tag/NoNullEntrySetTest.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../src/test/java/net/querz/nbt/tag/ShortTagTest.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../src/test/java/net/querz/nbt/tag/StringTagTest.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../src/test/resources/invalid_compression.dat" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../src/test/resources/invalid_data_tag.dat" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../src/test/resources/max_depth_reached.dat" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../src/test/resources/r.0.0.mca" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../src/test/resources/r.2.2.mca" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../vexpress/pricing/.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/../vexpress/pricing/.gitignore" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../vexpress/pricing/build.gradle" beforeDir="false" afterPath="$PROJECT_DIR$/../vexpress/pricing/build.gradle" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../vexpress/pricing/src/main/java/vexpress/pricing/PricingApplication.java" beforeDir="false" afterPath="$PROJECT_DIR$/../vexpress/pricing/src/main/java/vexpress/pricing/PricingApplication.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../vexpress/pricing/src/main/java/vexpress/pricing/PricingController.java" beforeDir="false" afterPath="$PROJECT_DIR$/../vexpress/pricing/src/main/java/vexpress/pricing/PricingController.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../vexpress/zipcode/build.gradle" beforeDir="false" afterPath="$PROJECT_DIR$/../vexpress/zipcode/build.gradle" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../vexpress/zipcode/src/main/java/vexpress/zipcode/DistanceResponse.java" beforeDir="false" afterPath="$PROJECT_DIR$/../vexpress/zipcode/src/main/java/vexpress/zipcode/DistanceResponse.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../vexpress/zipcode/src/main/java/vexpress/zipcode/Loader.java" beforeDir="false" afterPath="$PROJECT_DIR$/../vexpress/zipcode/src/main/java/vexpress/zipcode/Loader.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../vexpress/zipcode/src/main/java/vexpress/zipcode/ZipCodeApplication.java" beforeDir="false" afterPath="$PROJECT_DIR$/../vexpress/zipcode/src/main/java/vexpress/zipcode/ZipCodeApplication.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../vexpress/zipcode/src/main/java/vexpress/zipcode/ZipCodeController.java" beforeDir="false" afterPath="$PROJECT_DIR$/../vexpress/zipcode/src/main/java/vexpress/zipcode/ZipCodeController.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../vexpress/zipcode/src/main/java/vexpress/zipcode/ZipCodeDetails.java" beforeDir="false" afterPath="$PROJECT_DIR$/../vexpress/zipcode/src/main/java/vexpress/zipcode/ZipCodeDetails.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../vexpress/zipcode/src/main/java/vexpress/zipcode/ZipNotFoundException.java" beforeDir="false" afterPath="$PROJECT_DIR$/../vexpress/zipcode/src/main/java/vexpress/zipcode/ZipNotFoundException.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../vexpress/zipcode/src/main/sql/zipcodes.sql" beforeDir="false" afterPath="$PROJECT_DIR$/../vexpress/zipcode/src/main/sql/zipcodes.sql" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../vexpress/zipcode/src/test/java/vexpress/zipcode/TestZipCode.java" beforeDir="false" afterPath="$PROJECT_DIR$/../vexpress/zipcode/src/test/java/vexpress/zipcode/TestZipCode.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../virtex/gradle/project.gradle" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../virtex/pricing/build.gradle" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../virtex/pricing/pricing.iml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../virtex/pricing/src/main/java/virtex/pricing/PricingRequest.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../vmware-vra8-jenkins-plugin/src/main/java/net/virtualviking/vra/jenkinsplugin/vra/VraApi.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../vmware-vra8-jenkins-plugin/src/test/java/net/virtualviking/vra/jenkinsplugin/vra/VraApiTest.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../vra8-jenkins-plugin/vra8-jenkins-plugin/src/main/java/net/virtualviking/vra/jenkinsplugin/model/AuthenticationRequest.java" beforeDir="false" afterPath="$PROJECT_DIR$/../vra8-jenkins-plugin/vra8-jenkins-plugin/src/main/java/net/virtualviking/vra/jenkinsplugin/model/AuthenticationRequest.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../vra8-jenkins-plugin/vra8-jenkins-plugin/src/main/java/net/virtualviking/vra/jenkinsplugin/model/AuthenticationResponse.java" beforeDir="false" afterPath="$PROJECT_DIR$/../vra8-jenkins-plugin/vra8-jenkins-plugin/src/main/java/net/virtualviking/vra/jenkinsplugin/model/AuthenticationResponse.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../vra8-jenkins-plugin/vra8-jenkins-plugin/src/main/java/net/virtualviking/vra/jenkinsplugin/vra/VRAClient.java" beforeDir="false" afterPath="$PROJECT_DIR$/../vra8-jenkins-plugin/vra8-jenkins-plugin/src/main/java/net/virtualviking/vra/jenkinsplugin/vra/VRAClient.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../vra8-jenkins-plugin/vra8-jenkins-plugin/src/main/java/net/virtualviking/vra/jenkinsplugin/vra/VRAException.java" beforeDir="false" afterPath="$PROJECT_DIR$/../vra8-jenkins-plugin/vra8-jenkins-plugin/src/main/java/net/virtualviking/vra/jenkinsplugin/vra/VRAException.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../vrealize-automation-plugin-for-jenkins/src/test/java/com/vmware/vra/jenkinsplugin/pipeline/E2EPipelinePart1Test.java" beforeDir="false" afterPath="$PROJECT_DIR$/../vrealize-automation-plugin-for-jenkins/src/test/java/com/vmware/vra/jenkinsplugin/pipeline/E2EPipelinePart1Test.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/computer/c64.go" beforeDir="false" afterPath="$PROJECT_DIR$/computer/c64.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/main.go" beforeDir="false" afterPath="$PROJECT_DIR$/main.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/vic-ii/scan.go" beforeDir="false" afterPath="$PROJECT_DIR$/vic-ii/scan.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/vic-ii/vic_ii.go" beforeDir="false" afterPath="$PROJECT_DIR$/vic-ii/vic_ii.go" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -198,13 +55,14 @@
     <property name="com.intellij.ide.scratch.LRUPopupBuilder$1/New Scratch File" value="GenericSQL" />
     <property name="go.import.settings.migrated" value="true" />
     <property name="go.tried.to.enable.integration.vgo.integrator" value="true" />
-    <property name="last_opened_file_path" value="$PROJECT_DIR$" />
+    <property name="last_opened_file_path" value="$PROJECT_DIR$/testsuite" />
     <property name="nodejs_interpreter_path.stuck_in_default_project" value="undefined stuck path" />
     <property name="nodejs_npm_path_reset_for_default_project" value="true" />
     <property name="settings.editor.selected.configurable" value="settings.saveactions" />
   </component>
   <component name="RecentsManager">
     <key name="CopyFile.RECENT_KEYS">
+      <recent name="$PROJECT_DIR$/testsuite" />
       <recent name="$USER_HOME$" />
     </key>
     <key name="MoveFile.RECENT_KEYS">
@@ -213,7 +71,7 @@
       <recent name="$PROJECT_DIR$/core" />
     </key>
   </component>
-  <component name="RunManager" selected="Go Test.TestTiming in github.com/prydin/emu6502/core">
+  <component name="RunManager" selected="Go Build.Run Banking Test">
     <configuration name="Run Banking Test" type="GoApplicationRunConfiguration" factoryName="Go Application">
       <module name="emu6502" />
       <working_directory value="$PROJECT_DIR$" />
@@ -234,10 +92,40 @@
       <filePath value="$PROJECT_DIR$/main.go" />
       <method v="2" />
     </configuration>
+    <configuration name="Run Delay Test" type="GoApplicationRunConfiguration" factoryName="Go Application">
+      <module name="emu6502" />
+      <working_directory value="$PROJECT_DIR$" />
+      <parameters value="--loadprg $USER_HOME$/prg/delay.prg" />
+      <kind value="FILE" />
+      <package value="github.com/prydin/emu6502" />
+      <directory value="$PROJECT_DIR$" />
+      <filePath value="$PROJECT_DIR$/main.go" />
+      <method v="2" />
+    </configuration>
     <configuration name="Run Demo" type="GoApplicationRunConfiguration" factoryName="Go Application">
       <module name="emu6502" />
       <working_directory value="$PROJECT_DIR$" />
       <parameters value="--loadasm demos/sprites.a65" />
+      <kind value="FILE" />
+      <package value="github.com/prydin/emu6502" />
+      <directory value="$PROJECT_DIR$" />
+      <filePath value="$PROJECT_DIR$/main.go" />
+      <method v="2" />
+    </configuration>
+    <configuration name="Run Ph 1 Timing Test" type="GoApplicationRunConfiguration" factoryName="Go Application">
+      <module name="emu6502" />
+      <working_directory value="$PROJECT_DIR$" />
+      <parameters value="--loadprg $USER_HOME$/prg/phi1timing.prg" />
+      <kind value="FILE" />
+      <package value="github.com/prydin/emu6502" />
+      <directory value="$PROJECT_DIR$" />
+      <filePath value="$PROJECT_DIR$/main.go" />
+      <method v="2" />
+    </configuration>
+    <configuration name="Run Raster IRQ Test" type="GoApplicationRunConfiguration" factoryName="Go Application">
+      <module name="emu6502" />
+      <working_directory value="$PROJECT_DIR$" />
+      <parameters value="--loadprg $USER_HOME$/prg/rasterirq_hold.prg" />
       <kind value="FILE" />
       <package value="github.com/prydin/emu6502" />
       <directory value="$PROJECT_DIR$" />
@@ -320,6 +208,9 @@
       <item itemvalue="Go Build.Run Demo" />
       <item itemvalue="Go Build.Run Copper Booze" />
       <item itemvalue="Go Build.Run Banking Test" />
+      <item itemvalue="Go Build.Run Delay Test" />
+      <item itemvalue="Go Build.Run Ph 1 Timing Test" />
+      <item itemvalue="Go Build.Run Raster IRQ Test" />
       <item itemvalue="Go Test.TestBanking in github.com/prydin/emu6502/vic-ii" />
       <item itemvalue="Go Test.Test_RasterlinePolling in github.com/prydin/emu6502/vic-ii" />
       <item itemvalue="Go Test.Test_CharacterMode in github.com/prydin/emu6502/vic-ii" />
@@ -373,6 +264,7 @@
         </entry>
       </map>
     </option>
+    <option name="oldMeFiltersMigrated" value="true" />
   </component>
   <component name="VgoProject">
     <integration-enabled>true</integration-enabled>
@@ -452,14 +344,9 @@
           <option name="timeStamp" value="391" />
         </line-breakpoint>
         <line-breakpoint enabled="true" type="DlvLineBreakpoint">
-          <url>file://$PROJECT_DIR$/vic-ii/scan.go</url>
-          <line>32</line>
-          <option name="timeStamp" value="399" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" type="DlvLineBreakpoint">
           <url>file://$PROJECT_DIR$/core/cpu.go</url>
-          <line>722</line>
-          <option name="timeStamp" value="426" />
+          <line>613</line>
+          <option name="timeStamp" value="431" />
         </line-breakpoint>
       </breakpoints>
     </breakpoint-manager>
